@@ -20,6 +20,9 @@ final class UserProfile {
     var createdAt: Date = Date()
     var updatedAt: Date = Date()
 
+    @Relationship(deleteRule: .cascade)
+    var goals: [Goal] = []
+
     init(
         name: String,
         age: Int,
@@ -141,6 +144,9 @@ final class HealthSnapshot {
     var sorenessLevel: Int?        // 1-10
     var mood: Mood?
     var notes: String?
+
+    @Relationship
+    var owner: UserProfile?
 
     init(date: Date = Date()) {
         self.date = date

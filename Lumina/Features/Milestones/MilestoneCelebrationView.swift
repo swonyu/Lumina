@@ -18,9 +18,9 @@ struct MilestoneCelebrationView: View {
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
             
-            GlassButton(title: "Thank you", isProminent: true) {
+            GlassButton(title: "Thank you", isProminent: true, action: {
                 dismiss()
-            }
+            })
             .padding(.top)
         }
         .padding(40)

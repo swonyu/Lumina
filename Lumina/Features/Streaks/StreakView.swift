@@ -3,7 +3,7 @@ import SwiftUI
 struct StreakView: View {
     var body: some View {
         VStack(spacing: 16) {
-            Text("Consistency")
+            Text(L("streak.consistency_title"))
                 .font(.largeTitle.bold())
             
             GlassCard {
@@ -11,7 +11,7 @@ struct StreakView: View {
                     VStack {
                         Text("12")
                             .font(.system(size: 48, weight: .bold))
-                        Text("Day Streak")
+                        Text(L("streak.day_streak"))
                     }
                     Spacer()
                     Text("🔥")
@@ -20,10 +20,11 @@ struct StreakView: View {
             }
             
             GlassCard {
-                Text("Longest streak: 28 days")
+                Text(L("streak.longest", 28))
             }
         }
         .padding()
         .glassBackground()
+        .withAppLanguage()
     }
 }

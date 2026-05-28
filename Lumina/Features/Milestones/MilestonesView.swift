@@ -4,37 +4,39 @@ struct MilestonesView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                Text("Your Journey So Far")
+                Text(L("milestones.journey_title"))
                     .font(.largeTitle.bold())
                 
                 GlassCard {
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("🎉 30-Day Consistency Streak")
+                        Text(L("milestones.streak_title"))
                             .font(.headline)
-                        Text("You showed up even on the hard days. That’s rare and powerful.")
+                        Text(L("milestones.streak_message"))
                     }
                 }
                 
                 GlassCard {
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("💪 First Real Milestone")
+                        Text(L("milestones.first_title"))
                             .font(.headline)
                             .foregroundStyle(.secondary)
-                        Text("You haven’t hit one yet — but you’re building the foundation.")
+                        Text(L("milestones.first_message"))
                     }
                 }
                 
                 GlassCard {
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("🧠 Mindset Shift")
+                        Text(L("milestones.mindset_title"))
                             .font(.headline)
-                        Text("You started checking in with yourself instead of just pushing through.")
+                        Text(L("milestones.mindset_message"))
                     }
                 }
             }
             .padding()
         }
         .glassBackground()
-        .navigationTitle("Milestones")
+        .navigationTitle(L("tab.milestones"))
+        .withAppLanguage()
+        .drawingGroup() // Round 10 perf
     }
 }

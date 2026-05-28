@@ -11,6 +11,9 @@ final class WorkoutLog {
     var notes: String?
     var durationMinutes: Int?
 
+    @Relationship
+    var owner: UserProfile?
+
     init(date: Date = Date(), workoutName: String, exercises: [LoggedExercise] = [], perceivedExertion: Int? = nil, notes: String? = nil, durationMinutes: Int? = nil) {
         self.date = date
         self.workoutName = workoutName

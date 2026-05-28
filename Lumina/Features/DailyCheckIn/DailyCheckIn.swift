@@ -13,6 +13,9 @@ final class DailyCheckIn {
     var journalNote: String?
     var didTrain: Bool = false
 
+    @Relationship
+    var owner: UserProfile?
+
     init(
         date: Date = Date(),
         energyLevel: Int,

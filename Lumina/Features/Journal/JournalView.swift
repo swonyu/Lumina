@@ -3,6 +3,7 @@ import SwiftData
 
 struct JournalView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(LuminaViewModel.self) private var viewModel
     @Query(sort: \JournalEntry.date, order: .reverse) private var entries: [JournalEntry]
     
     @State private var newEntry = ""
@@ -10,6 +11,22 @@ struct JournalView: View {
 
     var body: some View {
         List {
+            // Round 33: Coach nudge from memory in the reflective Journal space
+            if !viewModel.smartMemorySummary.isEmpty || !viewModel.memorySummary.isEmpty {
+                let mem = !viewModel.smartMemorySummary.isEmpty ? viewModel.smartMemorySummary : viewModel.memorySummary
+                if mem.lowercased().contains("mood") || mem.lowercased().contains("energy") || mem.lowercased().contains("consistent") || mem.lowercased().contains("goal") {
+                    Section {
+                        HStack(spacing: 8) {
+                            Image(systemName: "sparkles")
+                                .foregroundStyle(.yellow)
+                            Text("Coach reflection prompt: Your patterns show themes worth journaling about today.")
+                                .font(.caption)
+                                .foregroundStyle(.white.opacity(0.9))
+                        }
+                    }
+                }
+            }
+            
             ForEach(entries) { entry in
                 VStack(alignment: .leading, spacing: 6) {
                     Text(entry.date.formatted(date: .abbreviated, time: .shortened))
@@ -25,7 +42,7 @@ struct JournalView: View {
                         .lineLimit(3)
                     
                     if let mood = entry.mood {
-                        Text("Mood: \(mood.rawValue)")
+                        Text(L("journal.mood_prefix", mood.rawValue))
                             .font(.caption2)
                             .foregroundStyle(.secondary)
                     }
@@ -33,7 +50,7 @@ struct JournalView: View {
                 .padding(.vertical, 4)
             }
         }
-        .navigationTitle("Journal")
+        .navigationTitle(L("tab.journal"))
         .toolbar {
             Button {
                 showingNewEntry = true
@@ -45,6 +62,8 @@ struct JournalView: View {
             NewJournalEntryView()
         }
         .glassBackground()
+        .withAppLanguage()
+        .drawingGroup()  // Round 5 perf improvement for journal list
     }
 }
 
@@ -63,21 +82,21 @@ struct NewJournalEntryView: View {
                         .frame(height: 150)
                 }
                 
-                Section("How are you feeling?") {
-                    Picker("Mood", selection: $mood) {
+                Section(L("journal.feeling_section")) {
+                    Picker(L("journal.mood_picker"), selection: $mood) {
                         ForEach(Mood.allCases, id: \.self) { m in
                             Text(m.rawValue).tag(m)
                         }
                     }
                 }
             }
-            .navigationTitle("New Entry")
+            .navigationTitle(L("journal.new_entry_title"))
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    Button(L("general.cancel")) { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
+                    Button(L("general.save")) {
                         saveEntry()
                         dismiss()
                     }

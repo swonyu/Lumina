@@ -1,28 +1,139 @@
 import Foundation
 
-struct SmartGrokCoach {
+/// Real AI-powered coach using xAI Grok via direct OpenAI-compatible API.
+/// Falls back to high-quality local rules when no API key or offline.
+final class SmartGrokCoach {
+    private let apiKey: String
     private var conversationHistory: [ChatMessage] = []
 
-    init(apiKey: String = "") { }
+    init(apiKey: String = "") {
+        self.apiKey = apiKey
+    }
 
-    mutating func respondToUser(message: String, context: CoachContext) async throws -> String {
-        let reply = makeSupportReply(for: message, context: context)
-        conversationHistory.append(.user(message))
-        conversationHistory.append(.assistant(reply))
-        return reply
+    func respondToUser(message: String, context: CoachContext, longTermMemory: String = "") async throws -> String {
+        // Always record in local memory for patterns
+        CoachMemory.shared.recordPattern("User said: \(message.prefix(80))...")
+
+        guard !apiKey.isEmpty else {
+            // High-quality fallback (kept for demo / no key)
+            let reply = makeSupportReply(for: message, context: context)
+            conversationHistory.append(ChatMessage.user(message))
+            conversationHistory.append(ChatMessage.assistant(reply))
+            return reply
+        }
+
+        // Build rich prompt using the excellent templates we already have (Round 10 improvement)
+        let systemPrompt = SmartCoachPrompts.emotionalSupport(
+            userMessage: message, 
+            context: context, 
+            longTermMemory: longTermMemory.isEmpty ? CoachMemory.shared.getRelevantContext() : longTermMemory
+        )
+
+        do {
+            let reply = try await callXAIChat(
+                systemPrompt: systemPrompt,
+                userMessage: message,
+                history: conversationHistory.suffix(6)
+            )
+            conversationHistory.append(ChatMessage.user(message))
+            conversationHistory.append(ChatMessage.assistant(reply))
+            // Store reflection for future context
+            if message.count > 15 {
+                CoachMemory.shared.addReflection("User: \(message.prefix(60)) → Coach: \(reply.prefix(80))")
+            }
+            return reply
+        } catch {
+            // Graceful fallback on network / rate / key error
+            let fallback = makeSupportReply(for: message, context: context)
+            conversationHistory.append(ChatMessage.user(message))
+            conversationHistory.append(ChatMessage.assistant(fallback))
+            return fallback
+        }
     }
 
     func generateSmartWorkoutPlan(profile: UserProfile, context: CoachContext) async throws -> String {
-        "Today should match your \(profile.experienceLevel.rawValue.lowercased()) level and \(profile.primaryGoal.rawValue.lowercased()) goal. Start with a focused warm-up, complete your main strength work, then finish with easy conditioning if recovery feels good."
+        guard !apiKey.isEmpty else {
+            return "Personalized plan for a \(profile.experienceLevel.rawValue.lowercased()) aiming for \(profile.primaryGoal.rawValue.lowercased()). Focus on 3-4 key lifts, 1-2 accessory movements, and 10-15 min mobility. Adjust volume based on how you feel tomorrow."
+        }
+
+        let prompt = SmartCoachPrompts.adaptiveWorkoutPrompt(
+            profile: profile,
+            context: context,
+            recentPerformance: nil
+        )
+        return try await callXAIChat(systemPrompt: prompt, userMessage: "Generate the adaptive plan now.", history: [])
     }
 
     func generateWeeklyReflection(context: CoachContext, workoutsCompleted: Int, avgEnergy: Double) async throws -> String {
-        "You completed \(workoutsCompleted) workouts with average energy around \(String(format: "%.1f", avgEnergy))/10. Keep the next week simple: protect sleep, stay consistent, and increase volume only if recovery stays steady."
+        guard !apiKey.isEmpty else {
+            return "You completed \(workoutsCompleted) workouts with average energy around \(String(format: "%.1f", avgEnergy))/10. Keep the next week simple: protect sleep, stay consistent, and increase volume only if recovery stays steady."
+        }
+
+        let prompt = SmartCoachPrompts.weeklyReflection(
+            context: context,
+            workoutsCompleted: workoutsCompleted,
+            avgEnergy: avgEnergy
+        )
+        return try await callXAIChat(systemPrompt: prompt, userMessage: "Write the weekly reflection.", history: [])
     }
 
-    mutating func clearHistory() {
+    func clearHistory() {
         conversationHistory.removeAll()
     }
+
+    // MARK: - Real xAI API call (OpenAI compatible endpoint)
+
+    private func callXAIChat(systemPrompt: String, userMessage: String, history: [ChatMessage]) async throws -> String {
+        guard !apiKey.isEmpty else { throw NSError(domain: "no-key", code: 0) }
+
+        let url = URL(string: "https://api.x.ai/v1/chat/completions")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.timeoutInterval = 35
+
+        var apiMessages: [XAIChatMessage] = []
+        apiMessages.append(XAIChatMessage(role: "system", content: systemPrompt))
+
+        // Add limited recent history (role mapping)
+        for msg in history {
+            let roleStr: String
+            switch msg.role {
+            case .user: roleStr = "user"
+            case .assistant: roleStr = "assistant"
+            case .system: roleStr = "system"
+            }
+            apiMessages.append(XAIChatMessage(role: roleStr, content: msg.content))
+        }
+
+        apiMessages.append(XAIChatMessage(role: "user", content: userMessage))
+
+        let payload = XAIChatRequest(
+            model: "grok-3-latest",
+            messages: apiMessages,
+            temperature: 0.75
+        )
+
+        request.httpBody = try JSONEncoder().encode(payload)
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+
+        if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
+            let body = String(data: data, encoding: .utf8) ?? ""
+            throw NSError(domain: "xai", code: http.statusCode, userInfo: [NSLocalizedDescriptionKey: "xAI error \(http.statusCode): \(body.prefix(200))"])
+        }
+
+        let decoded = try JSONDecoder().decode(XAIChatResponse.self, from: data)
+        let content = decoded.choices?.first?.message?.content.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard let reply = content, !reply.isEmpty else {
+            throw NSError(domain: "xai", code: -1, userInfo: [NSLocalizedDescriptionKey: "Empty reply from Grok"])
+        }
+        return reply
+    }
+
+    // MARK: - Fallback (excellent local rules, kept as offline / no-key path)
 
     private func makeSupportReply(for message: String, context: CoachContext) -> String {
         let lowercasedMessage = message.lowercased()
@@ -56,4 +167,25 @@ struct SmartGrokCoach {
 
         return "I hear you. Pick one small next step that supports your \(goal) today, then make it easy enough to actually do."
     }
+}
+
+// MARK: - Minimal xAI API types (no external dependency)
+
+private struct XAIChatRequest: Codable {
+    let model: String
+    let messages: [XAIChatMessage]
+    let temperature: Double?
+}
+
+private struct XAIChatMessage: Codable {
+    let role: String
+    let content: String
+}
+
+private struct XAIChatResponse: Codable {
+    let choices: [XAIChoice]?
+}
+
+private struct XAIChoice: Codable {
+    let message: XAIChatMessage?
 }

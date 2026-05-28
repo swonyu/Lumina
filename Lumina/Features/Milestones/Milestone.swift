@@ -10,6 +10,9 @@ final class Milestone {
     var isAchieved: Bool = false
     var category: MilestoneCategory
     
+    @Relationship
+    var owner: UserProfile?
+    
     init(title: String, description: String, category: MilestoneCategory) {
         self.title = title
         self.detail = description

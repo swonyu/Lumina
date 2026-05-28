@@ -25,7 +25,10 @@ struct LuminaApp: App {
             MealLog.self,
             DailyCheckIn.self,
             WorkoutLog.self,
-            JournalEntry.self
+            JournalEntry.self,
+            CoachMemoryEntry.self,   // Round 6: Persisted coach intelligence
+            Goal.self,               // Round 13: Real coach-adjustable goals
+            Habit.self               // Round 37: Coach-driven habits
         ])
     }
 }

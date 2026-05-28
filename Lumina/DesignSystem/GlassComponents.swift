@@ -13,14 +13,14 @@ struct GlassCard<Content: View>: View {
     var body: some View {
         content
             .padding()
-            .background(.ultraThinMaterial)
+            .background(.regularMaterial)
             .background(
                 RoundedRectangle(cornerRadius: cornerRadius)
-                    .fill(.white.opacity(0.06))
+                    .fill(.white.opacity(0.05))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: cornerRadius)
-                    .stroke(.white.opacity(0.2), lineWidth: 0.5)
+                    .stroke(.white.opacity(0.15), lineWidth: 0.5)
             )
             .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
     }
@@ -31,6 +31,12 @@ struct GlassButton: View {
     let title: String
     let action: () -> Void
     var isProminent: Bool = false
+
+    init(title: String, isProminent: Bool = false, action: @escaping () -> Void) {
+        self.title = title
+        self.isProminent = isProminent
+        self.action = action
+    }
     
     var body: some View {
         Button(action: action) {
@@ -42,7 +48,7 @@ struct GlassButton: View {
                 .background(
                     isProminent 
                     ? AnyShapeStyle(.linearGradient(colors: [.blue, .purple], startPoint: .leading, endPoint: .trailing))
-                    : AnyShapeStyle(.ultraThinMaterial)
+                    : AnyShapeStyle(.regularMaterial)
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: 16)
@@ -56,9 +62,21 @@ struct GlassButton: View {
 
 // MARK: - Glass Background
 extension View {
-    func glassBackground() -> some View {
-        self
-            .background(.ultraThinMaterial)
-            .background(Color.black.opacity(0.25))
+    /// Lighter glass background for better performance (uses regularMaterial instead of ultraThin).
+    /// Call `.glassBackground(ultraLight: true)` on the most expensive screens if you still want the heavier effect.
+    func glassBackground(ultraLight: Bool = false) -> some View {
+        if ultraLight {
+            return AnyView(
+                self
+                    .background(.ultraThinMaterial)
+                    .background(Color.black.opacity(0.22))
+            )
+        } else {
+            return AnyView(
+                self
+                    .background(.regularMaterial)
+                    .background(Color.black.opacity(0.30))
+            )
+        }
     }
 }

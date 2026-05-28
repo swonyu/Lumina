@@ -1,48 +1,134 @@
 import SwiftUI
+import SwiftData
 
 struct GoalsView: View {
-    @State private var goals: [GoalItem] = [
-        GoalItem(name: "Lose 8kg", current: 3.2, target: 8, unit: "kg")
-    ]
+    @Environment(LuminaViewModel.self) private var viewModel
+    
     @State private var showingAddGoal = false
     @State private var newGoalName = ""
     
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                Text("Your Goals")
+                Text(L("goals.title"))
                     .font(.largeTitle.bold())
                 
-                ForEach(goals) { goal in
+                if viewModel.goals.isEmpty {
                     GlassCard {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text(goal.name)
-                                .font(.headline)
-                            ProgressView(value: goal.progress)
-                            Text("\(String(format: "%.1f", goal.current))\(goal.unit) / \(String(format: "%.0f", goal.target))\(goal.unit)")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                        Text("No goals yet. The AI coach can help you set and adjust meaningful ones.")
+                            .foregroundStyle(.white.opacity(0.7))
+                    }
+                } else {
+                    ForEach(viewModel.goals) { goal in
+                        GlassCard {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text(goal.name)
+                                    .font(.headline)
+                                ProgressView(value: goal.progress)
+                                Text("\(String(format: "%.1f", goal.currentValue))\(goal.unit) / \(String(format: "%.0f", goal.targetValue))\(goal.unit)")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                
+                                if let notes = goal.adjustmentNotes {
+                                    Text("AI adjusted: \(notes)")
+                                        .font(.caption2)
+                                        .foregroundStyle(.yellow.opacity(0.8))
+                                }
+                            }
                         }
                     }
                 }
                 
-                GlassButton(title: "+ Add New Goal") {
-                    showingAddGoal = true
+                // Round 12/13: Show AI coach goal adjustments when they exist
+                if !viewModel.recentGoalAdjustments.isEmpty {
+                    GlassCard {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("Recent AI Coach Adjustments")
+                                .font(.headline)
+                            ForEach(viewModel.recentGoalAdjustments.prefix(3), id: \.self) { adj in
+                                Text("• \(adj)")
+                                    .font(.caption)
+                                    .foregroundStyle(.white.opacity(0.85))
+                            }
+                        }
+                    }
                 }
+
+                // Round 73 + 75 + 101: Smarter nudge for recent coach photo outcomes that may impact goals (now uses centralized computed)
+                if viewModel.currentCoachPhotoReflectionShowsLimitedImpact || (viewModel.coachPhotoReflection != nil && !viewModel.coachPhotoReflection!.isEmpty) {
+                    GlassCard {
+                        HStack {
+                            Image(systemName: "sparkles")
+                                .foregroundStyle(.yellow)
+                            Text(viewModel.currentCoachPhotoReflectionShowsLimitedImpact 
+                                ? "Coach photo showed limited impact on a habit — may need goal adjustment."
+                                : "Coach photo update may affect your goals — review in Progress Photos.")
+                                .font(.caption)
+                                .foregroundStyle(.white.opacity(0.85))
+                        }
+                    }
+                }
+                
+                // Round 29: Lightweight proactive nudge from the coach's memory directly in Goals
+                if !viewModel.smartMemorySummary.isEmpty || !viewModel.memorySummary.isEmpty {
+                    let mem = !viewModel.smartMemorySummary.isEmpty ? viewModel.smartMemorySummary : viewModel.memorySummary
+                    if mem.lowercased().contains("goal") || mem.lowercased().contains("adjust") || mem.lowercased().contains("consistency") {
+                        GlassCard {
+                            HStack(alignment: .top, spacing: 8) {
+                                Image(systemName: "sparkles")
+                                    .foregroundStyle(.yellow)
+                                    .padding(.top, 2)
+                                VStack(alignment: .leading, spacing: 3) {
+                                    HStack(spacing: 4) {
+                                        Text("Coach note from your patterns")
+                                            .font(.caption.weight(.semibold))
+                                            .foregroundStyle(.yellow.opacity(0.9))
+                                        if !ProcessInfo.processInfo.environment["XAI_API_KEY", default: ""].isEmpty {
+                                            Text("Grok")
+                                                .font(.caption2.weight(.semibold))
+                                                .foregroundStyle(.yellow.opacity(0.6))
+                                                .padding(.horizontal, 3)
+                                                .background(.yellow.opacity(0.12))
+                                                .clipShape(Capsule())
+                                        }
+                                    }
+                                    Text("Your recent memory shows meaningful goal work. The coach can help refine targets further anytime.")
+                                        .font(.caption)
+                                        .foregroundStyle(.white.opacity(0.8))
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                GlassButton(title: L("goals.add_button"), action: {
+                    showingAddGoal = true
+                })
             }
             .padding()
         }
         .glassBackground()
-        .navigationTitle("Goals")
-        .alert("New Goal", isPresented: $showingAddGoal) {
-            TextField("Goal name (e.g. Run 5k)", text: $newGoalName)
-            Button("Add") {
+        .navigationTitle(L("tab.goals"))
+        .withAppLanguage()
+        .drawingGroup() // Round 9 perf
+        .alert(L("goals.new_alert_title"), isPresented: $showingAddGoal) {
+            TextField(L("goals.name_placeholder"), text: $newGoalName)
+            Button(L("general.add")) {
                 if !newGoalName.trimmingCharacters(in: .whitespaces).isEmpty {
-                    goals.append(GoalItem(name: newGoalName, current: 0, target: 10, unit: ""))
+                    let newGoal = Goal(
+                        name: newGoalName,
+                        currentValue: 0,
+                        targetValue: 10,
+                        unit: "",
+                        category: "general"
+                    )
+                    viewModel.modelContext.insert(newGoal)
+                    try? viewModel.modelContext.save()
+                    viewModel.goals.insert(newGoal, at: 0)
                     newGoalName = ""
                 }
             }
-            Button("Cancel", role: .cancel) { newGoalName = "" }
+            Button(L("general.cancel"), role: .cancel) { newGoalName = "" }
         }
     }
 }

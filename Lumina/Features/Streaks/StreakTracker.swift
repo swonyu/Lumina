@@ -9,6 +9,9 @@ final class Streak {
     var longestStreak: Int = 0
     var lastCheckIn: Date?
 
+    @Relationship
+    var owner: UserProfile?
+
     init(type: StreakType) {
         self.type = type
     }

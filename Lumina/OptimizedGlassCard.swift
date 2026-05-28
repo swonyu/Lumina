@@ -16,11 +16,11 @@ struct OptimizedGlassCard<Content: View>: View {
             .padding(16)
             .background(
                 RoundedRectangle(cornerRadius: cornerRadius)
-                    .fill(.ultraThinMaterial)
+                    .fill(.regularMaterial)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: cornerRadius)
-                    .stroke(.white.opacity(0.12), lineWidth: 0.5)
+                    .stroke(.white.opacity(0.10), lineWidth: 0.5)
             )
             .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
             // Helps reduce overdraw

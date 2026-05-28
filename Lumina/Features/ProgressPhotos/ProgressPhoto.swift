@@ -10,6 +10,9 @@ final class ProgressPhoto {
     var weightAtTime: Double?
     var notes: String?
 
+    @Relationship
+    var owner: UserProfile?
+
     init(date: Date = Date(), photoData: Data? = nil, weightAtTime: Double? = nil, notes: String? = nil) {
         self.date = date
         self.photoData = photoData

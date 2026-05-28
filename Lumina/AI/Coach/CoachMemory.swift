@@ -1,7 +1,7 @@
 import Foundation
 
 /// Simple in-memory + persistent coach memory for better long-term emotional intelligence
-struct CoachMemory {
+final class CoachMemory {
     static let shared = CoachMemory()
     
     private var recentReflections: [String] = []
@@ -9,14 +9,14 @@ struct CoachMemory {
     
     private init() {}
     
-    mutating func addReflection(_ text: String) {
+    func addReflection(_ text: String) {
         recentReflections.append(text)
         if recentReflections.count > 5 {
             recentReflections.removeFirst()
         }
     }
     
-    mutating func recordPattern(_ pattern: String) {
+    func recordPattern(_ pattern: String) {
         userPatterns.append(pattern)
         if userPatterns.count > 8 {
             userPatterns.removeFirst()

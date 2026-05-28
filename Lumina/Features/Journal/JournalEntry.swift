@@ -10,6 +10,9 @@ final class JournalEntry {
     var mood: Mood?
     var tags: [String] = []
 
+    @Relationship
+    var owner: UserProfile?
+
     init(date: Date = Date(), title: String? = nil, content: String, mood: Mood? = nil, tags: [String] = []) {
         self.date = date
         self.title = title

@@ -1,0 +1,245 @@
+/* Lumina - Arabic Localizable Strings (RTL) */
+
+/* Tabs */
+"tab.home" = "الرئيسية";
+"tab.workouts" = "التمارين";
+"tab.nutrition" = "التغذية";
+"tab.coach" = "المدرب";
+"tab.progress" = "التقدم";
+"tab.checkin" = "تسجيل اليوم";
+"tab.habits" = "العادات";
+"tab.goals" = "الأهداف";
+"tab.journal" = "اليوميات";
+
+/* Home */
+"home.good_morning" = "صباح الخير، %@";
+"home.streak" = "اليوم %d • أنت تبني شيئاً حقيقياً.";
+"home.coach_insight" = "رؤية المدرب";
+"home.talk_to_coach" = "تحدث مع مدربك";
+"home.todays_focus" = "تركيز اليوم";
+"home.readiness" = "الجاهزية";
+"home.recovery" = "التعافي";
+"home.nutrition" = "التغذية";
+
+/* Coach */
+"coach.title" = "مدربك";
+"coach.placeholder" = "تحدث مع مدربك...";
+"coach.thinking" = "المدرب يفكر...";
+"coach.initial_greeting" = "مرحباً %@، أنا هنا. كيف تشعر الآن؟";
+"coach.quick.workout_plan" = "💪 خطة التمرين";
+"coach.quick.nutrition_plan" = "🥗 خطة التغذية";
+"coach.quick.full_plan" = "📋 الخطة الكاملة";
+"coach.quick.analyze" = "📊 حلل تقدمي";
+"coach.quick.recovery" = "🧘 فحص التعافي";
+"coach.quick.todays_focus" = "🎯 تركيز اليوم";
+"coach.regenerate" = "إعادة توليد";
+"coach.copy" = "نسخ الرد";
+
+/* Settings */
+"settings.title" = "الإعدادات";
+"settings.preferences" = "التفضيلات";
+"settings.daily_reminders" = "التذكيرات اليومية";
+"settings.ai_emotional_support" = "الدعم العاطفي بالذكاء الاصطناعي";
+"settings.weekly_reports" = "تقارير الذكاء الاصطناعي الأسبوعية";
+"settings.dark_mode" = "الوضع الزجاجي الداكن";
+"settings.language" = "اللغة";
+"settings.language.english" = "English";
+"settings.language.arabic" = "العربية";
+"settings.data_privacy" = "البيانات والخصوصية";
+"settings.export_data" = "تصدير بياناتي";
+"settings.health_permissions" = "إدارة أذونات Apple Health";
+"settings.delete_all_data" = "حذف جميع البيانات";
+"settings.about" = "عن لومينا";
+"settings.version" = "الإصدار 0.1 • مصنوع بحب ❤️";
+
+"settings.version_full" = "الإصدار 0.1 • مصنوع بحب ❤️ وكثير من المواد الزجاجية";
+
+/* General */
+"general.save" = "حفظ";
+"general.cancel" = "إلغاء";
+"general.done" = "تم";
+"general.ok" = "حسناً";
+
+/* Home additional */
+"home.quick_actions" = "إجراءات سريعة";
+"home.nutrition_today" = "التغذية اليوم";
+
+"home.nutrition_status" = "البروتين على المسار • %d%% من الهدف";
+
+"home.quick_checkin" = "تسجيل اليوم";
+"home.quick_coach" = "تحدث مع المدرب";
+
+"home.start_workout" = "ابدأ التمرين";
+
+/* Workout */
+"workout.saved_alert_title" = "تم حفظ التمرين!";
+"workout.saved_alert_message" = "عمل رائع. سيأخذ مدربك ذلك في الاعتبار.";
+
+/* Meal */
+"meal.logged_alert_title" = "تم تسجيل الوجبة!";
+
+"meal.log_title" = "تسجيل وجبة";
+"meal.what_did_you_eat" = "ماذا أكلت؟";
+"meal.calories_label" = "سعرات: %d";
+"meal.protein_label" = "بروتين: %dجم";
+"meal.save_button" = "حفظ الوجبة";
+"meal.empty_state" = "سجل وجبتك الأولى لبدء تتبع تاريخ التغذية.";
+"meal.recent_label" = "الوجبات الأخيرة";
+
+/* Check-in */
+"checkin.save_button" = "حفظ تسجيل اليوم";
+"checkin.saved_alert_title" = "تم حفظ التسجيل";
+"checkin.saved_alert_message" = "شكراً لصراحتك. مدربك يستمع.";
+
+/* Progress */
+"progress.transformation_title" = "تحولك";
+"progress.add_photo_button" = "+ إضافة صورة تقدم";
+"progress.empty_state" = "التقط صور تقدم بمرور الوقت لترى تحولك.";
+"progress.added_feedback" = "تمت إضافة الصورة ✓";
+"progress.compare_title" = "مقارنة";
+"progress.delete_photo" = "حذف الصورة";
+
+"progress.compare_journey_title" = "قارن رحلتك";
+"progress.compare_empty" = "أضف صورتين تقدم على الأقل للمقارنة";
+
+/* Adaptive Plans */
+"adaptive.plan_adjustment_title" = "تعديل الخطة";
+"adaptive.apply_button" = "تطبيق التعديل";
+"adaptive.plan_good_message" = "خطتك تبدو جيدة بناءً على البيانات الأخيرة.";
+"adaptive.nav_title" = "الخطة التكيفية";
+
+/* Check-in additional */
+"checkin.how_are_you" = "كيف حالك اليوم؟";
+"checkin.energy" = "الطاقة";
+"checkin.soreness" = "الألم";
+"checkin.sleep_quality" = "جودة النوم";
+"checkin.stress" = "التوتر";
+"checkin.mood_question" = "كيف مزاجك؟";
+"checkin.mood" = "المزاج";
+"checkin.note_question" = "هل هناك شيء على بالك؟";
+"checkin.trained_today" = "تدربت اليوم";
+
+/* Workout additional */
+"workout.log_title" = "تسجيل تمرين";
+"workout.name_placeholder" = "اسم التمرين";
+"workout.exercises_label" = "التمارين";
+"workout.no_exercises" = "لا تمارين بعد";
+"workout.notes_label" = "ملاحظات";
+"workout.save_button" = "حفظ التمرين";
+"workout.recent_label" = "التمارين الأخيرة";
+"workout.empty_state" = "لم تسجل تمارين بعد. ابدأ ببناء سجلك!";
+
+"workout.sets_count" = "%d مجموعات";
+"workout.add_set" = "إضافة مجموعة";
+"workout.set_label" = "مجموعة:";
+"workout.reps_placeholder" = "تكرارات";
+"workout.reps_at" = "تكرارات @";
+"workout.kg_placeholder" = "كجم";
+"workout.kg_unit" = "كجم";
+"workout.add_exercise" = "إضافة تمرين";
+"workout.rpe_label" = "RPE: %d";
+"workout.feel_placeholder" = "كيف كان شعورك؟";
+
+/* Habits */
+"habits.title" = "العادات اليومية";
+"habits.add_button" = "+ عادة جديدة";
+"habits.new_alert_title" = "عادة جديدة";
+"habits.name_placeholder" = "اسم العادة";
+"habits.new_alert_message" = "ما العادة التي تريد تتبعها؟";
+
+/* Goals */
+"goals.title" = "أهدافك";
+"goals.add_button" = "+ إضافة هدف جديد";
+"goals.new_alert_title" = "هدف جديد";
+"goals.name_placeholder" = "اسم الهدف (مثال: اركض 5كم)";
+
+/* Journal */
+"journal.mood_prefix" = "المزاج: %@";
+"journal.feeling_section" = "كيف تشعر؟";
+"journal.mood_picker" = "المزاج";
+"journal.new_entry_title" = "إدخال جديد";
+
+/* Milestones */
+"milestones.journey_title" = "رحلتك حتى الآن";
+"milestones.streak_title" = "🎉 سلسلة 30 يوم من الاستمرارية";
+"milestones.streak_message" = "حضرت حتى في الأيام الصعبة. هذا نادر وقوي.";
+"milestones.first_title" = "💪 أول إنجاز حقيقي";
+"milestones.first_message" = "لم تحقق أي إنجاز بعد — لكنك تبني الأساس.";
+"milestones.mindset_title" = "🧠 تحول في العقلية";
+"milestones.mindset_message" = "بدأت بتسجيل نفسك بدلاً من الاستمرار فقط.";
+"tab.milestones" = "الإنجازات";
+
+/* Recovery */
+"recovery.rest_message" = "جسمك يطلب الراحة. لا بأس بأن تأخذ الأمر بسهولة اليوم.";
+"recovery.no_data" = "لا توجد بيانات تعافي حديثة";
+
+"recovery.score_label" = "درجة التعافي";
+"recovery.title" = "التعافي اليوم";
+
+/* Streaks */
+"streak.consistency_title" = "الاستمرارية";
+"streak.day_streak" = "يوم سلسلة";
+"streak.longest" = "أطول سلسلة: %d أيام";
+
+"streak.28_day" = "سلسلة 28 يوم";
+"streak.personal_best" = "أفضل شخصي";
+"streak.this_month" = "هذا الشهر";
+"streak.nav_title" = "السلسلة";
+
+/* Readiness */
+"readiness.title" = "جاهزية اليوم";
+"readiness.ready_label" = "جاهز للتدريب الشاق";
+"readiness.message" = "بناءً على HRV ونومك وتسجيلاتك الأخيرة، اليوم يوم رائع للضغط.";
+"readiness.nav_title" = "الجاهزية";
+
+/* Today */
+"today.title" = "اليوم";
+"today.readiness_label" = "الجاهزية: 82";
+"today.readiness_message" = "يوم جيد للتدريب. ركز على القوة.";
+"today.workout_label" = "التمرين";
+"today.workout_details" = "يوم الضغط • 4 تمارين • 50 دقيقة";
+"today.nutrition_label" = "أهداف التغذية";
+"today.protein_label" = "بروتين: 180جم";
+"today.calories_label" = "سعرات: 2450";
+"today.coach_note_label" = "ملاحظة المدرب";
+"today.coach_note_message" = "كنت مستمراً لـ 12 يوماً. فخور بك.";
+"today.nav_title" = "اليوم";
+
+/* Daily Overview */
+"daily_overview.title" = "نظرة على اليوم";
+"daily_overview.readiness_label" = "الجاهزية";
+"daily_overview.excellent" = "ممتاز";
+"daily_overview.readiness_message" = "HRV ونومك يبدوان رائعين. انطلق اليوم.";
+"daily_overview.workout_label" = "التمرين";
+"daily_overview.workout_details" = "يوم الضغط • 50 دقيقة";
+"daily_overview.start_session" = "ابدأ الجلسة";
+"daily_overview.nutrition_label" = "التغذية";
+"daily_overview.nutrition_details" = "1,240 / 2,450 سعرة • 98جم بروتين";
+"daily_overview.log_meal" = "سجل وجبة";
+"daily_overview.coach_note_label" = "ملاحظة المدرب";
+"daily_overview.coach_note_message" = "كنت رائعاً هذا الأسبوع. يوم آخر قوي وستحقق رقماً قياسياً جديداً في السلسلة.";
+"daily_overview.nav_title" = "اليوم";
+
+/* Weekly Insights */
+"insights.this_week_title" = "هذا الأسبوع";
+"insights.week_summary" = "تدربت 5/7 أيام. متوسط طاقتك كان 6.8/10. استمرارية رائعة رغم انخفاض النوم يومي الثلاثاء والأربعاء.";
+"insights.ai_insight_title" = "رؤية الذكاء الاصطناعي";
+"insights.ai_insight_message" = "انخفض HRV الخاص بك في منتصف الأسبوع. كانت الجلسات الخفيفة التي اخترتها خطوة ذكية.";
+"insights.nav_title" = "الرؤى";
+
+/* Daily Tip */
+"daily_tip.title" = "نصيحة يومية من مدربك";
+
+/* Daily AI Insight */
+"daily_insight.title" = "رؤية يومية بالذكاء الاصطناعي";
+"daily_insight.ask_more" = "اطلب المزيد من التفاصيل";
+
+/* Coach Insights */
+"coach.insights_title" = "رؤى المدرب";
+"coach.insights_pattern_title" = "نمط هذا الأسبوع";
+"coach.insights_pattern_message" = "تنخفض طاقتك أيام الأربعاء. فكر في نقل أيام الرجل الثقيلة إلى الثلاثاء أو الخميس.";
+"coach.insights_observation_title" = "ملاحظة الذكاء الاصطناعي";
+"coach.insights_observation_message" = "كنت أكثر استمرارية عندما تسجل دخولك قبل الساعة 9 صباحاً. عادة صغيرة، فرق كبير.";
+"coach.insights_suggestion_title" = "اقتراح";
+"coach.insights_suggestion_message" = "جرب إضافة 10 دقائق حركة في أيام الراحة. درجات ألمك تتجه للانخفاض.";
+"coach.insights_nav_title" = "الرؤى";

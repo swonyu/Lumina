@@ -10,7 +10,7 @@ struct RecoveryScoreCard: View {
                 
                 VStack(spacing: 12) {
                     HStack {
-                        Text("Recovery Score")
+                        Text(L("recovery.score_label"))
                             .font(.headline)
                         Spacer()
                         Text("\(recovery.score)")
@@ -27,7 +27,7 @@ struct RecoveryScoreCard: View {
                         .multilineTextAlignment(.leading)
                 }
             } else {
-                Text("No recent recovery data")
+                Text(L("recovery.no_data"))
                     .foregroundStyle(.secondary)
             }
         }

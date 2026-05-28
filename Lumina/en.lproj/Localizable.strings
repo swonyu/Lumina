@@ -1,0 +1,245 @@
+/* Lumina - English Localizable Strings */
+
+/* Tabs */
+"tab.home" = "Home";
+"tab.workouts" = "Workouts";
+"tab.nutrition" = "Nutrition";
+"tab.coach" = "Coach";
+"tab.progress" = "Progress";
+"tab.checkin" = "Check-in";
+"tab.habits" = "Habits";
+"tab.goals" = "Goals";
+"tab.journal" = "Journal";
+
+/* Home */
+"home.good_morning" = "Good morning, %@";
+"home.streak" = "Day %d • You're building something real.";
+"home.coach_insight" = "Coach Insight";
+"home.talk_to_coach" = "Talk to your coach";
+"home.todays_focus" = "Today’s Focus";
+"home.readiness" = "Readiness";
+"home.recovery" = "Recovery";
+"home.nutrition" = "Nutrition";
+
+/* Coach */
+"coach.title" = "Your Coach";
+"coach.placeholder" = "Talk to your coach...";
+"coach.thinking" = "Coach is thinking...";
+"coach.initial_greeting" = "Hey %@, I'm here. How are you feeling right now?";
+"coach.quick.workout_plan" = "💪 Workout Plan";
+"coach.quick.nutrition_plan" = "🥗 Nutrition Plan";
+"coach.quick.full_plan" = "📋 Full Plan";
+"coach.quick.analyze" = "📊 Analyze Me";
+"coach.quick.recovery" = "🧘 Recovery Check";
+"coach.quick.todays_focus" = "🎯 Today's Focus";
+"coach.regenerate" = "Regenerate";
+"coach.copy" = "Copy response";
+
+/* Settings */
+"settings.title" = "Settings";
+"settings.preferences" = "Preferences";
+"settings.daily_reminders" = "Daily Reminders";
+"settings.ai_emotional_support" = "AI Emotional Support";
+"settings.weekly_reports" = "Weekly AI Reports";
+"settings.dark_mode" = "Dark Glass Mode";
+"settings.language" = "Language";
+"settings.language.english" = "English";
+"settings.language.arabic" = "العربية";
+"settings.data_privacy" = "Data & Privacy";
+"settings.export_data" = "Export My Data";
+"settings.health_permissions" = "Manage Apple Health Permissions";
+"settings.delete_all_data" = "Delete All Data";
+"settings.about" = "About Lumina";
+"settings.version" = "Version 0.1 • Built with ❤️";
+
+"settings.version_full" = "Version 0.1 • Built with ❤️ and a lot of glassy materials";
+
+/* General */
+"general.save" = "Save";
+"general.cancel" = "Cancel";
+"general.done" = "Done";
+"general.ok" = "OK";
+
+/* Home additional */
+"home.quick_actions" = "Quick Actions";
+"home.nutrition_today" = "Nutrition Today";
+
+"home.nutrition_status" = "Protein on track • %d%% of target";
+
+"home.quick_checkin" = "Daily Check-in";
+"home.quick_coach" = "Talk to Coach";
+
+"home.start_workout" = "Start Workout";
+
+/* Workout */
+"workout.saved_alert_title" = "Workout saved!";
+"workout.saved_alert_message" = "Great work. Your coach will factor this in.";
+
+/* Meal */
+"meal.logged_alert_title" = "Meal logged!";
+
+"meal.log_title" = "Log Meal";
+"meal.what_did_you_eat" = "What did you eat?";
+"meal.calories_label" = "Calories: %d";
+"meal.protein_label" = "Protein: %dg";
+"meal.save_button" = "Save Meal";
+"meal.empty_state" = "Log your first meal to start tracking nutrition history.";
+"meal.recent_label" = "Recent Meals";
+
+/* Check-in */
+"checkin.save_button" = "Save Check-in";
+"checkin.saved_alert_title" = "Check-in saved";
+"checkin.saved_alert_message" = "Thank you for being honest. Your coach is listening.";
+
+/* Progress */
+"progress.transformation_title" = "Your Transformation";
+"progress.add_photo_button" = "+ Add Progress Photo";
+"progress.empty_state" = "Take progress photos over time to see your transformation.";
+"progress.added_feedback" = "Photo added ✓";
+"progress.compare_title" = "Compare";
+"progress.delete_photo" = "Delete Photo";
+
+"progress.compare_journey_title" = "Compare Your Journey";
+"progress.compare_empty" = "Add at least two progress photos to compare";
+
+/* Adaptive Plans */
+"adaptive.plan_adjustment_title" = "Plan Adjustment";
+"adaptive.apply_button" = "Apply Adjustment";
+"adaptive.plan_good_message" = "Your plan looks good based on recent data.";
+"adaptive.nav_title" = "Adaptive Plan";
+
+/* Check-in additional */
+"checkin.how_are_you" = "How are you today?";
+"checkin.energy" = "Energy";
+"checkin.soreness" = "Soreness";
+"checkin.sleep_quality" = "Sleep Quality";
+"checkin.stress" = "Stress";
+"checkin.mood_question" = "How's your mood?";
+"checkin.mood" = "Mood";
+"checkin.note_question" = "Anything on your mind?";
+"checkin.trained_today" = "I trained today";
+
+/* Workout additional */
+"workout.log_title" = "Log Workout";
+"workout.name_placeholder" = "Workout Name";
+"workout.exercises_label" = "Exercises";
+"workout.no_exercises" = "No exercises yet";
+"workout.notes_label" = "Notes";
+"workout.save_button" = "Save Workout";
+"workout.recent_label" = "Recent Workouts";
+"workout.empty_state" = "No workouts logged yet. Start building your history!";
+
+"workout.sets_count" = "%d sets";
+"workout.add_set" = "Add Set";
+"workout.set_label" = "Set:";
+"workout.reps_placeholder" = "Reps";
+"workout.reps_at" = "reps @";
+"workout.kg_placeholder" = "kg";
+"workout.kg_unit" = "kg";
+"workout.add_exercise" = "Add Exercise";
+"workout.rpe_label" = "RPE: %d";
+"workout.feel_placeholder" = "How did it feel?";
+
+/* Habits */
+"habits.title" = "Daily Habits";
+"habits.add_button" = "+ New Habit";
+"habits.new_alert_title" = "New Habit";
+"habits.name_placeholder" = "Habit name";
+"habits.new_alert_message" = "What habit do you want to track?";
+
+/* Goals */
+"goals.title" = "Your Goals";
+"goals.add_button" = "+ Add New Goal";
+"goals.new_alert_title" = "New Goal";
+"goals.name_placeholder" = "Goal name (e.g. Run 5k)";
+
+/* Journal */
+"journal.mood_prefix" = "Mood: %@";
+"journal.feeling_section" = "How are you feeling?";
+"journal.mood_picker" = "Mood";
+"journal.new_entry_title" = "New Entry";
+
+/* Milestones */
+"milestones.journey_title" = "Your Journey So Far";
+"milestones.streak_title" = "🎉 30-Day Consistency Streak";
+"milestones.streak_message" = "You showed up even on the hard days. That’s rare and powerful.";
+"milestones.first_title" = "💪 First Real Milestone";
+"milestones.first_message" = "You haven’t hit one yet — but you’re building the foundation.";
+"milestones.mindset_title" = "🧠 Mindset Shift";
+"milestones.mindset_message" = "You started checking in with yourself instead of just pushing through.";
+"tab.milestones" = "Milestones";
+
+/* Recovery */
+"recovery.rest_message" = "Your body is asking for rest. It's okay to take it easy today.";
+"recovery.no_data" = "No recent recovery data";
+
+"recovery.score_label" = "Recovery Score";
+"recovery.title" = "Recovery Today";
+
+/* Streaks */
+"streak.consistency_title" = "Consistency";
+"streak.day_streak" = "Day Streak";
+"streak.longest" = "Longest streak: %d days";
+
+"streak.28_day" = "28 Day Streak";
+"streak.personal_best" = "Personal Best";
+"streak.this_month" = "This Month";
+"streak.nav_title" = "Streak";
+
+/* Readiness */
+"readiness.title" = "Today's Readiness";
+"readiness.ready_label" = "Ready to Train Hard";
+"readiness.message" = "Based on your HRV, sleep, and recent check-ins, today is a great day to push.";
+"readiness.nav_title" = "Readiness";
+
+/* Today */
+"today.title" = "Today";
+"today.readiness_label" = "Readiness: 82";
+"today.readiness_message" = "Good day to train. Focus on strength.";
+"today.workout_label" = "Workout";
+"today.workout_details" = "Push Day • 4 exercises • 50 min";
+"today.nutrition_label" = "Nutrition Targets";
+"today.protein_label" = "Protein: 180g";
+"today.calories_label" = "Calories: 2450";
+"today.coach_note_label" = "Coach Note";
+"today.coach_note_message" = "You've been consistent for 12 days. Proud of you.";
+"today.nav_title" = "Today";
+
+/* Daily Overview */
+"daily_overview.title" = "Today at a Glance";
+"daily_overview.readiness_label" = "Readiness";
+"daily_overview.excellent" = "Excellent";
+"daily_overview.readiness_message" = "Your HRV and sleep look great. Go after it today.";
+"daily_overview.workout_label" = "Workout";
+"daily_overview.workout_details" = "Push + Core • 50 min";
+"daily_overview.start_session" = "Start Session";
+"daily_overview.nutrition_label" = "Nutrition";
+"daily_overview.nutrition_details" = "1,240 / 2,450 cal • 98g protein";
+"daily_overview.log_meal" = "Log Meal";
+"daily_overview.coach_note_label" = "Coach Note";
+"daily_overview.coach_note_message" = "You've been crushing it this week. One more solid day and you're at a new streak record.";
+"daily_overview.nav_title" = "Today";
+
+/* Weekly Insights */
+"insights.this_week_title" = "This Week";
+"insights.week_summary" = "You trained 5/7 days. Your average energy was 6.8/10. Great consistency despite lower sleep on Tuesday and Wednesday.";
+"insights.ai_insight_title" = "AI Insight";
+"insights.ai_insight_message" = "Your HRV dropped mid-week. The lighter sessions you chose were a smart move.";
+"insights.nav_title" = "Insights";
+
+/* Daily Tip */
+"daily_tip.title" = "Daily Tip from your coach";
+
+/* Daily AI Insight */
+"daily_insight.title" = "AI Daily Insight";
+"daily_insight.ask_more" = "Ask for more details";
+
+/* Coach Insights */
+"coach.insights_title" = "Coach Insights";
+"coach.insights_pattern_title" = "This Week's Pattern";
+"coach.insights_pattern_message" = "Your energy dips on Wednesdays. Consider moving heavy leg days to Tuesdays or Thursdays.";
+"coach.insights_observation_title" = "AI Observation";
+"coach.insights_observation_message" = "You've been more consistent when you check in before 9am. Small habit, big difference.";
+"coach.insights_suggestion_title" = "Suggestion";
+"coach.insights_suggestion_message" = "Try adding 10-minute mobility on rest days. Your soreness scores have been trending down.";
+"coach.insights_nav_title" = "Insights";

@@ -10,7 +10,7 @@ struct DailyInsightCard: View {
                 HStack {
                     Image(systemName: "brain.head.profile")
                         .foregroundStyle(.purple)
-                    Text("AI Daily Insight")
+                    Text(L("daily_insight.title"))
                         .font(.headline)
                         .foregroundStyle(.white)
                     Spacer()
@@ -24,7 +24,7 @@ struct DailyInsightCard: View {
                     .foregroundStyle(.white.opacity(0.9))
                     .fixedSize(horizontal: false, vertical: true)
                 
-                GlassButton(title: "Ask for more details") {}
+                GlassButton(title: L("daily_insight.ask_more"), action: {})
             }
         }
     }

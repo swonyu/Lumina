@@ -6,6 +6,8 @@ struct CoachContext {
     let recentCheckIns: [DailyCheckIn]
     let recentWorkouts: [WorkoutLog]
     let recentMeals: [MealLog]
+    let activeHabits: [Habit]      // NEW: feeds coach intelligence on behavior & streaks
+    let recentInsights: [String]   // NEW: photo/meal/form/weekly analyses from memory — coach now references real visual + nutrition + habit data
     let currentStreak: Int
     
     var summary: String {
@@ -25,7 +27,29 @@ struct CoachContext {
         
         if !recentCheckIns.isEmpty {
             let avgEnergy = recentCheckIns.compactMap { $0.energyLevel }.average ?? 0
-            text += "Last 7 days average energy: \(String(format: "%.1f", avgEnergy))/10\n"
+            text += "Last 7-8 days average energy: \(String(format: "%.1f", avgEnergy))/10\n"
+        }
+        
+        if !recentWorkouts.isEmpty {
+            text += "Recent workouts logged: \(recentWorkouts.count) (latest: \(recentWorkouts.first?.workoutName ?? "unknown"))\n"
+        }
+        
+        if !recentMeals.isEmpty {
+            let totalProtein = recentMeals.compactMap { $0.protein }.reduce(0, +)
+            text += "Recent meals: \(recentMeals.count) logged, ~\(Int(totalProtein))g protein tracked\n"
+        }
+        
+        // NEW: Habits intelligence — coach can now reason about adherence, suggested habits, low streaks
+        if !activeHabits.isEmpty {
+            let streaks = activeHabits.compactMap { $0.currentStreak }
+            let avgStreak = streaks.isEmpty ? 0 : Double(streaks.reduce(0, +)) / Double(streaks.count)
+            let coachOnes = activeHabits.filter { $0.coachSuggested }.count
+            text += "Active habits: \(activeHabits.count) (avg streak \(String(format: "%.0f", avgStreak)), \(coachOnes) coach-suggested)\n"
+        }
+        
+        // NEW: High-signal recent AI analyses (progress photos, meals, weekly tasks, form) — this is what makes the coach dramatically smarter
+        if !recentInsights.isEmpty {
+            text += "Recent coach insights from photos/meals/habits/weekly: \n" + recentInsights.prefix(3).joined(separator: " | ").prefix(280) + "\n"
         }
         
         text += "Current streak: \(currentStreak) days\n"

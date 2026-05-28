@@ -2,7 +2,7 @@ import SwiftUI
 
 struct AIChatView: View {
     @State private var messages: [ChatMessage] = [
-        .init(role: .assistant, content: "Hey, I'm here. How are you really doing today?")
+        .init(role: .assistant, content: L("coach.initial_greeting", "there"))
     ]
     @State private var inputText = ""
     @State private var isLoading = false
@@ -30,7 +30,7 @@ struct AIChatView: View {
             }
             
             HStack {
-                TextField("Talk to your coach...", text: $inputText)
+                TextField(L("coach.placeholder"), text: $inputText)
                     .textFieldStyle(.roundedBorder)
                 
                 Button {
@@ -44,7 +44,8 @@ struct AIChatView: View {
             .padding()
         }
         .glassBackground()
-        .navigationTitle("Your Coach")
+        .navigationTitle(L("coach.title"))
+        .withAppLanguage()
     }
     
     private func sendMessage() {
@@ -57,11 +58,18 @@ struct AIChatView: View {
         
         Task {
             do {
-                // In real app, pass recent HealthSnapshots here
-                let reply = try await grokService.getEmotionalSupport(
-                    userMessage: text,
-                    recentHealth: [] // TODO: Inject real data
+                // Smart coach (rich context when we have the environment; graceful fallback inside)
+                let context = CoachContext(
+                    profile: nil,
+                    recentHealth: [],
+                    recentCheckIns: [],
+                    recentWorkouts: [],
+                    recentMeals: [],
+                    activeHabits: [],
+                    recentInsights: [],
+                    currentStreak: 0
                 )
+                let reply = try await grokService.getSmartEmotionalSupport(userMessage: text, context: context)
                 await MainActor.run {
                     messages.append(.init(role: .assistant, content: reply))
                     isLoading = false

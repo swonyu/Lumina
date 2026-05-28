@@ -4,21 +4,21 @@ struct StreakCalendarView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 24) {
-                Text("Consistency")
+                Text(L("streak.consistency_title"))
                     .font(.largeTitle.bold())
                 
                 GlassCard {
                     VStack {
-                        Text("28 Day Streak")
+                        Text(L("streak.28_day"))
                             .font(.title.bold())
-                        Text("Personal Best")
+                        Text(L("streak.personal_best"))
                             .foregroundStyle(.green)
                     }
                 }
                 
                 // Simple calendar grid placeholder
                 VStack {
-                    Text("This Month")
+                    Text(L("streak.this_month"))
                         .font(.headline)
                     
                     LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7)) {
@@ -40,6 +40,7 @@ struct StreakCalendarView: View {
             .padding()
         }
         .glassBackground()
-        .navigationTitle("Streak")
+        .navigationTitle(L("streak.nav_title"))
+        .withAppLanguage()
     }
 }

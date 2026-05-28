@@ -9,7 +9,7 @@ struct DailyTipCard: View {
                 HStack {
                     Image(systemName: "lightbulb.fill")
                         .foregroundStyle(.yellow)
-                    Text("Daily Tip from your coach")
+                    Text(L("daily_tip.title"))
                         .font(.headline)
                         .foregroundStyle(.white)
                 }

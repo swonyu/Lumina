@@ -10,7 +10,7 @@ struct GlassListRow<Content: View>: View {
     var body: some View {
         content
             .padding()
-            .background(.ultraThinMaterial)
+            .background(.regularMaterial)
             .overlay(
                 RoundedRectangle(cornerRadius: 16)
                     .stroke(.white.opacity(0.1), lineWidth: 0.5)

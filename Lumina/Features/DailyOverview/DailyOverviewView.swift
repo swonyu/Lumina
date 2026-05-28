@@ -4,54 +4,55 @@ struct DailyOverviewView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 24) {
-                Text("Today at a Glance")
+                Text(L("daily_overview.title"))
                     .font(.largeTitle.bold())
                 
                 GlassCard {
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Readiness")
+                        Text(L("daily_overview.readiness_label"))
                             .font(.headline)
                         HStack {
                             Text("84")
                                 .font(.system(size: 48, weight: .bold, design: .rounded))
                             Spacer()
-                            Text("Excellent")
+                            Text(L("daily_overview.excellent"))
                                 .foregroundStyle(.green)
                         }
-                        Text("Your HRV and sleep look great. Go after it today.")
+                        Text(L("daily_overview.readiness_message"))
                             .foregroundStyle(.secondary)
                     }
                 }
                 
                 GlassCard {
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Workout")
+                        Text(L("daily_overview.workout_label"))
                             .font(.headline)
-                        Text("Push + Core • 50 min")
-                        GlassButton(title: "Start Session", isProminent: true) {}
+                        Text(L("daily_overview.workout_details"))
+                        GlassButton(title: L("daily_overview.start_session"), isProminent: true, action: {})
                     }
                 }
                 
                 GlassCard {
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Nutrition")
+                        Text(L("daily_overview.nutrition_label"))
                             .font(.headline)
-                        Text("1,240 / 2,450 cal • 98g protein")
-                        GlassButton(title: "Log Meal") {}
+                        Text(L("daily_overview.nutrition_details"))
+                        GlassButton(title: L("daily_overview.log_meal"), action: {})
                     }
                 }
                 
                 GlassCard {
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Coach Note")
+                        Text(L("daily_overview.coach_note_label"))
                             .font(.headline)
-                        Text("You've been crushing it this week. One more solid day and you're at a new streak record.")
+                        Text(L("daily_overview.coach_note_message"))
                     }
                 }
             }
             .padding()
         }
         .glassBackground()
-        .navigationTitle("Today")
+        .navigationTitle(L("daily_overview.nav_title"))
+        .withAppLanguage()
     }
 }

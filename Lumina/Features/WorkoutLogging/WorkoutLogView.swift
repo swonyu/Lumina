@@ -3,6 +3,7 @@ import SwiftData
 
 struct WorkoutLogView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(LuminaViewModel.self) private var viewModel
     @State private var workoutName = ""
     @State private var exercises: [LoggedExercise] = []
     @State private var notes = ""
@@ -14,20 +15,36 @@ struct WorkoutLogView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
-                Text("Log Workout")
+                Text(L("workout.log_title"))
                     .font(.largeTitle.bold())
                 
+                // Round 34: Coach nudge in the logging flow (memory-aware)
+                if !viewModel.smartMemorySummary.isEmpty || !viewModel.memorySummary.isEmpty {
+                    let mem = !viewModel.smartMemorySummary.isEmpty ? viewModel.smartMemorySummary : viewModel.memorySummary
+                    if mem.lowercased().contains("energy") || mem.lowercased().contains("recovery") || mem.lowercased().contains("consistent") {
+                        GlassCard {
+                            HStack(spacing: 8) {
+                                Image(systemName: "sparkles")
+                                    .foregroundStyle(.orange)
+                                Text("Coach note: Recent patterns suggest logging perceived exertion and notes carefully today.")
+                                    .font(.caption)
+                                    .foregroundStyle(.white.opacity(0.9))
+                            }
+                        }
+                    }
+                }
+                
                 GlassCard {
-                    TextField("Workout Name", text: $workoutName)
+                    TextField(L("workout.name_placeholder"), text: $workoutName)
                         .textFieldStyle(.roundedBorder)
                 }
                 
                 GlassCard {
-                    Text("Exercises")
+                    Text(L("workout.exercises_label"))
                         .font(.headline)
                     
                     if exercises.isEmpty {
-                        Text("No exercises yet")
+                        Text(L("workout.no_exercises"))
                             .foregroundStyle(.secondary)
                             .font(.caption)
                     }
@@ -50,30 +67,30 @@ struct WorkoutLogView: View {
                             }
                             
                             HStack {
-                                Text("\(exercise.sets.count) sets")
+                                Text(L("workout.sets_count", exercise.sets.count))
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                                 Spacer()
                                 Button {
                                     exercise.sets.append(LoggedSet(reps: 8, weight: 0))
                                 } label: {
-                                    Label("Add Set", systemImage: "plus.circle")
+                                    Label(L("workout.add_set"), systemImage: "plus.circle")
                                         .font(.caption)
                                 }
                             }
                             
                             ForEach($exercise.sets) { $set in
                                 HStack {
-                                    Text("Set:")
-                                    TextField("Reps", value: $set.reps, format: .number)
+                                    Text(L("workout.set_label"))
+                                    TextField(L("workout.reps_placeholder"), value: $set.reps, format: .number)
                                         .frame(width: 50)
                                         .textFieldStyle(.roundedBorder)
                                     
-                                    Text("reps @")
-                                    TextField("kg", value: $set.weight.boundToZero, format: .number)
+                                    Text(L("workout.reps_at"))
+                                    TextField(L("workout.kg_placeholder"), value: $set.weight.boundToZero, format: .number)
                                     .frame(width: 55)
                                     .textFieldStyle(.roundedBorder)
-                                    Text("kg")
+                                    Text(L("workout.kg_unit"))
                                     
                                     Button {
                                         if let index = exercise.sets.firstIndex(where: { $0.id == set.id }) {
@@ -91,35 +108,35 @@ struct WorkoutLogView: View {
                         .padding(.vertical, 4)
                     }
                     
-                    Button("Add Exercise") {
+                    Button(L("workout.add_exercise")) {
                         exercises.append(LoggedExercise(name: "New Exercise", sets: []))
                     }
                     .buttonStyle(.bordered)
                 }
                 
                 GlassCard {
-                    Stepper("RPE: \(rpe)", value: $rpe, in: 1...10)
+                    Stepper(L("workout.rpe_label", rpe), value: $rpe, in: 1...10)
                 }
                 
                 GlassCard {
-                    Text("Notes")
+                    Text(L("workout.notes_label"))
                         .font(.headline)
-                    TextField("How did it feel?", text: $notes)
+                    TextField(L("workout.feel_placeholder"), text: $notes)
                         .textFieldStyle(.roundedBorder)
                 }
                 
-                GlassButton(title: "Save Workout", isProminent: true) {
+                GlassButton(title: L("workout.save_button"), isProminent: true, action: {
                     saveWorkout()
-                }
+                })
                 
                 if recentLogs.isEmpty {
-                    Text("No workouts logged yet. Start building your history!")
+                    Text(L("workout.empty_state"))
                         .font(.caption)
                         .foregroundStyle(.white.opacity(0.6))
                         .padding(.top, 4)
                 } else {
                     GlassCard {
-                        Text("Recent Workouts")
+                        Text(L("workout.recent_label"))
                             .font(.headline)
                         ForEach(recentLogs.prefix(3)) { log in
                             HStack {
@@ -137,11 +154,12 @@ struct WorkoutLogView: View {
             .padding()
         }
         .glassBackground()
-        .navigationTitle("Workouts")
-        .alert("Workout saved!", isPresented: $showingSuccess) {
-            Button("OK") { }
+        .navigationTitle(L("tab.workouts"))
+        .withAppLanguage()
+        .alert(L("workout.saved_alert_title"), isPresented: $showingSuccess) {
+            Button(L("general.ok")) { }
         } message: {
-            Text("Great work. Your coach will factor this in.")
+            Text(L("workout.saved_alert_message"))
         }
     }
     
@@ -151,6 +169,14 @@ struct WorkoutLogView: View {
         let log = WorkoutLog(workoutName: workoutName, exercises: exercises, perceivedExertion: rpe, notes: notes.isEmpty ? nil : notes)
         modelContext.insert(log)
         try? modelContext.save()
+        
+        // Round 37: Update Live Activity dynamically after workout log + feed coach
+        Task {
+            await viewModel.updateCoachFocusLiveActivity()
+            await MainActor.run {
+                viewModel.saveCoachMemoryEntry(type: .pattern, content: "Logged workout: \(workoutName) with RPE \(rpe)")
+            }
+        }
         
         // Reset form
         workoutName = ""
