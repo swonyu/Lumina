@@ -4,6 +4,7 @@ import Observation
 import HealthKit
 import UserNotifications
 import ActivityKit
+import WidgetKit
 
 @MainActor
 @Observable
@@ -250,6 +251,8 @@ final class LuminaViewModel {
         descriptor.fetchLimit = 14
         recentHealthSnapshots = (try? modelContext.fetch(descriptor)) ?? []
         isLoadingHealthData = false
+
+        syncWidgetData()   // Round 106: rings may have changed
     }
 
     func getRecentHealthContextForAI() -> [HealthSnapshot] {
@@ -735,6 +738,7 @@ final class LuminaViewModel {
                     await MainActor.run {
                         self.coachDailyBriefing = cleaned
                         self.lastBriefingRefresh = Date()
+                        self.syncWidgetData()   // Round 106: push fresh briefing to widget
                     }
                     isGeneratingBriefing = false
                     return
@@ -749,6 +753,7 @@ final class LuminaViewModel {
         await MainActor.run {
             self.coachDailyBriefing = local
             self.lastBriefingRefresh = Date()
+            self.syncWidgetData()   // Round 106: push fresh local briefing to widget
         }
         isGeneratingBriefing = false
     }
@@ -2165,5 +2170,41 @@ final class LuminaViewModel {
             await activity.end(dismissalPolicy: .immediate)
             coachFocusActivity = nil
         }
+    }
+
+    // MARK: - Round 106: Widget + App Group data sync
+    /// Writes the current rings + latest coach insight into the shared App Group UserDefaults.
+    /// The widget (and future extensions) read from here for real, up-to-date content.
+    /// Call this after any significant state change that should be reflected on the Home Screen widget.
+    private let widgetSuiteName = "group.SA.Lumina"
+
+    func syncWidgetData() {
+        guard let shared = UserDefaults(suiteName: widgetSuiteName) else { return }
+
+        let readiness = readinessValue
+        let recovery = recoveryValue
+        let nutrition = nutritionValue
+
+        // Prefer the rich LLM briefing when available; fall back to proactive insight or a memory snippet
+        let insight: String
+        if !coachDailyBriefing.isEmpty {
+            insight = String(coachDailyBriefing.prefix(140))
+        } else if !proactiveHomeInsight.isEmpty {
+            insight = String(proactiveHomeInsight.prefix(140))
+        } else {
+            let mem = !smartMemorySummary.isEmpty ? smartMemorySummary : memorySummary
+            insight = mem.isEmpty ? "Consistency compounds. Small actions today build the patterns you're creating." : String(mem.prefix(140))
+        }
+
+        shared.set(readiness, forKey: "widget.readiness")
+        shared.set(recovery, forKey: "widget.recovery")
+        shared.set(nutrition, forKey: "widget.nutrition")
+        shared.set(insight, forKey: "widget.coachInsight")
+        shared.set(Date(), forKey: "widget.lastUpdated")
+
+        // Optional: tell WidgetKit to refresh soon (works even without the extension target added yet)
+        #if canImport(WidgetKit)
+        WidgetCenter.shared.reloadAllTimelines()
+        #endif
     }
 }

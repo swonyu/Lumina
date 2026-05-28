@@ -1828,3 +1828,34 @@ Ready for the next repetition.
 **Next opportunities (from ongoing 4-pillar work)**: Any remaining minor inline logic (e.g. action suggestion icons or ModernHomeView coach chips); full Widget + App Group + Live Activity active-workout timer; production AI Form Check (video upload + analysis); one-tap coach actions embedded inside Daily Briefing text itself; scheduled/auto Weekly AI Reports; source tree deduplication between reference folders.
 
 Ready for the next repetition.
+
+---
+
+## Round 106 — Real Home Screen Widget via App Group + Live Data Sync (Scaffold → Working)
+
+**Date**: 2026-05-28 (direct continuation after Round 105 post-action + home suggestion limited-impact enrichment)
+
+- **High-visibility polish / feature completion**:
+  - Added the `group.SA.Lumina` App Group entitlement to the main app (Lumina.entitlements).
+  - Implemented `syncWidgetData()` in LuminaViewModel: writes current rings (readiness/recovery/nutrition) + the latest rich coach insight (preferring `coachDailyBriefing`, then `proactiveHomeInsight`, then memory) into shared UserDefaults. Also triggers `WidgetCenter.shared.reloadAllTimelines()` when WidgetKit is available.
+  - Wired calls in high-leverage places:
+    - Immediately after LLM or local `coachDailyBriefing` generation (the primary source of "what the coach is thinking right now").
+    - After `fetchRecentHealthData()` (rings are the visual heart of the widget).
+  - Completely rewrote the Widget `Provider.getTimeline` (and updated placeholder/snapshot) to read real values from the App Group suite instead of hard-coded demo data. The widget now shows the user's actual rings + the actual latest briefing text.
+  - Small UI polish on `LuminaWidgetEntryView`: tighter padding, better line handling for the insight, subtle "LUMINA" footer for brand presence on small sizes.
+  - Added a comprehensive header comment in LuminaWidget.swift with the exact 5-step Xcode setup instructions needed to turn the widget on for real (Widget Extension target + App Group on both targets).
+
+- **Performance + Hygiene**:
+  - The sync method is lightweight (a few UserDefaults writes + optional WidgetKit call). No heavy work on the hot path.
+  - Future callers (habit completion, check-in save, plan generation, etc.) can opt-in with a single `syncWidgetData()` line.
+
+- **Verified**:
+  - Clean build on iPhone 17 Pro simulator succeeded (**BUILD SUCCEEDED**, clean incremental).
+  - All new code paths are behind the existing `group.SA.Lumina` suite lookup (graceful fallback to previous demo numbers if the suite isn't available yet).
+  - Entitlements change is minimal and correct.
+
+- **Result**: The long-standing widget scaffold is now a *real, data-driven* Home Screen widget. As soon as the user adds the Widget Extension target and the matching App Group in Xcode (standard 2-minute setup), the widget will automatically display the user's actual rings and the live "Coach's Daily Briefing" text — kept fresh every time they open the app or log something meaningful. This is a high-delight, low-effort surface that makes the coach feel present even when the app isn't open. Directly addresses one of the top recurring "next opportunities."
+
+**Next opportunities (from ongoing 4-pillar work)**: Add the actual Widget Extension target + App Group to the project file (or document the manual steps more prominently); extend the same shared data mechanism for a "workout timer" Live Activity mode; one-tap actions inside Daily Briefing *text*; production Form Check video; auto Weekly Reports; source dedup of the outer reference tree.
+
+Ready for the next repetition.
