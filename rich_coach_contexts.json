@@ -1,0 +1,62 @@
+{
+  "scenarios": [
+    {
+      "name": "low_energy_evening_walk",
+      "description": "Low energy days + struggling with coach-suggested evening walk habit",
+      "context": {
+        "profile": {
+          "name": "Alex",
+          "age": 28,
+          "goal": "Build Muscle",
+          "level": "intermediate"
+        },
+        "latest_health": {
+          "hrv": 52,
+          "sleep": 6.1,
+          "energy": 5,
+          "soreness": 6
+        },
+        "avg_energy_7days": 5.8,
+        "recent_workouts": 3,
+        "latest_workout": "Push + Core",
+        "recent_meals": 9,
+        "protein_tracked": 520,
+        "active_habits": 3,
+        "avg_habit_streak": 8,
+        "coach_suggested_habits": 2,
+        "recent_insights": "Photo analysis on 2026-05-20 showed noticeable shoulder and arm development after increasing volume. Evening walk habit showing limited visible impact so far.",
+        "current_streak": 7,
+        "long_term_memory": "User has historically struggled with consistency when energy drops below 6/10. They respond well to lowering the bar. Added 'evening walk' as coach-suggested habit 12 days ago but only completed it 4 times."
+      }
+    },
+    {
+      "name": "positive_photo_progress",
+      "description": "Positive photo analysis feedback on training progress",
+      "context": {
+        "profile": {
+          "name": "Alex",
+          "age": 28,
+          "goal": "Build Muscle",
+          "level": "intermediate"
+        },
+        "latest_health": {
+          "hrv": 61,
+          "sleep": 7.2,
+          "energy": 7,
+          "soreness": 4
+        },
+        "avg_energy_7days": 6.8,
+        "recent_workouts": 5,
+        "latest_workout": "Push + Core",
+        "recent_meals": 14,
+        "protein_tracked": 780,
+        "active_habits": 3,
+        "avg_habit_streak": 14,
+        "coach_suggested_habits": 1,
+        "recent_insights": "Latest photo analysis showed good shoulder and arm development from the increased push volume. Evening walk habit still showing limited impact.",
+        "current_streak": 12,
+        "long_term_memory": "User responds very well to visual feedback from progress photos. They get motivated when they can see upper body changes."
+      }
+    }
+  ]
+}
