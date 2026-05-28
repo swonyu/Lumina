@@ -21,20 +21,17 @@ final class LuminaViewModel {
 
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
+    }
+
+    func bootstrapAfterLaunch() async {
         loadCurrentUser()
-        
-        // Auto-create a demo profile on first launch so the app feels alive
+
         if currentUser == nil {
             createDemoProfile()
         }
-        
-        // Populate health context used by home rings + coach
-        Task { await fetchRecentHealthData() }
-        
-        // Load persisted coach memory (Round 6)
+
+        await fetchRecentHealthData()
         loadPersistedCoachMemory()
-        
-        // Load goals (Round 13)
         loadGoals()
     }
 
@@ -113,6 +110,12 @@ final class LuminaViewModel {
     }
 
     private let healthStore = HKHealthStore()
+
+    func seedStartupServices() async {
+        await requestNotificationPermission()
+        await scheduleProactiveCoachNotifications()
+        startCoachFocusLiveActivity()
+    }
 
     func requestHealthKitAccess() async {
         isLoadingHealthData = true

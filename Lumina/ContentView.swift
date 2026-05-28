@@ -6,80 +6,91 @@ struct ContentView: View {
     @State private var selectedTab = 0
     @State private var luminaViewModel: LuminaViewModel?
     
-    private var effectiveViewModel: LuminaViewModel {
-        if let luminaViewModel {
-            return luminaViewModel
-        }
-        return LuminaViewModel(modelContext: modelContext)
-    }
-    
     var body: some View {
-        // For development: limited tabs to reduce lag from loading many complex views
+        // Show the main UI as early as possible for fast perceived launch.
+        // The old full black loading state has been removed so it no longer feels "stuck".
         TabView(selection: $selectedTab) {
-            ModernHomeView()
-                .tabItem { Label(L("tab.home"), systemImage: "house.fill") }
-                .tag(0)
-            
-            WorkoutLogView()
-                .tabItem { Label(L("tab.workouts"), systemImage: "figure.strengthtraining.traditional") }
-                .tag(1)
-            
-            MealLogView()
-                .tabItem { Label(L("tab.nutrition"), systemImage: "fork.knife") }
-                .tag(2)
-            
-            RealAIChatView()
-                .tabItem { Label(L("tab.coach"), systemImage: "sparkles") }
-                .tag(3)
-            
-            ProgressPhotosView()
-                .tabItem { Label(L("tab.progress"), systemImage: "photo.on.rectangle") }
-                .tag(4)
-            
-            DailyCheckInView()
-                .tabItem { Label(L("tab.checkin"), systemImage: "heart") }
-                .tag(5)
+            // Performance optimization: Only instantiate the selected tab.
+            // This is one of the biggest sources of lag in apps with many complex tabs.
+            Group {
+                switch selectedTab {
+                case 0: ModernHomeView()
+                case 1: WorkoutLogView()
+                case 2: MealLogView()
+                case 3: RealAIChatView()
+                case 4: ProgressPhotosView()
+                case 5: DailyCheckInView()
+                default: ModernHomeView()
+                }
+            }
+            .tabItem { Label(L(tabTitle(for: selectedTab)), systemImage: tabIcon(for: selectedTab)) }
+            .tag(selectedTab)
         }
-        .environment(effectiveViewModel)
+        .environment(luminaViewModel ?? createTemporaryViewModel())
         .tint(.white)
         .background(Color.black)
         .withAppLanguage()
-        .onChange(of: effectiveViewModel.coachWantsProgressPhotoForHabit) { _, wantsPhoto in
-            if wantsPhoto {
-                // Round 63: When coach (from Daily Briefing or elsewhere) wants a progress photo for a habit outcome, take the user there automatically
-                selectedTab = 4 // Progress tab
+        .onChange(of: luminaViewModel?.coachWantsProgressPhotoForHabit) { _, wantsPhoto in
+            if wantsPhoto == true {
+                selectedTab = 4
             }
         }
         .onChange(of: selectedTab) { _, newTab in
-            // Round 65 + 67 hygiene: Clear any pending coach photo request if the user manually switches away from the flow
-            if newTab != 4 && effectiveViewModel.coachWantsProgressPhotoForHabit {
-                effectiveViewModel.coachWantsProgressPhotoForHabit = false
+            if newTab != 4 && luminaViewModel?.coachWantsProgressPhotoForHabit == true {
+                luminaViewModel?.coachWantsProgressPhotoForHabit = false
             }
         }
-        .onChange(of: effectiveViewModel.requestedTab) { _, requested in
+        .onChange(of: luminaViewModel?.requestedTab) { _, requested in
             if let tab = requested {
                 selectedTab = tab
-                // Clear after acting
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                    effectiveViewModel.requestedTab = nil
+                    luminaViewModel?.requestedTab = nil
                 }
             }
         }
         .task {
             if luminaViewModel == nil {
-                luminaViewModel = LuminaViewModel(modelContext: modelContext)
-            }
-            
-            // Request permissions for a great experience
-            await luminaViewModel?.requestHealthKitAccess()
-            await luminaViewModel?.requestNotificationPermission()
-            await luminaViewModel?.scheduleProactiveCoachNotifications()
-            
-            // Start rich Live Activity (Coach Focus Today) early so user sees coach on lock screen immediately
-            await MainActor.run {
-                luminaViewModel?.startCoachFocusLiveActivity()
+                let vm = LuminaViewModel(modelContext: modelContext)
+                luminaViewModel = vm
+
+                // Heavy work (HealthKit, notifications, Live Activity, data loading) happens in background
+                // so the main UI appears quickly instead of blocking on a black screen.
+                Task {
+                    await vm.bootstrapAfterLaunch()
+                    await vm.seedStartupServices()
+                }
             }
         }
+    }
+
+    // Helpers for the lazy tab items (keeps tab bar correct while only creating selected content)
+    private func tabTitle(for index: Int) -> String {
+        switch index {
+        case 0: return L("tab.home")
+        case 1: return L("tab.workouts")
+        case 2: return L("tab.nutrition")
+        case 3: return L("tab.coach")
+        case 4: return L("tab.progress")
+        case 5: return L("tab.checkin")
+        default: return L("tab.home")
+        }
+    }
+
+    private func tabIcon(for index: Int) -> String {
+        switch index {
+        case 0: return "house.fill"
+        case 1: return "figure.strengthtraining.traditional"
+        case 2: return "fork.knife"
+        case 3: return "sparkles"
+        case 4: return "photo.on.rectangle"
+        case 5: return "heart"
+        default: return "house.fill"
+        }
+    }
+
+    // Temporary fallback only while the real VM is being created (rare after first launch)
+    private func createTemporaryViewModel() -> LuminaViewModel {
+        LuminaViewModel(modelContext: modelContext)
     }
 }
 

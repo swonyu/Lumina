@@ -42,7 +42,7 @@ struct GlassButton: View {
         Button(action: action) {
             Text(title)
                 .font(.headline)
-                .foregroundStyle(isProminent ? .white : .primary)
+                .foregroundStyle(.white)
                 .frame(maxWidth: .infinity)
                 .padding()
                 .background(

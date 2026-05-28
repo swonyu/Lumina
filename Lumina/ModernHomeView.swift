@@ -2,6 +2,9 @@ import SwiftUI
 
 struct ModernHomeView: View {
     @Environment(LuminaViewModel.self) private var viewModel
+    #if DEBUG
+    private let _perfStart = CFAbsoluteTimeGetCurrent()
+    #endif
     
     private var greetingName: String {
         viewModel.currentUser?.name ?? "there"
@@ -41,6 +44,7 @@ struct ModernHomeView: View {
                         GlassProgressRing(progress: Double(viewModel.nutritionValue) / 100.0, size: 82, lineWidth: 7, color: .orange, title: L("home.nutrition"), valueText: "\(viewModel.nutritionValue)")
                     }
                     .padding(.horizontal, 20)
+                    .drawingGroup()   // Aggressive perf: rasterize rings to reduce redraws
                     
                     // AI Coach Insight - now proactive + powered by real Grok when key is set (Round 3)
                     UltraLightGlassCard {
@@ -649,6 +653,15 @@ struct ModernHomeView: View {
                 }
                 .padding(.bottom, 50)
                 .drawingGroup()   // ← Major performance win for the entire home content
+                #if DEBUG
+                .onAppear {
+                    let elapsed = CFAbsoluteTimeGetCurrent() - _perfStart
+                    if elapsed > 0.05 {
+                        let elapsedMilliseconds = String(format: "%.1f", elapsed * 1000)
+                        print("[Perf] ModernHomeView full body took \(elapsedMilliseconds)ms on first render")
+                    }
+                }
+                #endif
             }
             .background(
                 LinearGradient(
