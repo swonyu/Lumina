@@ -9,6 +9,8 @@ import WidgetKit
 @MainActor
 @Observable
 final class LuminaViewModel {
+    let sessionID = UUID()
+    var dataRevision = 0
     var currentUser: UserProfile?
     var recentHealthSnapshots: [HealthSnapshot] = []
     var isLoadingHealthData = false
@@ -26,79 +28,27 @@ final class LuminaViewModel {
     func bootstrapAfterLaunch() async {
         loadCurrentUser()
 
-        if currentUser == nil {
-            createDemoProfile()
-        }
-
         await fetchRecentHealthData()
         loadPersistedCoachMemory()
         loadGoals()
     }
 
+    static func checkInStreak(dates: [Date], now: Date = Date(), calendar: Calendar = .current) -> Int {
+        let today = calendar.startOfDay(for: now)
+        let days = Set(dates.filter { $0 <= now }.map { calendar.startOfDay(for: $0) })
+        var day = days.contains(today) ? today : calendar.date(byAdding: .day, value: -1, to: today)!
+        var count = 0
+        while days.contains(day) {
+            count += 1
+            day = calendar.date(byAdding: .day, value: -1, to: day)!
+        }
+        return count
+    }
+
     func loadCurrentUser() {
         let descriptor = FetchDescriptor<UserProfile>(sortBy: [SortDescriptor(\.createdAt, order: .reverse)])
-        if let user = try? modelContext.fetch(descriptor).first {
-            currentUser = user
-        }
-    }
-    
-    private func createDemoProfile() {
-        let demo = UserProfile(
-            name: "Alex",
-            age: 28,
-            gender: .male,
-            heightCm: 178,
-            currentWeightKg: 82,
-            goalWeightKg: 74,
-            experienceLevel: .intermediate,
-            primaryGoal: .buildMuscle,
-            workoutDaysPerWeek: 5,
-            equipmentAccess: .fullGym,
-            dietaryPreferences: [.highProtein]
-        )
-        modelContext.insert(demo)
-        try? modelContext.save()
-        currentUser = demo
-        
-        // Seed some demo activity so the app doesn't feel empty
-        seedDemoData()
-    }
-    
-    private func seedDemoData() {
-        let now = Date()
-        
-        // Check-ins with spread dates
-        let check1 = DailyCheckIn(date: now.addingTimeInterval(-86400*1), energyLevel: 7, sorenessLevel: 3, sleepQuality: 8, stressLevel: 4, mood: .good, didTrain: true)
-        let check2 = DailyCheckIn(date: now.addingTimeInterval(-86400*2), energyLevel: 6, sorenessLevel: 5, sleepQuality: 6, stressLevel: 5, mood: .okay, didTrain: true)
-        modelContext.insert(check1)
-        modelContext.insert(check2)
-        
-        // Meals
-        modelContext.insert(MealLog(date: now.addingTimeInterval(-3600*3), mealName: "Chicken rice bowl", calories: 620, protein: 48))
-        modelContext.insert(MealLog(date: now.addingTimeInterval(-3600*8), mealName: "Greek yogurt + berries", calories: 280, protein: 22))
-        
-        // Workout
-        modelContext.insert(WorkoutLog(date: now.addingTimeInterval(-86400), workoutName: "Push + Core", exercises: [], perceivedExertion: 7, notes: "Felt strong on bench"))
-        
-        // Some HealthSnapshots so coach context has data
-        let snap1 = HealthSnapshot(date: now.addingTimeInterval(-86400*1))
-        snap1.sleepHours = 7.5
-        snap1.heartRateVariability = 68
-        snap1.activeEnergyBurned = 720
-        modelContext.insert(snap1)
-        
-        let snap2 = HealthSnapshot(date: now.addingTimeInterval(-86400*2))
-        snap2.sleepHours = 6.2
-        snap2.heartRateVariability = 52
-        snap2.activeEnergyBurned = 540
-        modelContext.insert(snap2)
-        
-        try? modelContext.save()
-        
-        // Populate immediately (sync) so Coach tab has context right away
-        var descriptor = FetchDescriptor<HealthSnapshot>(sortBy: [SortDescriptor(\.date, order: .reverse)])
-        descriptor.fetchLimit = 14
-        recentHealthSnapshots = (try? modelContext.fetch(descriptor)) ?? []
+        do { currentUser = try modelContext.fetch(descriptor).first }
+        catch { errorMessage = "Could not load your profile: \(error.localizedDescription)" }
     }
 
     func createOrUpdateProfile(_ profile: UserProfile) {
@@ -112,14 +62,20 @@ final class LuminaViewModel {
     private let healthStore = HKHealthStore()
 
     func seedStartupServices() async {
-        await requestNotificationPermission()
+        guard !LuminaApp.isUIQA else { return }
+        await requestNotificationPermission(requestIfNeeded: false)
         await scheduleProactiveCoachNotifications()
-        startCoachFocusLiveActivity()
     }
 
     func requestHealthKitAccess() async {
         isLoadingHealthData = true
         errorMessage = nil
+
+        guard Bundle.main.object(forInfoDictionaryKey: "NSHealthShareUsageDescription") != nil else {
+            errorMessage = "Health access is unavailable in this build. Your existing records remain available."
+            isLoadingHealthData = false
+            return
+        }
 
         guard HKHealthStore.isHealthDataAvailable() else {
             errorMessage = "HealthKit not available on this device."
@@ -141,8 +97,6 @@ final class LuminaViewModel {
             
         } catch {
             errorMessage = "HealthKit authorization failed: \(error.localizedDescription)"
-            // Fall back to demo data
-            await seedDemoHealthDataIfNeeded()
         }
         
         isLoadingHealthData = false
@@ -172,8 +126,10 @@ final class LuminaViewModel {
                 snapshot.sleepHours = sleep
             }
 
-            modelContext.insert(snapshot)
-            snapshots.append(snapshot)
+            if snapshot.heartRateVariability != nil || snapshot.activeEnergyBurned != nil || snapshot.sleepHours != nil {
+                modelContext.insert(snapshot)
+                snapshots.append(snapshot)
+            }
         }
 
         try? modelContext.save()
@@ -232,27 +188,12 @@ final class LuminaViewModel {
         }
     }
 
-    private func seedDemoHealthDataIfNeeded() async {
-        if recentHealthSnapshots.isEmpty {
-            let now = Date()
-            let s1 = HealthSnapshot(date: now.addingTimeInterval(-86400))
-            s1.sleepHours = 7.2; s1.heartRateVariability = 61; s1.activeEnergyBurned = 680; s1.energyLevel = 7
-            modelContext.insert(s1)
-            
-            let s2 = HealthSnapshot(date: now.addingTimeInterval(-86400*2))
-            s2.sleepHours = 6.8; s2.heartRateVariability = 55; s2.activeEnergyBurned = 510; s2.energyLevel = 6
-            modelContext.insert(s2)
-            
-            try? modelContext.save()
-            recentHealthSnapshots = [s2, s1]
-        }
-    }
-
     func fetchRecentHealthData() async {
         isLoadingHealthData = true
         var descriptor = FetchDescriptor<HealthSnapshot>(sortBy: [SortDescriptor(\.date, order: .reverse)])
         descriptor.fetchLimit = 14
-        recentHealthSnapshots = (try? modelContext.fetch(descriptor)) ?? []
+        do { recentHealthSnapshots = try modelContext.fetch(descriptor) }
+        catch { errorMessage = "Could not load health records: \(error.localizedDescription)" }
         isLoadingHealthData = false
 
         syncWidgetData()   // Round 106: rings may have changed
@@ -287,7 +228,7 @@ final class LuminaViewModel {
             recentMeals: Array(recentMeals),
             activeHabits: Array(activeHabits),
             recentInsights: Array(insightMemories),
-            currentStreak: max(recentCheckIns.count, recentWorkoutsFetched.count)
+            currentStreak: Self.checkInStreak(dates: ((try? modelContext.fetch(checkInDesc)) ?? []).map(\.date))
         )
     }
     
@@ -335,39 +276,8 @@ final class LuminaViewModel {
         _cachedActiveHabits = nil
     }
     
-    var todaysFocusDuration: String {
-        "45-50 min"  // Could be made smarter with more data
-    }
-    
-    // Dynamic rings for Home (based on seeded + recent data)
-    var recoveryValue: Int {
-        guard !recentHealthSnapshots.isEmpty else { return 73 }
-        let sleepVals = recentHealthSnapshots.compactMap { $0.sleepHours }
-        let avgSleep = sleepVals.isEmpty ? 7.0 : sleepVals.reduce(0, +) / Double(sleepVals.count)
-        let energyVals = recentHealthSnapshots.compactMap { $0.energyLevel }
-        let avgEnergy = energyVals.isEmpty ? 5.0 : Double(energyVals.reduce(0, +)) / Double(energyVals.count)
-        let base = 60 + (avgSleep - 6) * 8 + (avgEnergy - 5) * 2
-        return min(max(Int(base), 55), 92)
-    }
-    
-    var nutritionValue: Int {
-        // Simple demo based on recent check-ins + profile goal
-        guard let user = currentUser else { return 68 }
-        let base = user.primaryGoal == .buildMuscle ? 72 : 65
-        let energyVals = recentHealthSnapshots.compactMap { $0.energyLevel }
-        let recentAvg = energyVals.isEmpty ? 5.0 : Double(energyVals.reduce(0, +)) / Double(energyVals.count)
-        return min(max(Int(Double(base) + (recentAvg - 5) * 3), 50), 90)
-    }
-    
-    var readinessValue: Int {
-        guard !recentHealthSnapshots.isEmpty else { return 84 }
-        let hrvVals = recentHealthSnapshots.compactMap { $0.heartRateVariability }
-        let avgHRV = hrvVals.isEmpty ? 50.0 : hrvVals.reduce(0, +) / Double(hrvVals.count)
-        return min(max(Int(60 + (avgHRV - 50) * 0.6), 65), 95)
-    }
-    
     // MARK: - Proactive AI Coach Insight (Round 3)
-    var currentCoachInsight: String = "Your recent HRV trend looks solid. Great window to push a bit harder if energy stays good."
+    var currentCoachInsight: String = "Choose a small action and record how you feel. Offline suggestions do not measure health or habit outcomes."
     var isGeneratingInsight: Bool = false
     private var lastInsightRefresh: Date?
 
@@ -582,7 +492,7 @@ final class LuminaViewModel {
         isGeneratingInsight = true
 
         let context = buildCoachContext()
-        let apiKey = ProcessInfo.processInfo.environment["XAI_API_KEY"] ?? ""
+        let apiKey = GrokService.configuredAPIKey ?? ""
 
         if !apiKey.isEmpty {
             let service = GrokService(apiKey: apiKey)
@@ -657,7 +567,7 @@ final class LuminaViewModel {
     
     /// Round 23: Generate a short, autonomous daily insight for the Home screen using the coach's memory.
     func generateProactiveHomeInsight() async {
-        let apiKey = ProcessInfo.processInfo.environment["XAI_API_KEY"] ?? ""
+        let apiKey = GrokService.configuredAPIKey ?? ""
         guard !apiKey.isEmpty else { return }
         
         let memory = !smartMemorySummary.isEmpty ? smartMemorySummary : memorySummary
@@ -695,7 +605,7 @@ final class LuminaViewModel {
     /// Round 28: Generate a truly intelligent, personalized Daily Briefing using the coach's best memory summary.
     /// This replaces the previous brittle keyword-based heuristic and makes the coach feel much wiser every launch.
     func generateCoachDailyBriefing() async {
-        let apiKey = ProcessInfo.processInfo.environment["XAI_API_KEY"] ?? ""
+        let apiKey = GrokService.configuredAPIKey ?? ""
         let memory = !smartMemorySummary.isEmpty ? smartMemorySummary : memorySummary
         
         // Light rate limit + avoid regenerating identical content constantly
@@ -762,47 +672,29 @@ final class LuminaViewModel {
     }
     
     private func generateLocalBriefing(memory: String) -> String {
-        let s = memory.lowercased()
-        if s.contains("energy") || s.contains("tired") || s.contains("recovery") {
-            return "Your recent energy and recovery patterns suggest keeping today's movement intentional and protecting sleep. Small, high-quality effort will serve you best."
-        } else if s.contains("consistent") && !s.contains("inconsistent") {
-            return "Consistency has been your superpower lately. One focused session today will compound that momentum meaningfully this week."
-        } else if !recentGoalAdjustments.isEmpty || s.contains("goal") {
-            return "You've been doing good thinking with me on your goals. Let's keep the focus on the highest-leverage action that moves the needle today."
-        } else if s.contains("inconsistent") || s.contains("skipped") {
-            return "Life gets in the way sometimes. A kind, small action today resets the rhythm better than aiming for perfection."
-        } else if (s.contains("coach habit") || s.contains("added habit")) && (s.contains("win") || s.contains("showing") || s.contains("energy") || s.contains("photo")) {
-            // Round 60: Positive outcome for coach habits
-            return "One of your coach-suggested habits is already delivering early wins. Logging today's completion and capturing it with a photo will lock in the momentum."
-        } else if s.contains("added habit") || s.contains("new habit") || (s.contains("coach habit") && s.contains("streak")) {
-            // Round 58/60: Honest impact language
-            return "You have active coach-suggested habits with some early activity. A quick win log or progress photo today will help measure whether they're moving the needle."
-        } else if s.contains("coach-requested") && s.contains("photo") {
-            // Round 66: Acknowledge recent coach-driven photo action
-            return "You recently captured a progress photo at my request for one of your habits. That data will help us see real results."
-        } else if hasLimitedCoachHabitImpact || currentCoachPhotoReflectionShowsLimitedImpact {
-            // Round 74 + 101 + 102 + 103 + 104: Use centralized limited-impact detection + actual summary for much smarter offline Daily Briefing
-            let detail = !limitedImpactCoachHabitsSummary.isEmpty ? " \(limitedImpactCoachHabitsSummary)" : ""
-            return "Recent coach photo analysis shows limited visible impact on a habit so far.\(detail) Let's review and adjust or capture more data."
-        } else if s.contains("progress photo analysis") && s.contains("coach") {
-            // Round 74 + 80: Reference recent coach photo analysis insights in local briefing with outcome-aware tone
-            return "Your recent coach photo analysis has fresh insights on a habit — worth reviewing the evidence today."
-        }
-        return "Your history shows you do best when you start the day with one clear, high-value intention. What will yours be?"
+        "Choose one manageable action today. Record how you feel; offline coaching cannot establish health trends or a habit's effects."
     }
-    
+
     /// Round 29: After the user completes an autonomous goal or plan action, generate one smart, contextual "what should we do next?" follow-up.
     /// This creates true multi-turn agentic behavior.
     private var lastPostActionFollowUpGen: Date?
     
     func generatePostActionFollowUp(after actionType: HomeCoachSuggestion.ActionType, actionTitle: String) async {
+        if (GrokService.configuredAPIKey ?? "").isEmpty {
+            followUpSuccessMessage = ""
+            postActionCoachFollowUp = "Would you like to record a check-in? Record habit completions separately in Habits after you finish them."
+            showingPostActionFollowUp = true
+            postActionFollowUpAction = .logCheckIn
+            return
+        }
+
         // Round 30 perf: guard against rapid successive autonomous actions firing multiple follow-up generations
         if let last = lastPostActionFollowUpGen, Date().timeIntervalSince(last) < 20 {
             return
         }
         lastPostActionFollowUpGen = Date()
         
-        let apiKey = ProcessInfo.processInfo.environment["XAI_API_KEY"] ?? ""
+        let apiKey = GrokService.configuredAPIKey ?? ""
         let memory = !smartMemorySummary.isEmpty ? smartMemorySummary : memorySummary
         let ctx = buildCoachContext()
         
@@ -908,7 +800,7 @@ final class LuminaViewModel {
             // Actually generate a fresh plan using the latest memory/context
             saveCoachMemoryEntry(type: .pattern, content: "User acted on coach follow-up suggestion: \(previousText)")
             
-            let apiKey = ProcessInfo.processInfo.environment["XAI_API_KEY"] ?? ""
+            let apiKey = GrokService.configuredAPIKey ?? ""
             if !apiKey.isEmpty, let profile = currentUser {
                 Task {
                     let service = GrokService(apiKey: apiKey)
@@ -1013,15 +905,7 @@ final class LuminaViewModel {
     }
 
     private func generateLocalInsight(context: CoachContext) -> String {
-        if !context.recentHealth.isEmpty {
-            let avgEnergy = context.recentHealth.compactMap { $0.energyLevel }.average ?? 6.0
-            if avgEnergy < 5.5 {
-                return "Your energy has been running low. Today should be about movement quality and recovery, not volume."
-            } else {
-                return "Recent HRV and energy look stable. This is a good window to train with intention and add a small challenge."
-            }
-        }
-        return "Stay consistent — small daily actions compound faster than you think."
+        "Review your logs and choose one manageable next step. No health or habit outcome has been inferred."
     }
 
     // MARK: - Agentic Actions for the Coach (Round 4)
@@ -1037,8 +921,7 @@ final class LuminaViewModel {
             journalNote: note,
             didTrain: didTrain
         )
-        modelContext.insert(checkIn)
-        try? modelContext.save()
+        guard saveRecord(checkIn) else { return }
         
         // Refresh data used by rings + coach + Live Activity
         Task { await fetchRecentHealthData() }
@@ -1055,8 +938,7 @@ final class LuminaViewModel {
             perceivedExertion: perceivedExertion,
             notes: notes
         )
-        modelContext.insert(log)
-        try? modelContext.save()
+        guard saveRecord(log) else { return }
         invalidateWorkoutsCache()   // also updates Live Activity consumers
         // Live Activity reacts immediately to new workout
         updateCoachFocusLiveActivity()
@@ -1066,8 +948,7 @@ final class LuminaViewModel {
     @MainActor
     func logQuickMeal(name: String, calories: Double?, protein: Double?) {
         let log = MealLog(mealName: name, calories: calories, protein: protein)
-        modelContext.insert(log)
-        try? modelContext.save()
+        guard saveRecord(log) else { return }
         
         // Feed the coach and trigger analysis if it looks like a photo meal
         saveCoachMemoryEntry(type: .pattern, content: "Quick meal logged via coach: \(name) (\(Int(calories ?? 0)) cal)")
@@ -1122,39 +1003,26 @@ final class LuminaViewModel {
     
     func loadGoals() {
         let descriptor = FetchDescriptor<Goal>(sortBy: [SortDescriptor(\.lastAdjustedByCoach, order: .reverse)])
-        goals = (try? modelContext.fetch(descriptor)) ?? []
+        do { goals = try modelContext.fetch(descriptor) }
+        catch { errorMessage = "Could not load goals: \(error.localizedDescription)" }
     }
     
     // MARK: - Persisted Coach Intelligence (Round 6)
     
     func loadPersistedCoachMemory() {
         let descriptor = FetchDescriptor<CoachMemoryEntry>(sortBy: [SortDescriptor(\.date, order: .reverse)])
-        persistedCoachMemory = (try? modelContext.fetch(descriptor)) ?? []
+        do { persistedCoachMemory = try modelContext.fetch(descriptor) }
+        catch { errorMessage = "Could not load coach notes: \(error.localizedDescription)" }
     }
     
     @MainActor
     func saveCoachMemoryEntry(type: MemoryType, content: String) {
         let entry = CoachMemoryEntry(type: type, content: content)
-        modelContext.insert(entry)
-        
-        do {
-            try modelContext.save()
-            persistedCoachMemory.insert(entry, at: 0)
-            
-            if persistedCoachMemory.count > 50 {
-                persistedCoachMemory = Array(persistedCoachMemory.prefix(50))
-            }
-            
-            // Round 37: Reschedule smart notifications when memory updates significantly
-            Task {
-                await scheduleProactiveCoachNotifications()
-            }
-        } catch {
-            // Round 8 bug fix: Don't crash if memory save fails
-            print("Failed to persist coach memory: \(error)")
-        }
+        guard saveRecord(entry) else { return }
+        persistedCoachMemory.insert(entry, at: 0)
+        persistedCoachMemory = Array(persistedCoachMemory.prefix(50))
     }
-    
+
     /// Returns rich long-term context string for the AI coach from persisted memory (Round 12 + 39: now surfaces photo/meal/habit insights too)
     var longTermCoachContext: String {
         let reflections = persistedCoachMemory.filter { $0.type == .reflection }.prefix(5).map { $0.content }
@@ -1251,7 +1119,7 @@ final class LuminaViewModel {
         }
         lastMemorySummaryGen = Date()
         
-        let apiKey = ProcessInfo.processInfo.environment["XAI_API_KEY"] ?? ""
+        let apiKey = GrokService.configuredAPIKey ?? ""
         guard !apiKey.isEmpty, !persistedCoachMemory.isEmpty else {
             return memorySummary  // fall back to heuristic version
         }
@@ -1339,7 +1207,7 @@ final class LuminaViewModel {
     /// Round 9: LLM-powered version of home suggestions when API key is available.
     /// This makes the coach's proactive recommendations on the Home screen truly intelligent.
     func generateHomeCoachSuggestionsWithAI(from context: CoachContext) async {
-        let apiKey = ProcessInfo.processInfo.environment["XAI_API_KEY"] ?? ""
+        let apiKey = GrokService.configuredAPIKey ?? ""
         guard !apiKey.isEmpty else {
             // Fall back to heuristic
             generateHomeCoachSuggestions(from: context)
@@ -1442,6 +1310,14 @@ final class LuminaViewModel {
     private var lastProactiveRecGen: Date?
     
     func generateProactiveCoachRecommendation() async {
+        if GrokService.configuredAPIKey == nil {
+            proactiveCoachRecommendation = "Record a check-in or review your logs."
+            proactiveRecommendationAction = .logCheckIn
+            proactiveRecommendationCategory = "pattern"
+            showingProactiveRecommendation = true
+            return
+        }
+
         // Round 28/29 perf guard: dedicated timestamp to avoid duplicate heavy calls
         if let last = lastProactiveRecGen, Date().timeIntervalSince(last) < 50, !proactiveCoachRecommendation.isEmpty {
             return
@@ -1451,7 +1327,7 @@ final class LuminaViewModel {
         let memory = !smartMemorySummary.isEmpty ? smartMemorySummary : memorySummary
         let ctx = buildCoachContext()
         
-        let apiKey = ProcessInfo.processInfo.environment["XAI_API_KEY"] ?? ""
+        let apiKey = GrokService.configuredAPIKey ?? ""
         
         // Strong LLM path when key present — lets Grok itself decide the best autonomous nudge
         if !apiKey.isEmpty && !memory.isEmpty {
@@ -1682,7 +1558,7 @@ final class LuminaViewModel {
             saveCoachMemoryEntry(type: .pattern, content: "User acted on coach's proactive plan review recommendation surfaced from memory patterns: \(suggestion.title)")
             
             // If we have key, quietly generate a fresh adaptive plan in background so it feels instant when they navigate
-            let apiKey = ProcessInfo.processInfo.environment["XAI_API_KEY"] ?? ""
+            let apiKey = GrokService.configuredAPIKey ?? ""
             if !apiKey.isEmpty, let profile = currentUser {
                 Task {
                     let service = GrokService(apiKey: apiKey)
@@ -1711,7 +1587,7 @@ final class LuminaViewModel {
         // Round 11 + 27: Generate a smart follow-up insight after the user acted on a coach suggestion.
         // This creates a multi-turn "the coach noticed what you did" feeling.
         Task {
-            let apiKey = ProcessInfo.processInfo.environment["XAI_API_KEY"] ?? ""
+            let apiKey = GrokService.configuredAPIKey ?? ""
             if !apiKey.isEmpty {
                 let service = GrokService(apiKey: apiKey)
                 let ctx = buildCoachContext()
@@ -1788,7 +1664,7 @@ final class LuminaViewModel {
         - Use direct cause-effect language. End with 1-2 concrete next actions that reference specific current habits, the need for more data on a limited-impact coach habit, or a suggested adjustment.
         """
         
-        let apiKey = ProcessInfo.processInfo.environment["XAI_API_KEY"] ?? ""
+        let apiKey = GrokService.configuredAPIKey ?? ""
         if !apiKey.isEmpty {
             let service = GrokService(apiKey: apiKey)
             if let analysis = try? await service.getSmartEmotionalSupport(
@@ -1819,17 +1695,17 @@ final class LuminaViewModel {
         } else {
             // Good local fallback
             await MainActor.run {
-                self.currentCoachInsight = "Between these dates you logged \(relevantWorkouts.count) workouts. Your photos likely show the result of that consistency. Focus on progressive overload in your main lifts over the next 4-6 weeks for continued visible change."
+                self.currentCoachInsight = "Photos are saved for your review. Offline coaching does not inspect images or infer physical changes."
             }
         }
     }
 
     // MARK: - Proactive Coach Notifications (Round 36)
-    func requestNotificationPermission() async {
+    func requestNotificationPermission(requestIfNeeded: Bool = true) async {
         let center = UNUserNotificationCenter.current()
         let settings = await center.notificationSettings()
         
-        if settings.authorizationStatus == .notDetermined {
+        if settings.authorizationStatus == .notDetermined && requestIfNeeded {
             do {
                 notificationsAuthorized = try await center.requestAuthorization(options: [.alert, .sound, .badge])
             } catch {
@@ -1843,58 +1719,22 @@ final class LuminaViewModel {
     /// Schedules smart, low-frequency proactive messages from the coach based on current memory and patterns.
     /// This makes the AI coach feel alive even when the app is closed.
     func scheduleProactiveCoachNotifications() async {
-        guard notificationsAuthorized else { return }
-
         let center = UNUserNotificationCenter.current()
-        center.removeAllPendingNotificationRequests() // Keep it simple for now (smart rescheduling)
-
-        let memory = !smartMemorySummary.isEmpty ? smartMemorySummary.lowercased() : memorySummary.lowercased()
-        let context = buildCoachContext()
-
-        // Example intelligent triggers (can be expanded significantly)
-        if memory.contains("low energy") || memory.contains("tired") || memory.contains("recovery") {
-            let content = UNMutableNotificationContent()
-            content.title = "Coach Check-in"
-            content.body = "Your recent patterns suggest today might benefit from lighter movement or extra rest. How are you feeling?"
-            content.sound = .default
-
-            // Schedule for tomorrow morning
-            var dateComponents = DateComponents()
-            dateComponents.hour = 8
-            let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: false)
-
-            let request = UNNotificationRequest(identifier: "coach-low-energy", content: content, trigger: trigger)
-            try? await center.add(request)
+        center.removeAllPendingNotificationRequests()
+        guard notificationsAuthorized, UserDefaults.standard.bool(forKey: "remindersEnabled") else { return }
+        let content = UNMutableNotificationContent()
+        content.title = "Lumina journal"
+        content.body = "Would you like to review your week or add a journal entry?"
+        content.sound = .default
+        var date = DateComponents()
+        date.weekday = 1
+        date.hour = 19
+        do {
+            try await center.add(UNNotificationRequest(identifier: "coach-weekly", content: content,
+                trigger: UNCalendarNotificationTrigger(dateMatching: date, repeats: true)))
+        } catch {
+            errorMessage = "Could not schedule the reminder: \(error.localizedDescription)"
         }
-
-        if memory.contains("inconsistent") || memory.contains("skipped") {
-            let content = UNMutableNotificationContent()
-            content.title = "Small Win Today"
-            content.body = "Consistency has been a theme lately. Even a short 15-minute session can rebuild momentum."
-            content.sound = .default
-
-            var dateComponents = DateComponents()
-            dateComponents.hour = 7
-            dateComponents.minute = 30
-            let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: false)
-
-            let request = UNNotificationRequest(identifier: "coach-consistency", content: content, trigger: trigger)
-            try? await center.add(request)
-        }
-
-        // Always schedule a gentle weekly reflection nudge
-        let weeklyContent = UNMutableNotificationContent()
-        weeklyContent.title = "Weekly Reflection with Coach"
-        weeklyContent.body = "Ready to review the week together? Your coach has some observations ready."
-        weeklyContent.sound = .default
-
-        var weeklyComponents = DateComponents()
-        weeklyComponents.weekday = 1 // Sunday
-        weeklyComponents.hour = 19
-        let weeklyTrigger = UNCalendarNotificationTrigger(dateMatching: weeklyComponents, repeats: true)
-
-        let weeklyRequest = UNNotificationRequest(identifier: "coach-weekly", content: weeklyContent, trigger: weeklyTrigger)
-        try? await center.add(weeklyRequest)
     }
 
     private var lastCoachHabitSuggestionsGen: Date?
@@ -1920,7 +1760,7 @@ final class LuminaViewModel {
         \(memory.prefix(700))
         """
         
-        let apiKey = ProcessInfo.processInfo.environment["XAI_API_KEY"] ?? ""
+        let apiKey = GrokService.configuredAPIKey ?? ""
         if !apiKey.isEmpty {
             let service = GrokService(apiKey: apiKey)
             if let response = try? await service.getSmartEmotionalSupport(
@@ -1956,45 +1796,33 @@ final class LuminaViewModel {
     }
     
     func recordHabitCompletion(habit: Habit) async {
-        // Feed this behavioral data back into coach memory — directly improves future smartMemorySummary + all proactive recs
-        var completionNote = "User completed habit '\(habit.name)' (streak: \(habit.currentStreak))."
-        if habit.coachSuggested {
-            completionNote += " This is a coach-suggested habit — suggest a progress photo soon to measure visible or felt impact on energy/recovery/consistency."
-        }
-        saveCoachMemoryEntry(type: .pattern, content: completionNote)
-        
-        invalidateHabitsCache() // Round 40: keep context fresh
-        
-        // Live Activity + rings react to positive habit behavior
+        let completedToday = habit.lastCompletedDate.map { Calendar.current.isDateInToday($0) } ?? false
+        let action = completedToday ? "Completed" : "Undid today's completion of"
+        saveCoachMemoryEntry(type: .pattern, content: "\(action) habit '\(habit.name)'.")
+        invalidateHabitsCache()
         updateCoachFocusLiveActivity()
-        
-        // Round 58: For coach-suggested habits, occasionally trigger a lightweight proactive nudge toward photo correlation in memory-driven flows
-        if habit.coachSuggested && (habit.currentStreak == 1 || habit.currentStreak % 4 == 0) {
-            // The next generateProactive... or memory summary will pick this up and surface "photo to track impact of X"
-        }
     }
-    
+
     // Round 42 + 44: Direct coach action to add a habit (makes ADD_HABIT ACTION_SUGGESTION actually work)
     // Includes duplicate prevention so the coach stays smart and doesn't create junk data.
     @MainActor
-    func addCoachSuggestedHabit(name: String, reason: String? = nil) {
+    @discardableResult
+    func addCoachSuggestedHabit(name: String, reason: String? = nil) -> Bool {
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return }
+        guard !trimmed.isEmpty else { return false }
         
         // Round 44 bug fix + intelligence: prevent duplicate active habits (case-insensitive)
         let existing = activeHabits.first { $0.name.lowercased() == trimmed.lowercased() && $0.isActive }
         if existing != nil {
-            // Coach already suggested this or user has it — just note it and move on
-            saveCoachMemoryEntry(type: .pattern, content: "Coach suggested habit '\(trimmed)' but it already exists.")
-            return
+            errorMessage = "This habit is already in your list."
+            return false
         }
         
         let habit = Habit(name: trimmed, coachSuggested: true)
         if let r = reason, !r.isEmpty {
             habit.coachNotes = r
         }
-        modelContext.insert(habit)
-        try? modelContext.save()
+        guard saveRecord(habit) else { return false }
         
         invalidateHabitsCache()
         saveCoachMemoryEntry(type: .pattern, content: "Coach suggested and user added habit: \(trimmed). \(reason ?? "")")
@@ -2004,15 +1832,15 @@ final class LuminaViewModel {
         followUpSuccessMessage = "Habit added: \(trimmed)"
         justAddedCoachHabit = trimmed
         
-        Task {
-            try? await Task.sleep(for: .seconds(3))
-            await MainActor.run {
-                if self.followUpSuccessMessage == "Habit added: \(trimmed)" {
-                    self.followUpSuccessMessage = ""
-                }
-                if self.justAddedCoachHabit == trimmed {
-                    self.justAddedCoachHabit = nil
-                }
+        Task { [weak self] in
+            do { try await Task.sleep(for: .seconds(3)) }
+            catch { return }
+            guard let self else { return }
+            if self.followUpSuccessMessage == "Habit added: \(trimmed)" {
+                self.followUpSuccessMessage = ""
+            }
+            if self.justAddedCoachHabit == trimmed {
+                self.justAddedCoachHabit = nil
             }
         }
         
@@ -2024,11 +1852,14 @@ final class LuminaViewModel {
         // Round 58 + 59: Immediately bias the next proactive rec toward this new habit (makes coach feel instantly aware)
         // Guarded to avoid re-entrancy on rapid adds
         if lastProactiveRecGen == nil || Date().timeIntervalSince(lastProactiveRecGen!) > 8 {
-            Task {
-                try? await Task.sleep(for: .milliseconds(400))
+            Task { [weak self] in
+                do { try await Task.sleep(for: .milliseconds(400)) }
+                catch { return }
+                guard let self else { return }
                 await self.generateProactiveCoachRecommendation()
             }
         }
+        return true
     }
 
     private var lastMealAnalysis: Date?
@@ -2052,7 +1883,7 @@ final class LuminaViewModel {
         Analyze the meal in context of the user's goals, recent energy/recovery patterns, training load, *and any active coach-suggested habits* (e.g. "protein at every meal" or timing habits). Note if this meal appears to support or contradict a coach habit the user recently added. Give a short, specific coach comment (2-4 sentences). Be encouraging but direct. Suggest 1 concrete next action (e.g., pair with certain food, adjust timing, or log how they feel after). If a coach habit is relevant, explicitly reference its early impact or lack of measured signal.
         """
         
-        let apiKey = ProcessInfo.processInfo.environment["XAI_API_KEY"] ?? ""
+        let apiKey = GrokService.configuredAPIKey ?? ""
         if !apiKey.isEmpty {
             let service = GrokService(apiKey: apiKey)
             if let feedback = try? await service.getSmartEmotionalSupport(
@@ -2067,7 +1898,7 @@ final class LuminaViewModel {
             }
         } else {
             await MainActor.run {
-                self.currentCoachInsight = "Nice job logging \(mealLog.mealName). Consider pairing it with veggies next time for better micronutrients."
+                self.currentCoachInsight = "Meal saved: \(mealLog.mealName). The photo is for your own review; offline coaching does not inspect it."
                 self.saveCoachMemoryEntry(type: .insight, content: "Local meal feedback for \(mealLog.mealName)")
             }
         }
@@ -2077,92 +1908,21 @@ final class LuminaViewModel {
     private var coachFocusActivity: Activity<CoachFocusAttributes>?
 
     func startCoachFocusLiveActivity() {
-        // Only start if no active activity
-        guard ActivityAuthorizationInfo().areActivitiesEnabled else { return }
-        guard coachFocusActivity == nil else { return }
-
-        let memory = !smartMemorySummary.isEmpty ? smartMemorySummary : memorySummary
-        let attributes = CoachFocusAttributes()
-        let initialState = CoachFocusAttributes.ContentState(
-            title: coachDailyBriefing.isEmpty 
-                ? (!memory.isEmpty ? String(memory.prefix(52)) : "Coach Focus Today") 
-                : String(coachDailyBriefing.prefix(60)),
-            subtitle: proactiveHomeInsight.isEmpty 
-                ? (memory.isEmpty ? "Stay consistent with your patterns." : String(memory.prefix(70))) 
-                : String(proactiveHomeInsight.prefix(50)),
-            // Round 46: If coach is currently focused on a new habit, reflect that on first launch of Live Activity
-            // (handled dynamically in update too)
-            progress: 0.3,
-            rings: CoachFocusAttributes.RingValues(readiness: readinessValue, recovery: recoveryValue, nutrition: nutritionValue)
-        )
-
+        guard ActivityAuthorizationInfo().areActivitiesEnabled, coachFocusActivity == nil else { return }
         do {
-            coachFocusActivity = try Activity.request(
-                attributes: attributes,
-                contentState: initialState,
-                pushType: nil
-            )
+            coachFocusActivity = try Activity.request(attributes: CoachFocusAttributes(),
+                content: ActivityContent(state: CoachFocusAttributes.ContentState(
+                    title: "Lumina journal", subtitle: "Record a check-in or review your logs."), staleDate: nil), pushType: nil)
         } catch {
-            print("Failed to start Live Activity: \(error)")
+            errorMessage = "Could not start the focus reminder: \(error.localizedDescription)"
         }
     }
 
     func updateCoachFocusLiveActivity() {
         guard let activity = coachFocusActivity else { return }
-
-        // FIXED: Use VM-cached recentWorkouts (was broken reference to local var)
-        let recentWorkout = recentWorkouts.first
-        let memory = !smartMemorySummary.isEmpty ? smartMemorySummary : memorySummary
-        
-        let subtitle: String
-        if let workout = recentWorkout, Calendar.current.isDate(workout.date, inSameDayAs: Date()) {
-            subtitle = "Just logged: \(workout.workoutName). How did it feel?"
-        } else if proactiveRecommendationCategory == "habit" && !proactiveCoachRecommendation.isEmpty {
-            // Round 58 + 62 + 81: Even smarter Live Activity subtitles for habit outcomes (positive wins + explicit limited-impact cases from coach photo memory)
-            let lowerRec = proactiveCoachRecommendation.lowercased()
-            let isWinning = lowerRec.contains("win") || lowerRec.contains("delivering") || lowerRec.contains("early")
-            
-            if isWinning || coachWantsProgressPhotoForHabit {
-                subtitle = coachWantsProgressPhotoForHabit 
-                    ? "Coach wants a photo to lock in your habit win — nice work!"
-                    : "Coach habit delivering wins — great work! Keep the streak."
-            } else if hasLimitedCoachHabitImpact || currentCoachPhotoReflectionShowsLimitedImpact {
-                // Round 81 + 101 + 102: Honest lock-screen awareness of limited progress on a coach habit (centralized computeds for consistency with Home/Chat/Goals)
-                subtitle = "Coach photo showed limited impact on a habit — review or adjust?"
-            } else {
-                // Round 58 fallback for new/measurement habits
-                let recentHabitAdd = persistedCoachMemory.first { $0.type == .pattern && ($0.content.lowercased().contains("added habit") || $0.content.lowercased().contains("coach suggested") && $0.content.lowercased().contains("habit")) }?.content
-                var habitName = ""
-                if let add = recentHabitAdd {
-                    if let range = add.range(of: "habit: ") { habitName = String(add[range.upperBound...]).prefix(38).trimmingCharacters(in: .whitespaces) }
-                    else if let range = add.range(of: "added habit: ") { habitName = String(add[range.upperBound...]).prefix(38).trimmingCharacters(in: .whitespaces) }
-                    else { habitName = add.prefix(42).replacingOccurrences(of: "Coach suggested and user added habit: ", with: "") }
-                }
-                let hasEarlyWin = !habitName.isEmpty && persistedCoachMemory.contains { $0.type == .pattern && $0.content.lowercased().contains("completed habit") && $0.content.lowercased().contains(habitName.lowercased().prefix(20)) }
-                let impactNote = hasEarlyWin ? " — early consistency showing" : (habitName.isEmpty ? "" : " — log win or photo to measure impact")
-                subtitle = habitName.isEmpty ? "New habit added — log your first win today?" : "New habit: \(habitName)\(impactNote)"
-            }
-        } else if !memory.isEmpty && memory.count > 20 {
-            // Smarter: surface a real pattern from memory on the Lock Screen / Dynamic Island
-            let short = memory.prefix(90).replacingOccurrences(of: "\n", with: " ")
-            subtitle = String(short)
-        } else {
-            subtitle = proactiveHomeInsight.isEmpty ? "Stay consistent with your patterns." : String(proactiveHomeInsight.prefix(50))
-        }
-
-        let title = coachDailyBriefing.isEmpty 
-            ? (!memory.isEmpty ? String(memory.prefix(55)) : "Coach Focus Today")
-            : String(coachDailyBriefing.prefix(60))
-
-        let updatedState = CoachFocusAttributes.ContentState(
-            title: title,
-            subtitle: subtitle,
-            progress: min(1.0, Double(Calendar.current.component(.hour, from: Date())) / 24.0),
-            rings: CoachFocusAttributes.RingValues(readiness: readinessValue, recovery: recoveryValue, nutrition: nutritionValue)
-        )
-
         Task {
-            await activity.update(using: updatedState)
+            await activity.update(ActivityContent(state: CoachFocusAttributes.ContentState(
+                title: "Lumina journal", subtitle: "Open Lumina to review your saved records."), staleDate: nil))
         }
     }
 
@@ -2176,38 +1936,15 @@ final class LuminaViewModel {
     }
 
     // MARK: - Round 106: Widget + App Group data sync
-    /// Writes the current rings + latest coach insight into the shared App Group UserDefaults.
-    /// The widget (and future extensions) read from here for real, up-to-date content.
-    /// Call this after any significant state change that should be reflected on the Home Screen widget.
+    // Clear legacy sample scores; widgets only offer a neutral journal reminder.
     private let widgetSuiteName = "group.SA.Lumina"
 
     func syncWidgetData() {
+        guard !LuminaApp.isUIQA else { return }
         guard let shared = UserDefaults(suiteName: widgetSuiteName) else { return }
-
-        let readiness = readinessValue
-        let recovery = recoveryValue
-        let nutrition = nutritionValue
-
-        // Prefer the rich LLM briefing when available; fall back to proactive insight or a memory snippet
-        let insight: String
-        if !coachDailyBriefing.isEmpty {
-            insight = String(coachDailyBriefing.prefix(140))
-        } else if !proactiveHomeInsight.isEmpty {
-            insight = String(proactiveHomeInsight.prefix(140))
-        } else {
-            let mem = !smartMemorySummary.isEmpty ? smartMemorySummary : memorySummary
-            insight = mem.isEmpty ? "Consistency compounds. Small actions today build the patterns you're creating." : String(mem.prefix(140))
-        }
-
-        shared.set(readiness, forKey: "widget.readiness")
-        shared.set(recovery, forKey: "widget.recovery")
-        shared.set(nutrition, forKey: "widget.nutrition")
-        shared.set(insight, forKey: "widget.coachInsight")
+        for key in ["widget.readiness", "widget.recovery", "widget.nutrition"] { shared.removeObject(forKey: key) }
+        shared.set("Open Lumina to review your saved records.", forKey: "widget.coachInsight")
         shared.set(Date(), forKey: "widget.lastUpdated")
-
-        // Optional: tell WidgetKit to refresh soon (works even without the extension target added yet)
-        #if canImport(WidgetKit)
         WidgetCenter.shared.reloadAllTimelines()
-        #endif
     }
 }

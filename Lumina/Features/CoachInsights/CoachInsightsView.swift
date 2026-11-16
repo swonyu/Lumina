@@ -13,7 +13,7 @@ struct CoachInsightsView: View {
     }
     
     private var grok: GrokService? {
-        if let key = ProcessInfo.processInfo.environment["XAI_API_KEY"], !key.isEmpty {
+        if let key = GrokService.configuredAPIKey, !key.isEmpty {
             return GrokService(apiKey: key)
         }
         return nil
@@ -26,7 +26,8 @@ struct CoachInsightsView: View {
                     .font(.largeTitle.bold())
                     .foregroundStyle(.white)
                 
-                // Real AI Weekly Reflection
+                #if DEBUG
+                // Cloud coaching is excluded from the first offline release.
                 GlassCard {
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
@@ -66,12 +67,13 @@ struct CoachInsightsView: View {
                     }
                 }
                 
-                // Static / local pattern cards (can be enhanced later)
+                #endif
+                // Local reflection prompts do not invent measured health trends.
                 GlassCard {
                     VStack(alignment: .leading, spacing: 8) {
                         Text(L("coach.insights_pattern_title"))
                             .font(.headline)
-                        Text("Your recent check-ins show good consistency. Energy has been slightly higher on days after 7+ hours of sleep.")
+                        Text("Review your check-ins alongside your sleep and energy logs to look for patterns over time.")
                     }
                 }
                 
@@ -79,7 +81,7 @@ struct CoachInsightsView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text(L("coach.insights_observation_title"))
                             .font(.headline)
-                        Text(L("coach.insights_observation_message"))
+                        Text("Use your journal to reflect on your own observations. Offline coaching does not establish physical progress or causal habit effects.")
                     }
                 }
             }

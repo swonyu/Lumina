@@ -10,6 +10,7 @@ struct ProgressPhotosView: View {
     @State private var selectedItem: PhotosPickerItem?
     @State private var showingPicker = false
     @State private var showAddedFeedback = false
+    @State private var photoToDelete: ProgressPhoto?
 
     var body: some View {
         ScrollView {
@@ -75,7 +76,7 @@ struct ProgressPhotosView: View {
                         PhotoThumbnail(photo: photo)
                             .contextMenu {
                                 Button(role: .destructive) {
-                                    deletePhoto(photo)
+                                    photoToDelete = photo
                                 } label: {
                                     Label(L("progress.delete_photo"), systemImage: "trash")
                                 }
@@ -105,58 +106,36 @@ struct ProgressPhotosView: View {
             }
         }
         .onChange(of: selectedItem) { _, newItem in
+            guard let newItem else { return }
             Task {
-                if let data = try? await newItem?.loadTransferable(type: Data.self) {
-                    let newPhoto = ProgressPhoto(photoData: data)
-                    modelContext.insert(newPhoto)
-                    try? modelContext.save()
-                    
-                    // Round 37: Auto-trigger stronger AI Progress Photo Analysis if there's a previous photo
-                    if photos.count >= 1, let oldest = photos.last {
-                        Task {
-                            await viewModel.analyzeProgressPhotos(oldDate: oldest.date, newDate: newPhoto.date)
-                        }
+                do {
+                    guard let data = try await newItem.loadTransferable(type: Data.self) else {
+                        viewModel.errorMessage = "Could not read the selected photo. Try another image."
+                        return
                     }
-                    
-                    await MainActor.run {
-                        showAddedFeedback = true
-                        // Auto-hide feedback after a short time
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.8) {
-                            showAddedFeedback = false
-                        }
-                    }
-                    
-                    // Round 63 + 65 + 67 + 68: Stronger post-capture chaining for coach-requested habit photos
-                    if viewModel.coachWantsProgressPhotoForHabit {
-                        await viewModel.saveCoachMemoryEntry(
-                            type: .insight, 
-                            content: "Coach-requested progress photo captured for habit outcome tracking. This creates a strong visual record of the habit's impact."
-                        )
-                        await MainActor.run {
-                            viewModel.coachWantsProgressPhotoForHabit = false
-                            viewModel.followUpSuccessMessage = "Excellent — the coach will review this photo for your habit progress."
-                            
-                            // Round 68 + 71: Mark that the upcoming analysis is coach-driven so we can surface the real analysis text
-                            viewModel.pendingCoachPhotoAnalysis = true
-                            
-                            // Trigger insight refresh (analysis will set the actual reflection text)
-                            Task {
-                                await viewModel.refreshCoachInsight()
-                            }
-                        }
-                    }
-                }
-                // Clear selection to prevent re-triggering and allow adding more photos easily
-                await MainActor.run {
+                    guard viewModel.saveRecord(ProgressPhoto(photoData: data)) else { return }
+                    showAddedFeedback = true
+                    viewModel.coachWantsProgressPhotoForHabit = false
+                    viewModel.pendingCoachPhotoAnalysis = false
                     selectedItem = nil
-                }
+                } catch { viewModel.errorMessage = "Could not load photo: \(error.localizedDescription)" }
             }
         }
+        .confirmationDialog("Delete this saved photo?", isPresented: Binding(
+            get: { photoToDelete != nil }, set: { if !$0 { photoToDelete = nil } }), titleVisibility: .visible) {
+                Button("Delete photo", role: .destructive) {
+                    if let photo = photoToDelete { deletePhoto(photo) }
+                    photoToDelete = nil
+                }
+                Button("Cancel", role: .cancel) { photoToDelete = nil }
+        } message: { Text("This cannot be undone. The original in your Photos library is not deleted.") }
     }
-    
+
     private func deletePhoto(_ photo: ProgressPhoto) {
-        modelContext.delete(photo)
-        try? modelContext.save()
+        do {
+            try modelContext.save()
+            try modelContext.transaction { modelContext.delete(photo) }
+        } catch { viewModel.errorMessage = "Could not delete photo: \(error.localizedDescription)" }
     }
 }
 

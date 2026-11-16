@@ -41,7 +41,7 @@ struct RealAIChatView: View {
     @State private var showingInsights = false
     
     private var grokService: GrokService? {
-        if let key = ProcessInfo.processInfo.environment["XAI_API_KEY"] {
+        if let key = GrokService.configuredAPIKey {
             return GrokService(apiKey: key)
         }
         return nil
@@ -117,7 +117,7 @@ struct RealAIChatView: View {
                 HStack {
                     Image(systemName: "sparkles")
                         .foregroundStyle(.yellow)
-                    Text("Coach noted limited impact on some suggested habits — ask me about them or tap to review.")
+                    Text("Earlier coach notes mention habit effects. These are unverified notes, not measured outcomes.")
                         .font(.caption2)
                         .foregroundStyle(.white.opacity(0.85))
                 }
@@ -177,15 +177,9 @@ struct RealAIChatView: View {
                 let initial = ChatMessage.assistant(initialMessage)
                 displayedMessages = [DisplayedMessage(id: initial.id, base: initial)]
                 
-                // Round 86: Deeper agentic integration — when limited-impact coach habit memories exist, the coach proactively surfaces the issue the moment chat opens
                 if viewModel.hasLimitedCoachHabitImpact {
-                    let proactive = ChatMessage.assistant("I noticed one of the habits I suggested is showing limited measurable impact in your recent photos and data. Want to review or adjust it together?")
-                    var proactiveMsg = DisplayedMessage(id: proactive.id, base: proactive)
-                    // Offer a direct action the user can tap
-                    proactiveMsg.suggestedActions = [
-                        CoachAction(type: .adjustGoal, parameters: ["goalType": "coach-suggested habit", "reason": "Limited visible impact from photo analysis"])
-                    ]
-                    displayedMessages.append(proactiveMsg)
+                    let note = ChatMessage.assistant("Earlier coach notes mention habit effects. Offline coaching cannot verify those claims; review the original records yourself.")
+                    displayedMessages.append(DisplayedMessage(id: note.id, base: note))
                 }
             }
             
@@ -203,7 +197,7 @@ struct RealAIChatView: View {
         }
         // Round 5 polish: Clear call-to-action when the smart/agentic coach is not yet unlocked
         .overlay(alignment: .topTrailing) {
-            if ProcessInfo.processInfo.environment["XAI_API_KEY"] != nil {
+            if GrokService.configuredAPIKey != nil {
                 Text("✨ Grok")
                     .font(.caption2.weight(.medium))
                     .foregroundStyle(.white.opacity(0.55))
@@ -213,7 +207,7 @@ struct RealAIChatView: View {
                     .padding(.trailing, 12)
                     .padding(.top, 8)
             } else {
-                Text("Set XAI_API_KEY for full AI coach")
+                Text("Offline coaching")
                     .font(.caption2.weight(.medium))
                     .foregroundStyle(.yellow.opacity(0.9))
                     .padding(.horizontal, 8)
@@ -226,7 +220,7 @@ struct RealAIChatView: View {
     }
     
     // Existing action execution logic (used by per-message buttons in Round 5)
-    private func executeCoachAction(_ action: CoachAction) {
+    private func executeCoachAction(_ action: CoachAction) -> Bool {
         switch action.type {
         case .logCheckIn:
             let energy = Int(action.parameters["energy"] ?? "6") ?? 6
@@ -271,10 +265,12 @@ struct RealAIChatView: View {
         case .addHabit:
             let habitName = action.parameters["name"] ?? action.parameters["habitName"] ?? "New habit from coach"
             let reason = action.parameters["reason"] ?? ""
-            viewModel.addCoachSuggestedHabit(name: habitName, reason: reason.isEmpty ? nil : reason)
+            guard viewModel.addCoachSuggestedHabit(name: habitName,
+                reason: reason.isEmpty ? nil : reason) else { return false }
             viewModel.saveCoachMemoryEntry(type: .pattern, content: "User added coach-suggested habit via chat: \(habitName)")
-            // Round 58: Excellent chaining — after adding a habit, immediately guide to log first win + progress photo
-            Task { await viewModel.generatePostActionFollowUp(after: .adjustGoal, actionTitle: "Added new habit: \(habitName) — log first win + photo?") }
+            let reply = ChatMessage.assistant("Habit saved: \(habitName). Use its completion button in Habits after you finish it.")
+            displayedMessages.append(DisplayedMessage(id: reply.id, base: reply))
+            return true
             
         case .adjustGoal:
             let goalType = action.parameters["goalType"] ?? action.parameters["type"] ?? "primary goal"
@@ -291,7 +287,7 @@ struct RealAIChatView: View {
             // Round 28: Execute the autonomous plan review action from chat (same power as Home)
             viewModel.saveCoachMemoryEntry(type: .pattern, content: "User triggered coach-recommended plan review from chat")
             
-            if let key = ProcessInfo.processInfo.environment["XAI_API_KEY"], !key.isEmpty, let profile = viewModel.currentUser {
+            if let key = GrokService.configuredAPIKey, !key.isEmpty, let profile = viewModel.currentUser {
                 Task {
                     let service = GrokService(apiKey: key)
                     if let plan = try? await service.generateSmartWorkoutPlan(profile: profile, context: viewModel.buildCoachContext()) {
@@ -309,7 +305,7 @@ struct RealAIChatView: View {
         
         // Round 11: Generate a quick coach follow-up after the user took an action in chat
         Task {
-            let apiKey = ProcessInfo.processInfo.environment["XAI_API_KEY"] ?? ""
+            let apiKey = GrokService.configuredAPIKey ?? ""
             guard !apiKey.isEmpty else { return }
             
             let service = GrokService(apiKey: apiKey)
@@ -329,6 +325,7 @@ struct RealAIChatView: View {
                 }
             }
         }
+        return true
     }
     
     private func iconFor(_ action: CoachAction) -> String {
@@ -357,7 +354,7 @@ struct RealAIChatView: View {
     
     // Round 40 bug fix: restore missing helpers referenced by action buttons and voice notes
     private func executeActionOnMessage(_ action: CoachAction, for messageId: UUID) {
-        executeCoachAction(action)
+        guard executeCoachAction(action) else { return }
         // Mark the specific message's action as completed (simple UX)
         if let idx = displayedMessages.firstIndex(where: { $0.id == messageId }) {
             displayedMessages[idx].suggestedActions.removeAll { $0.id == action.id }
@@ -384,6 +381,14 @@ struct RealAIChatView: View {
         
         Task {
             do {
+                if GrokService.configuredAPIKey == nil {
+                    let reply = try await GrokService().getSmartEmotionalSupport(
+                        userMessage: text, context: viewModel.buildCoachContext())
+                    let message = ChatMessage.assistant(reply)
+                    displayedMessages.append(DisplayedMessage(id: message.id, base: message))
+                    isLoading = false
+                    return
+                }
                 // Round 18: Prefer the high-quality LLM-generated smart memory summary for best reasoning
                 let richContext = viewModel.buildCoachContext()
                 let longTermMemory = !viewModel.smartMemorySummary.isEmpty 

@@ -19,7 +19,7 @@ struct WeeklyInsightsView: View {
                         Text("This Week's Summary")
                             .font(.headline)
                         
-                        Text("You completed \(viewModel.recentGoalAdjustments.count) coach-suggested actions recently. Your coach has observations ready.")
+                        Text("You completed \(viewModel.recentGoalAdjustments.count) coach-suggested actions recently. Review your saved notes.")
                     }
                 }
                 
@@ -91,7 +91,7 @@ struct WeeklyInsightsView: View {
             \(memory.prefix(700))
             """
             
-            let apiKey = ProcessInfo.processInfo.environment["XAI_API_KEY"] ?? ""
+            let apiKey = GrokService.configuredAPIKey ?? ""
             var tasks: [String] = []
             
             if !apiKey.isEmpty {
@@ -131,8 +131,7 @@ struct WeeklyInsightsView: View {
             unit: "completion",
             category: "weekly task"
         )
-        modelContext.insert(goal)
-        try? modelContext.save()
+        guard viewModel.saveRecord(goal) else { return }
         
         // Remove from list
         generatedTasks.removeAll { $0 == task }

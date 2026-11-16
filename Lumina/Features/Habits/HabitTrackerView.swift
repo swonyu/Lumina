@@ -25,14 +25,14 @@ struct HabitTrackerView: View {
                             HStack {
                                 Image(systemName: "sparkles")
                                     .foregroundStyle(.purple)
-                                Text("Coach Recommended")
+                                Text("Suggested habits")
                                     .font(.headline)
                                     .foregroundStyle(.purple)
                             }
                             
                             // Round 82/86 polish: subtle outcome awareness for coach habits with limited impact (now uses cheap VM computed)
                             if viewModel.hasLimitedCoachHabitImpact {
-                                Text("Coach noted limited impact on some suggestions — review in Progress Photos or chat.")
+                                Text("Saved coach notes may contain earlier prototype claims. Review them as notes, not measured outcomes.")
                                     .font(.caption2)
                                     .foregroundStyle(.white.opacity(0.6))
                             }
@@ -53,7 +53,7 @@ struct HabitTrackerView: View {
                     
                     if habits.filter({ $0.isActive }).isEmpty {
                         GlassCard {
-                            Text("No habits yet. Ask your coach for personalized recommendations.")
+                            Text("No habits yet. Add one or browse general habit ideas.")
                                 .foregroundStyle(.white.opacity(0.7))
                         }
                         .padding(.horizontal)
@@ -67,7 +67,7 @@ struct HabitTrackerView: View {
                     }
                 }
                 
-                GlassButton(title: "Ask Coach for Habit Ideas", action: {
+                GlassButton(title: "Browse habit ideas", action: {
                     showingCoachSuggestions = true
                     Task {
                         await viewModel.generateCoachHabitSuggestions()
@@ -85,7 +85,6 @@ struct HabitTrackerView: View {
         .glassBackground()
         .navigationTitle(L("tab.habits"))
         .withAppLanguage()
-        .drawingGroup() // Perf: for list with coach cards
         .sheet(isPresented: $showingCoachSuggestions) {
             CoachHabitSuggestionsView()
         }
@@ -94,8 +93,7 @@ struct HabitTrackerView: View {
             Button(L("general.add")) {
                 if !newHabitName.trimmingCharacters(in: .whitespaces).isEmpty {
                     let habit = Habit(name: newHabitName)
-                    modelContext.insert(habit)
-                    try? modelContext.save()
+                    guard viewModel.saveRecord(habit) else { return }
                     viewModel.invalidateHabitsCache()
                     newHabitName = ""
                 }
@@ -107,47 +105,16 @@ struct HabitTrackerView: View {
     }
     
     private func toggleHabit(_ habit: Habit) {
-        let today = Calendar.current.startOfDay(for: Date())
-        
-        if let last = habit.lastCompletedDate, Calendar.current.isDate(last, inSameDayAs: today) {
-            // Undo today's completion
-            habit.lastCompletedDate = Calendar.current.date(byAdding: .day, value: -1, to: today)
-            habit.currentStreak = max(0, habit.currentStreak - 1)
-            habit.totalCompletions -= 1
-        } else {
-            // Mark as done today
-            habit.lastCompletedDate = today
-            habit.totalCompletions += 1
-            
-            if let last = habit.lastCompletedDate {
-                let daysSince = Calendar.current.dateComponents([.day], from: last, to: today).day ?? 0
-                if daysSince <= 1 {
-                    habit.currentStreak += 1
-                } else {
-                    habit.currentStreak = 1
-                }
-            } else {
-                habit.currentStreak = 1
-            }
-            
-            habit.bestStreak = max(habit.bestStreak, habit.currentStreak)
+        do {
+            try modelContext.save()
+            try modelContext.transaction { habit.toggleCompletion() }
+            viewModel.invalidateHabitsCache()
+        } catch {
+            viewModel.errorMessage = "Could not save habit completion: \(error.localizedDescription)"
+            return
         }
-        
-        try? modelContext.save()
-        
-        // Feed this data back to the coach
-        Task {
-            await viewModel.recordHabitCompletion(habit: habit)
-            
-            // Round 37: Intelligent adjustment suggestion if streak is low
-            if habit.currentStreak == 0 && habit.coachSuggested {
-                // Could trigger a suggestion to adjust frequency or replace habit
-                await MainActor.run {
-                    // For demo, add a note
-                    habit.coachNotes = "Coach suggests trying a shorter version or pairing with existing habit for better consistency."
-                }
-            }
-        }
+
+        Task { await viewModel.recordHabitCompletion(habit: habit) }
     }
 }
 
@@ -168,12 +135,12 @@ struct HabitRow: View {
                 }
                 
                 HStack(spacing: 4) {
-                    Text("\(habit.currentStreak) day streak")
+                    Text("Last recorded streak: \(habit.currentStreak) days")
                         .font(.caption2)
                         .foregroundStyle(.green)
                     
                     if habit.coachSuggested {
-                        Text("• Coach goal: \(habit.targetFrequencyPerWeek)x/week")
+                        Text("• Target: \(habit.targetFrequencyPerWeek)x/week")
                             .font(.caption2)
                             .foregroundStyle(.white.opacity(0.6))
                     }
@@ -187,6 +154,13 @@ struct HabitRow: View {
                     .foregroundStyle(isCompletedToday(habit) ? .green : .white.opacity(0.5))
                     .font(.title2)
             }
+            .accessibilityLabel(isCompletedToday(habit)
+                ? "Undo today's completion for \(habit.name)"
+                : "Mark \(habit.name) complete for today")
+            .accessibilityValue(isCompletedToday(habit) ? "Completed today" : "Not completed today")
+            .accessibilityHint(isCompletedToday(habit)
+                ? "Removes today's completion and updates the recorded streak."
+                : "Records one completion for today and updates the recorded streak.")
         }
     }
     
@@ -200,13 +174,15 @@ struct CoachHabitSuggestionsView: View {
     @Environment(LuminaViewModel.self) private var viewModel
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    @State private var saveError: String?
+    @AccessibilityFocusState private var saveErrorFocused: Bool
     
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     HStack {
-                        Text("Coach Habit Recommendations")
+                        Text("Habit ideas")
                             .font(.title.bold())
                         Spacer()
                         if !viewModel.coachHabitSuggestions.isEmpty {
@@ -220,6 +196,17 @@ struct CoachHabitSuggestionsView: View {
                         }
                     }
                     .padding(.horizontal)
+
+                    if let saveError {
+                        Label(saveError, systemImage: "exclamationmark.circle")
+                            .font(.body)
+                            .foregroundStyle(.primary)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .accessibilityElement(children: .combine)
+                            .accessibilityIdentifier("lumina.habit.save-error")
+                            .accessibilityFocused($saveErrorFocused)
+                            .padding(.horizontal)
+                    }
                     
                     if let added = viewModel.justAddedCoachHabit {
                         GlassCard {
@@ -227,37 +214,13 @@ struct CoachHabitSuggestionsView: View {
                                 HStack {
                                     Image(systemName: "checkmark.circle.fill")
                                         .foregroundStyle(.green)
-                                    Text("Added \"\(added)\" — great start! The coach is tracking how it helps.")
+                                    Text("Added \"\(added)\" to your habits.")
                                         .foregroundStyle(.white)
                                 }
                                 
-                                // Round 58 polish + smarter loop: one-tap first win directly in sheet (highest leverage moment)
-                                Button {
-                                    // Save rich outcome-oriented memory immediately so coach sees the early action
-                                    Task {
-                                        await viewModel.saveCoachMemoryEntry(type: .pattern, content: "User logged first win on newly added coach habit: \(added). Suggest progress photo soon to measure impact.")
-                                        await MainActor.run {
-                                            viewModel.invalidateHabitsCache()
-                                            viewModel.updateCoachFocusLiveActivity()
-                                            // Round 59: clean any lingering follow-up UI when user takes the highest-leverage action
-                                            viewModel.postActionCoachFollowUp = ""
-                                            viewModel.showingPostActionFollowUp = false
-                                        }
-                                    }
-                                    viewModel.justAddedCoachHabit = nil
-                                    dismiss()
-                                    // Brief global success so Home sees it too — strong photo bias for outcome tracking
-                                    viewModel.followUpSuccessMessage = "First win on \(added) logged! Snap a progress photo soon to track the real impact."
-                                } label: {
-                                    Text("Log first win now (recommended)")
-                                        .font(.caption.weight(.semibold))
-                                        .foregroundStyle(.white)
-                                        .frame(maxWidth: .infinity)
-                                        .padding(.vertical, 8)
-                                        .background(.green.opacity(0.35))
-                                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                                }
-                                .buttonStyle(.plain)
+                                Text("Use the habit's completion button after you finish it.")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
                             }
                         }
                         .padding(.horizontal)
@@ -265,7 +228,7 @@ struct CoachHabitSuggestionsView: View {
                     
                     if viewModel.coachHabitSuggestions.isEmpty && viewModel.justAddedCoachHabit == nil {
                         GlassCard {
-                            Text("Analyzing your data... The coach will suggest habits that fit your current patterns and goals.")
+                            Text("No more general ideas to show. You can add your own habit.")
                                 .foregroundStyle(.white.opacity(0.85))
                         }
                         .padding(.horizontal)
@@ -279,12 +242,15 @@ struct CoachHabitSuggestionsView: View {
                                         .foregroundStyle(.white)
                                     
                                     Button("Add This Habit") {
-                                        viewModel.addCoachSuggestedHabit(name: suggestion, reason: "Suggested by coach based on your patterns")
-                                        
-                                        // Local immediate feedback via ViewModel signal (Round 48)
-                                        // The VM method already sets justAddedCoachHabit + auto-clears it
-                                        
-                                        // Remove from suggestions
+                                        guard viewModel.addCoachSuggestedHabit(name: suggestion,
+                                            reason: "Selected from general habit ideas") else {
+                                            saveError = viewModel.errorMessage ?? "Could not add the habit. Please try again."
+                                            viewModel.errorMessage = nil
+                                            saveErrorFocused = true
+                                            return
+                                        }
+                                        saveError = nil
+                                        saveErrorFocused = false
                                         viewModel.coachHabitSuggestions.removeAll { $0 == suggestion }
                                     }
                                     .buttonStyle(.bordered)
@@ -295,10 +261,9 @@ struct CoachHabitSuggestionsView: View {
                     }
                 }
                 .padding(.vertical)
-                .drawingGroup() // Round 45 perf: coach habit suggestion cards
             }
             .glassBackground()
-            .navigationTitle("Coach Suggestions")
+            .navigationTitle("Habit ideas")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Done") { dismiss() }

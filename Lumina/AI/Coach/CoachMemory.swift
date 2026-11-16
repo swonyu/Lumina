@@ -9,6 +9,11 @@ final class CoachMemory {
     
     private init() {}
     
+    func clear() {
+        recentReflections.removeAll()
+        userPatterns.removeAll()
+    }
+
     func addReflection(_ text: String) {
         recentReflections.append(text)
         if recentReflections.count > 5 {
