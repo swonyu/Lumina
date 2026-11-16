@@ -63,6 +63,7 @@ struct ModernHomeView: View {
             }
             .font(.body)
             .navigationTitle("Lumina")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 NavigationLink { SettingsView() } label: { Label("Settings", systemImage: "gear") }
                     .accessibilityIdentifier("lumina.settings")
