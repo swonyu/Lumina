@@ -221,6 +221,34 @@ final class LuminaUITests: XCTestCase {
     }
 
     @MainActor
+    func testFinalHomeLinkRemainsReachableAboveTabBar() throws {
+        let app = launchQAApplication()
+        let home = app.navigationBars["Lumina"]
+        XCTAssertTrue(home.waitForExistence(timeout: 15))
+        let tabBar = app.tabBars.firstMatch
+        XCTAssertTrue(tabBar.waitForExistence(timeout: 5))
+        let scroll = app.scrollViews.firstMatch
+        XCTAssertTrue(scroll.exists)
+        let finalLink = app.buttons["Training suggestions"]
+        XCTAssertTrue(finalLink.waitForExistence(timeout: 5))
+        for _ in 0..<8 {
+            if finalLink.isHittable,
+               finalLink.frame.minY >= home.frame.maxY,
+               finalLink.frame.maxY <= tabBar.frame.minY { break }
+            scroll.swipeUp()
+        }
+        XCTAssertTrue(finalLink.isHittable)
+        XCTAssertGreaterThanOrEqual(finalLink.frame.minY, home.frame.maxY)
+        XCTAssertLessThanOrEqual(finalLink.frame.maxY, tabBar.frame.minY)
+        let visibleLink = XCTAttachment(screenshot: app.screenshot())
+        visibleLink.name = "Final Home link visible above tab bar"
+        visibleLink.lifetime = .keepAlways
+        add(visibleLink)
+        finalLink.tap()
+        XCTAssertTrue(app.navigationBars["Adaptive Plan"].waitForExistence(timeout: 5))
+    }
+
+    @MainActor
     private func openHabits(in app: XCUIApplication) {
         let habits = app.buttons["Habits"]
         XCTAssertTrue(habits.waitForExistence(timeout: 5))

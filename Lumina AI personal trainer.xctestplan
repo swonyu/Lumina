@@ -24,7 +24,8 @@
         "LuminaUITests/testPrivacyInformationAtLargestTextAndBackNavigation()",
         "LuminaUITests/testSaveRelaunchAndDeleteOnlyIsolatedFixtureRecords()",
         "LuminaUITests/testSuggestedHabitPersistsWithoutAutomaticCompletion()",
-        "LuminaUITests/testVeryLargeTextExpandsJournalRows()"
+        "LuminaUITests/testVeryLargeTextExpandsJournalRows()",
+        "LuminaUITests/testFinalHomeLinkRemainsReachableAboveTabBar()"
       ],
       "target": {
         "containerPath": "container:Lumina.xcodeproj",
