@@ -1318,7 +1318,21 @@ final class LuminaUITests: XCTestCase {
             let afterError = overflow(after)
             evidence.append("Gesture \(gesture): direction=\(direction), travel=\(distance), routeX=\(x), startY=\(startY), endY=\(endY), obstacles=\(obstacles), before=\(before), after=\(after), remaining=\(afterError)")
             XCTAssertEqual(app.frame, window)
-            XCTAssertEqual(try mealAuditViewport(app, requireScrollTrack: true), initialViewport)
+            let currentViewport = try mealAuditViewport(app, requireScrollTrack: true)
+            // AX reports can differ by floating-point roundoff after a gesture.
+            // One millionth of a point preserves the measured viewport invariant.
+            let components: [(String, CGFloat, CGFloat)] = [
+                ("x", currentViewport.minX, initialViewport.minX),
+                ("y", currentViewport.minY, initialViewport.minY),
+                ("width", currentViewport.width, initialViewport.width),
+                ("height", currentViewport.height, initialViewport.height),
+            ]
+            for (name, current, initial) in components {
+                XCTAssertTrue(current.isFinite && initial.isFinite,
+                              "The measured viewport \(name) must remain finite")
+                XCTAssertEqual(current, initial, accuracy: 0.000001,
+                               "Scrolling must preserve the measured viewport \(name)")
+            }
             XCTAssertEqual(summary.map(\.label), labels, "A reveal must not replace the actual summary content")
             XCTAssertEqual(after.height, before.height, accuracy: 1, "Scrolling must not collapse or resize the form")
             XCTAssertGreaterThan((after.minY - before.minY) * direction, 0.5,

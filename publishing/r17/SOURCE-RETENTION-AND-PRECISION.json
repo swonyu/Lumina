@@ -1,0 +1,60 @@
+{
+  "status": "SOURCE_RETENTION_AND_ACTUAL_NATIVE_PRECISION_VERIFIED_NOT_NATIVE_EXECUTION",
+  "created_utc": "2026-11-17T17:59:19.631416+00:00",
+  "parent_commit": "a46032ff2d25d40e1cf756dcb89f977555bbc8a7",
+  "ui_source_sha256": "d2513cc44e17e1ddb1edf39085ca42f38001b597d8efff29fa53aa23730fb9e2",
+  "native_input_count": 120,
+  "changed_native_inputs": [
+    "LuminaUITests/LuminaUITests.swift"
+  ],
+  "all_shipping_source_bytes_unchanged": true,
+  "original_test_methods": 21,
+  "current_test_methods": 21,
+  "all_21_method_bodies_byte_identical": true,
+  "original_assertion_calls_retained": 390,
+  "parent_assertion_calls": 414,
+  "current_assertion_calls": 415,
+  "only_replaced_assertion": "R16-added exact CGRect viewport equality replaced by four finite checks and four component equalities with1e-6point tolerance. No original390 assertion is removed.",
+  "other_test_and_plan_files_byte_identical": [
+    "Lumina AI personal trainer.xctestplan",
+    "LuminaTests/CoachContextIntegrityTests.swift",
+    "LuminaTests/HabitUndoIntegrityTests.swift",
+    "LuminaTests/JournalRecoveryIntegrityTests.swift",
+    "LuminaTests/LocalizationIntegrityTests.swift",
+    "LuminaTests/LuminaTests.swift",
+    "LuminaTests/OnDeviceCoachTests.swift",
+    "LuminaTests/PhotoImportIntegrityTests.swift",
+    "LuminaTests/SavedRecordIntegrityTests.swift",
+    "LuminaTests/SettingsIntegrityTests.swift",
+    "LuminaUITests/LuminaUITestsLaunchTests.swift"
+  ],
+  "unfiltered_uncaught_contrast_call_retained": true,
+  "entire_meal_contrast_audit_body_unchanged": true,
+  "actual_geometry": {
+    "initial_viewport": [
+      0.0,
+      62.0,
+      402.0,
+      729.0
+    ],
+    "observed_viewport": [
+      0.0,
+      62.00000000000001,
+      402.0,
+      729.0
+    ],
+    "actual_y_difference_points": 7.105427357601002e-15,
+    "component_absolute_tolerance_points": 1e-06,
+    "one_pixel_at_actual_scale3_points": 0.3333333333333333,
+    "all_components_require_finite_values": true,
+    "viewport_frames_not_rounded_or_modified": true,
+    "containment_and_progress_use_original_actual_frames": true,
+    "old_exact_equality_accepts_actual_y": false,
+    "new_component_equality_accepts_actual_y": true,
+    "difference_1e_minus5_points_rejected": true,
+    "one_pixel_difference_rejected": true,
+    "nonfinite_rejected_by_finite_guard": true,
+    "scope": "Arithmetic/source analysis, not executed Swift/XCTest acceptance."
+  },
+  "native_invoked": false
+}

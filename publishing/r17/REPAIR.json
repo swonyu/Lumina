@@ -1,0 +1,78 @@
+{
+  "revision": "R17",
+  "status": "PREPARED_NOT_NATIVE_TESTED",
+  "parent_commit": "a46032ff2d25d40e1cf756dcb89f977555bbc8a7",
+  "shipping_source_unchanged": true,
+  "native_R16_root": "/Users/saleh/Library/Caches/Publishing-Continuation-20261117-d597fc87411f/Lumina/Successor-v7-R16-d57f4cd77813/FocusedNativeRuns/20261117T174056Z-57817-b690ffa348",
+  "native_R16": {
+    "unit_passed": 62,
+    "unit_total": 62,
+    "UI_passed": 4,
+    "UI_total": 5,
+    "total": 67,
+    "passed": 66,
+    "failed": 1,
+    "skipped": 0,
+    "cleanup_safe": true,
+    "lock": "released",
+    "source_hashes_unchanged": true,
+    "production_included": false,
+    "started": "2026-11-17T17:40:56.839643+00:00",
+    "finished": "2026-11-17T17:50:19.548520+00:00"
+  },
+  "failure": {
+    "method": "LuminaUITests/testOptionalMealNutritionDistinguishesMissingValuesFromExplicitZero()",
+    "kind": "XCTAssertEqual viewport invariant",
+    "line": 1321,
+    "pose": "Arabic empty nutrition prompts on English-region device, after first real reveal drag",
+    "exact_message": "XCTAssertEqual failed: (\"(0.0, 62.00000000000001, 402.0, 729.0)\") is not equal to (\"(0.0, 62.0, 402.0, 729.0)\")",
+    "duration_seconds": 80.8803380727768,
+    "failed_before_Arabic_contrast_audit": true,
+    "two_earlier_English_contrast_audits_returned": true
+  },
+  "repair": "Finite componentwise1e-6point absolute equality for x,y,width,height only. All actual geometry/containment/hittability/progress checks and uncaught unfiltered audits remain.",
+  "precision": {
+    "initial_viewport": [
+      0.0,
+      62.0,
+      402.0,
+      729.0
+    ],
+    "observed_viewport": [
+      0.0,
+      62.00000000000001,
+      402.0,
+      729.0
+    ],
+    "actual_y_difference_points": 7.105427357601002e-15,
+    "component_absolute_tolerance_points": 1e-06,
+    "one_pixel_at_actual_scale3_points": 0.3333333333333333,
+    "all_components_require_finite_values": true,
+    "viewport_frames_not_rounded_or_modified": true,
+    "containment_and_progress_use_original_actual_frames": true,
+    "old_exact_equality_accepts_actual_y": false,
+    "new_component_equality_accepts_actual_y": true,
+    "difference_1e_minus5_points_rejected": true,
+    "one_pixel_difference_rejected": true,
+    "nonfinite_rejected_by_finite_guard": true,
+    "scope": "Arithmetic/source analysis, not executed Swift/XCTest acceptance."
+  },
+  "evidence_receipt": {
+    "path": "/workspace/scratch/d57f4cd77813/lumina-r16-precision-triage/TRIAGE.json",
+    "sha256": "b675cd5224a90572df40c763915353ab89e630276efba9b95f137eb76501ff95"
+  },
+  "peer_review": {
+    "reviewer": "/root/halaltag_recovery",
+    "result": "NO_BLOCKING_FINDING_IN_INSPECTED_PRECISION_SCOPE",
+    "reviewed_ui_sha256": "d2513cc44e17e1ddb1edf39085ca42f38001b597d8efff29fa53aa23730fb9e2",
+    "receipt_sha256": "ab69be0df9b5e8765514bcb0260d93923762ba4ca257fbb9b9c46efb455a2d3c",
+    "tests_or_native_executed_by_peer": false
+  },
+  "gate": "Root-authorized complete83 tests plus current-source unsigned production archive; no repeated67 focus batch required solely for this helper correction.",
+  "deadline": {
+    "original_cutoff_utc": "2026-11-17T22:26:12Z",
+    "explicit_user_extension_hours": 24,
+    "current_cutoff_utc": "2026-11-18T22:26:12Z",
+    "budget_restarted": false
+  }
+}
