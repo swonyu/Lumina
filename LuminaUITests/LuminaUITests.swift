@@ -1057,6 +1057,7 @@ final class LuminaUITests: XCTestCase {
         app.launch()
         XCTAssertTrue(app.staticTexts["lumina.qa-store"].waitForExistence(timeout: 15))
         app.tabBars.buttons["Nutrition"].tap()
+        try auditMealHeaderContrast(app, arabic: false, state: "English collapsed meal header")
         try auditMealFieldContrast(app, expected: [mealFieldExpectations(arabic: false)[0]],
                                    state: "English empty meal name")
         let name = app.textFields["lumina.meal.new-name"]
@@ -1088,6 +1089,7 @@ final class LuminaUITests: XCTestCase {
         try tapRecordControl(app.buttons["lumina.settings"], in: app)
         try selectAppLanguage("العربية", in: app)
         app.tabBars.buttons["التغذية"].tap()
+        try auditMealHeaderContrast(app, arabic: true, state: "Arabic collapsed meal header")
         try tapRecordControl(name, in: app)
         name.typeText("Explicit nutrition fixture")
         try dismissRecordKeyboard(in: app)
@@ -1140,6 +1142,8 @@ final class LuminaUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["lumina.qa-store"].waitForExistence(timeout: 15))
         XCTAssertTrue(app.staticTexts["يومياتك"].waitForExistence(timeout: 5))
         app.tabBars.buttons["التغذية"].tap()
+        try auditMealHeaderContrast(app, arabic: true,
+                                    state: "Arabic collapsed meal header at largest accessibility size")
         try tapRecordControl(try recordLeafButton("lumina.meal.nutrition", in: app), in: app)
         try auditMealFieldContrast(app, expected: mealFieldExpectations(arabic: true),
                                    state: "Arabic empty meal form at largest accessibility size")
@@ -1183,6 +1187,81 @@ final class LuminaUITests: XCTestCase {
             MealFieldExpectation(suffix: "protein", label: arabic ? "البروتين بالغرام" : "Protein in grams",
                                  prompt: empty, value: protein),
         ]
+    }
+
+    // Credit the actual title and history action in their natural upper pose,
+    // before editing or expanding nutrition. Later field/summary audits may
+    // legitimately scroll this header offscreen; those cannot cover it here.
+    @MainActor
+    private func auditMealHeaderContrast(_ app: XCUIApplication, arabic: Bool, state: String) throws {
+        let titleText = arabic ? "تسجيل وجبة" : "Log Meal"
+        let historyText = arabic ? "عرض جميع الوجبات المحفوظة" : "View all saved meals"
+        let collapsedValue = arabic ? "مطوي" : "Collapsed"
+        let scroll = try XCTUnwrap(app.scrollViews.allElementsBoundByIndex.first)
+        let titles = scroll.staticTexts.matching(NSPredicate(format: "label == %@ OR label == %@",
+            "Log Meal", "تسجيل وجبة"))
+        XCTAssertTrue(titles.firstMatch.waitForExistence(timeout: 5))
+        XCTAssertEqual(titles.count, 1, "The actual localized meal title must be unique")
+        let title = try XCTUnwrap(titles.allElementsBoundByIndex.first)
+        let history = try recordLeafButton("lumina.meal.history", in: app)
+        let nutrition = try recordLeafButton("lumina.meal.nutrition", in: app)
+        let expectedName = mealFieldExpectations(arabic: arabic)[0]
+        let name = app.textFields[expectedName.fieldID]
+        XCTAssertTrue(name.waitForExistence(timeout: 5))
+        let originalDraft = try XCTUnwrap(name.value as? String)
+        XCTAssertTrue(originalDraft.isEmpty || originalDraft == expectedName.prompt,
+                      "The initial upper audit must preserve the real untouched meal draft")
+
+        @MainActor
+        func recordEvidence(_ phase: String, viewport: CGRect) {
+            attachRecordScreenshot(app, state + " — " + phase + " header contrast audit")
+            let evidence = XCTAttachment(string: "Required header targets: title and lumina.meal.history\n"
+                + "State: \(state)\nViewport: \(viewport)\n"
+                + "Title: \(title.label), frame: \(title.frame)\n"
+                + "History: \(history.label), frame: \(history.frame)\n"
+                + "Nutrition state: \(String(describing: nutrition.value))\n"
+                + "Draft before audit: \(originalDraft)\n" + app.debugDescription)
+            evidence.name = state + " — " + phase + " measured header coverage"
+            evidence.lifetime = .keepAlways
+            add(evidence)
+        }
+
+        @MainActor
+        func requireHeaderPose(_ viewport: CGRect) {
+            XCTAssertFalse(app.keyboards.firstMatch.exists,
+                           "The real keyboard must be absent from the header audit")
+            XCTAssertEqual(title.label, titleText)
+            XCTAssertEqual(history.label, historyText)
+            for element in [title, history] {
+                let frame = element.frame
+                XCTAssertTrue(element.exists && element.isHittable
+                    && !frame.isEmpty && !frame.isNull && !frame.isInfinite
+                    && viewport.contains(frame),
+                    "The complete actual title and history action must be readable inside the measured safe viewport; offscreen or clipped content earns no header coverage")
+            }
+            XCTAssertEqual(nutrition.value as? String, collapsedValue,
+                           "Audit the genuine collapsed composer without toggling or resetting its state")
+            for field in mealFieldExpectations(arabic: arabic).dropFirst() {
+                XCTAssertFalse(app.textFields[field.fieldID].exists,
+                               "The upper audit must not expand optional nutrition")
+                XCTAssertFalse(app.staticTexts[field.labelID].exists)
+            }
+            XCTAssertEqual(name.label, expectedName.label)
+            XCTAssertEqual(name.placeholderValue, expectedName.prompt)
+            XCTAssertEqual(name.value as? String, originalDraft,
+                           "A contrast audit must not replace or reset the real meal draft")
+        }
+
+        // R17's real one-page collapsed form exposes this native track too.
+        // Require measured bounds rather than crediting content under a status
+        // or tab bar; never move, hide, shrink or filter an element for this audit.
+        let before = try mealAuditViewport(app, requireScrollTrack: true)
+        recordEvidence("before", viewport: before)
+        requireHeaderPose(before)
+        try app.performAccessibilityAudit(for: .contrast)
+        let after = try mealAuditViewport(app, requireScrollTrack: true)
+        recordEvidence("after", viewport: after)
+        requireHeaderPose(after)
     }
 
     @MainActor
@@ -1284,6 +1363,35 @@ final class LuminaUITests: XCTestCase {
                 "A title clearance must concern the heading already above the audited safe viewport")
             return max(0, frame.maxY - physicalWindow.minY + 2)
         }
+        func plannedContentDisplacement(_ frame: CGRect) throws -> CGFloat {
+            let headingFrame = title.frame
+            let unionLower = frame.maxY - interior.maxY
+            let unionUpper = frame.minY - interior.minY
+            XCTAssertTrue(unionLower.isFinite && unionUpper.isFinite
+                && headingFrame.minY.isFinite && headingFrame.maxY.isFinite)
+            XCTAssertLessThanOrEqual(unionLower, unionUpper,
+                "The entire preserved region must have a feasible displacement")
+            var intervals: [(lower: CGFloat, upper: CGFloat)] = []
+            func include(_ lower: CGFloat, _ upper: CGFloat) {
+                let start = max(unionLower, lower)
+                let end = min(unionUpper, upper)
+                if start <= end { intervals.append((start, end)) }
+            }
+            // Positive displacement moves content upward. Plan both edges
+            // before the first drag: R18's 12pt follow-up moved content 30pt.
+            // Preserve a readable title or clear it above the physical window,
+            // while keeping every current field and summary inside the viewport.
+            include(headingFrame.maxY - interior.maxY, headingFrame.minY - interior.minY)
+            include(headingFrame.maxY - physicalWindow.minY + 2, unionUpper)
+            let candidates = intervals.map { interval -> CGFloat in
+                if interval.lower <= 0 && interval.upper >= 0 { return 0 }
+                return interval.lower + (interval.upper - interval.lower) / 2
+            }
+            let selected = try XCTUnwrap(candidates.min { abs($0) < abs($1) },
+                "Title clearance and complete field/summary coverage must fit together")
+            XCTAssertTrue(selected.isFinite)
+            return selected
+        }
         let initialUnion = unionFrame()
         var evidence = ["State: \(state)", "Summary labels: \(labels)",
                         "Initial viewport: \(initialViewport)", "Initial union: \(initialUnion)",
@@ -1316,8 +1424,11 @@ final class LuminaUITests: XCTestCase {
                     "Clearing a clipped heading cannot push any preserved field or summary out of this audit")
             }
             let beforeError = overflow(before) + beforeClearance
-            let direction: CGFloat = before.maxY > interior.maxY || beforeClearance > 0 ? -1 : 1
-            let distance = min(step, beforeError + 10)
+            let plannedDisplacement = try plannedContentDisplacement(before)
+            XCTAssertGreaterThan(abs(plannedDisplacement), 0.000001,
+                "A required reveal must plan real movement inside the feasible interval")
+            let direction: CGFloat = plannedDisplacement > 0 ? -1 : 1
+            let distance = min(step, abs(plannedDisplacement) + 10)
             let window = app.frame
             let origin = app.coordinate(withNormalizedOffset: CGVector(dx: 0, dy: 0))
             let startY = initialViewport.midY - direction * distance / 2
@@ -1342,7 +1453,7 @@ final class LuminaUITests: XCTestCase {
             let after = unionFrame()
             let afterClearance = titleClearance()
             let afterError = overflow(after) + afterClearance
-            evidence.append("Gesture \(gesture): direction=\(direction), travel=\(distance), routeX=\(x), startY=\(startY), endY=\(endY), obstacles=\(obstacles), before=\(before), after=\(after), heading=\(title.frame), headingClearance=\(afterClearance), remaining=\(afterError)")
+            evidence.append("Gesture \(gesture): direction=\(direction), plannedDisplacement=\(plannedDisplacement), travel=\(distance), routeX=\(x), startY=\(startY), endY=\(endY), obstacles=\(obstacles), before=\(before), after=\(after), heading=\(title.frame), headingClearance=\(afterClearance), remaining=\(afterError)")
             XCTAssertEqual(app.frame, window)
             let currentViewport = try mealAuditViewport(app, requireScrollTrack: true)
             // AX reports can differ by floating-point roundoff after a gesture.

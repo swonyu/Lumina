@@ -187,6 +187,172 @@ struct OnDeviceCoachTests {
         #expect(generator.requests.count == 2)
     }
 
+    @Test func medicalSafetyNoticePrecedesAvailabilityAndGenerationInBothLanguages() async throws {
+        let states: [CoachModelAvailability] = [.available, .unavailable(.deviceNotEligible),
+            .unavailable(.intelligenceNotEnabled), .unavailable(.modelNotReady),
+            .unavailable(.unsupportedLanguage), .unavailable(.unavailable)]
+        let examples = [
+            ("en", "I have chest pain and feel faint during my workout", "If you currently"),
+            ("ar", "أشعر بألم في الصدر ودوخة أثناء التمرين", "إذا كان لديك الآن"),
+            ("ar", "لدي ألم في الصدر ودوخة أثناء التمرين", "إذا كان لديك الآن"),
+            ("ar", "أشعر بآلام في صدري ودوخة أثناء التمرين", "إذا كان لديك الآن"),
+            ("ar", "أَشْعُرُ بِأَلَمٍ في الصَّدر ودوخة أثناء التمرين", "إذا كان لديك الآن")
+        ]
+        for state in states {
+            for (language, question, conditional) in examples {
+                let generator = SafetyBoundaryGenerator(); generator.state = state
+                let response = try await OnDeviceCoach(generator: generator).reply(to: question,
+                    context: context(), locale: Locale(identifier: language))
+                #expect(response.source == .appNotice)
+                #expect(response.text.contains(conditional))
+                #expect(!response.text.contains("7/10") && !response.text.contains("aim for clean reps"))
+                #expect(!response.text.contains("اختر تمريناً بسيطاً"))
+                #expect(generator.availabilityReads == 0 && generator.requests.isEmpty,
+                        "Recognized medical requests must be handled before model selection or inference")
+            }
+        }
+    }
+
+    @Test func medicalNoticeCannotBeDowngradedByProviderFailuresOrAnOverlongQuestion() async throws {
+        let failures: [CoachGenerationFailure] = [.refused, .timedOut, .failed, .contextLimit,
+            .rateLimited, .inProgress, .unavailable(.modelNotReady), .unavailable(.unsupportedLanguage)]
+        for failure in failures {
+            for (language, question) in [("en", "Chest pain and faintness during my workout"),
+                                         ("ar", "ألم في الصدر ودوخة أثناء التمرين")] {
+                let generator = SafetyBoundaryGenerator(); generator.failure = failure
+                let response = try await OnDeviceCoach(generator: generator).reply(to: question,
+                    context: context(), locale: Locale(identifier: language))
+                #expect(response.source == .appNotice)
+                #expect(generator.availabilityReads == 0 && generator.requests.isEmpty)
+            }
+        }
+        let generator = SafetyBoundaryGenerator()
+        let question = "Chest pain and faintness during my workout " + String(repeating: "🙂", count: 500)
+        #expect(question.utf8.count > CoachModelRequest.maximumQuestionBytes)
+        let response = try await OnDeviceCoach(generator: generator).reply(to: question,
+            context: context(), locale: english)
+        #expect(response.source == .appNotice)
+        #expect(response.text.contains("local emergency services"))
+        #expect(generator.availabilityReads == 0 && generator.requests.isEmpty)
+    }
+
+    @Test func aMedicalNoticeDoesNotWaitForOrReplaceAnAlreadyRunningGeneration() async throws {
+        let generator = GeneratorDouble(); generator.shouldSuspend = true
+        defer { generator.completeAll(with: "Late cleanup answer") }
+        let coach = OnDeviceCoach(generator: generator, timeout: .seconds(2))
+        let original = Task { try await coach.reply(to: "Help me review my saved logs",
+            context: context(), locale: english) }
+        try await generator.waitUntilSuspended()
+        let notice = try await coach.reply(to: "I have chest pain and feel faint during my workout",
+            context: context(), locale: english)
+        #expect(notice.source == .appNotice)
+        #expect(notice.text.contains("If you currently"))
+        #expect(generator.requests.count == 1 && generator.pending.count == 1,
+                "The notice must not launch or overlap another model request")
+        original.cancel()
+        await expectCancellation(original)
+        #expect(generator.requests.count == 1 && generator.pending.count == 1,
+                "The original noncooperative request retains its existing admission/cancellation behavior")
+    }
+
+    @Test func directRuleFallbackSharesTheEnglishAndArabicMedicalBoundary() {
+        let englishNotice = LocalCoachRules.reply(to: "I have chest pain and feel faint during my workout",
+            context: context(), locale: english)
+        #expect(englishNotice.contains("If you currently"))
+        #expect(englishNotice.contains("local emergency services"))
+        #expect(!englishNotice.contains("aim for clean reps") && !englishNotice.contains("7/10"))
+        let arabicNotice = LocalCoachRules.reply(to: "أشعر بألم في الصدر ودوخة أثناء التمرين",
+            context: context(), locale: Locale(identifier: "ar"))
+        #expect(arabicNotice.contains("إذا كان لديك الآن"))
+        #expect(arabicNotice.contains("خدمات الطوارئ المحلية"))
+        #expect(!arabicNotice.contains("اختر تمريناً بسيطاً"))
+    }
+
+    @Test func negatedAndPastSymptomMentionsReceiveConditionalInformationWithoutADiagnosis() async throws {
+        let examples = [
+            ("en", "I do not have chest pain; I want to log yesterday's workout.", "If you currently", "past or absent"),
+            ("en", "I had chest pain last year and feel well now. How do I record my past workout?", "If you currently", "past or absent"),
+            ("ar", "ليس لدي ألم في الصدر الآن. أريد تسجيل تمرين الأمس.", "إذا كان لديك الآن", "سابقة أو غير موجودة الآن"),
+            ("ar", "كان لدي ألم في الصدر العام الماضي ولا أعاني منه الآن.", "إذا كان لديك الآن", "سابقة أو غير موجودة الآن")
+        ]
+        for (language, question, conditional, historicalBoundary) in examples {
+            let generator = SafetyBoundaryGenerator()
+            let response = try await OnDeviceCoach(generator: generator).reply(to: question,
+                context: context(), locale: Locale(identifier: language))
+            #expect(response.source == .appNotice)
+            #expect(response.text.contains(conditional) && response.text.contains(historicalBoundary))
+            #expect(!response.text.contains("You are having") && !response.text.contains("لديك نوبة قلبية"))
+            #expect(generator.requests.isEmpty)
+        }
+    }
+
+    @Test func unavailableRulesKeepOrdinaryLoggingUsefulWithoutReadinessOrDietPrescriptions() async throws {
+        let examples = [
+            ("en", "How do I log a workout I completed?", "Workouts", "unknown values"),
+            ("en", "How do I record protein in a meal?", "Nutrition", "unknown nutrients"),
+            ("ar", "كيف أسجل تمريناً أكملته؟", "التمارين", "غير المعروفة"),
+            ("ar", "كيف أسجل البروتين في وجبة؟", "التغذية", "غير المعروفة")
+        ]
+        for (language, question, destination, unknown) in examples {
+            let generator = SafetyBoundaryGenerator(); generator.state = .unavailable(.modelNotReady)
+            let response = try await OnDeviceCoach(generator: generator).reply(to: question,
+                context: context(), locale: Locale(identifier: language))
+            #expect(response.source == .offlineRules(.unavailable(.modelNotReady)))
+            #expect(response.text.contains(destination) && response.text.contains(unknown))
+            #expect(!response.text.contains("7/10") && !response.text.contains("protein at each meal"))
+            #expect(!response.text.contains("colorful carbs") && !response.text.contains("اختر تمريناً بسيطاً"))
+            #expect(generator.requests.isEmpty)
+        }
+        let generator = SafetyBoundaryGenerator(); generator.state = .unavailable(.deviceNotEligible)
+        // A symptom synonym outside the deliberately limited matcher must still
+        // receive neutral journal help, never a personalized training prescription.
+        let response = try await OnDeviceCoach(generator: generator).reply(to: "I feel woozy at the gym",
+            context: context(), locale: english)
+        #expect(response.source == .offlineRules(.unavailable(.deviceNotEligible)))
+        #expect(response.text.contains("does not decide whether to exercise"))
+        #expect(!response.text.contains("aim for clean reps") && !response.text.contains("7/10"))
+        // Routing deliberately scans only a bounded prefix. Medical wording
+        // beyond it cannot make the overlong fallback a training prescription.
+        let longGenerator = SafetyBoundaryGenerator()
+        let beyondScan = "I want to record a workout " + String(repeating: "x", count: 16_384)
+            + " I have chest pain and feel faint."
+        let longReply = try await OnDeviceCoach(generator: longGenerator).reply(to: beyondScan,
+            context: context(), locale: english)
+        #expect(longReply.source == .offlineRules(.messageTooLong))
+        #expect(longReply.text.contains("does not decide whether to exercise"))
+        #expect(!longReply.text.contains("aim for clean reps") && !longReply.text.contains("7/10"))
+        #expect(longGenerator.availabilityReads == 0 && longGenerator.requests.isEmpty)
+    }
+
+    @Test func cancellationStillPrecedesMedicalRoutingAndDoesNotInventAReply() async throws {
+        let generator = SafetyBoundaryGenerator()
+        let coach = OnDeviceCoach(generator: generator)
+        let task = Task { try await coach.reply(to: "I have chest pain and feel faint during my workout",
+            context: context(), locale: english) }
+        task.cancel()
+        await expectCancellation(task)
+        #expect(generator.availabilityReads == 0 && generator.requests.isEmpty)
+    }
+
+    @MainActor
+    private final class SafetyBoundaryGenerator: OnDeviceCoachGenerating {
+        var state: CoachModelAvailability = .available
+        var failure: CoachGenerationFailure?
+        var availabilityReads = 0
+        var requests: [CoachModelRequest] = []
+
+        func availability(for locale: Locale) -> CoachModelAvailability {
+            availabilityReads += 1
+            return state
+        }
+
+        func generate(_ request: CoachModelRequest) async throws -> String {
+            requests.append(request)
+            if let failure { throw failure }
+            return "A model response should not be requested by the safety fixtures."
+        }
+    }
+
     private let english = Locale(identifier: "en")
 
     private func context(meals: [MealLog] = [], insights: [String] = []) -> CoachContext {

@@ -169,6 +169,12 @@ final class OnDeviceCoach {
         try Task.checkCancellation()
         let text = message.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { throw CoachGenerationFailure.emptyRequest }
+        // A care-boundary notice is app-authored, not a model response or an
+        // ordinary fallback. Run it before availability, admission and inference.
+        if let notice = LocalCoachRules.safetyNotice(for: text, locale: locale) {
+            try Task.checkCancellation()
+            return CoachReply(text: notice, source: .appNotice)
+        }
 
         func offline(_ reason: CoachFallbackReason) -> CoachReply {
             CoachReply(text: LocalCoachRules.reply(to: text, context: context, locale: locale),
