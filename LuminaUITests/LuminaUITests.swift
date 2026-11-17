@@ -721,6 +721,9 @@ final class LuminaUITests: XCTestCase {
         app.buttons["lumina.settings"].tap()
         XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 5))
         let privacyLink = app.buttons["lumina.privacy"]
+        XCTAssertTrue(privacyLink.isHittable, "Privacy must be immediately reachable at the largest text size")
+        XCTAssertEqual(privacyLink.label, "Privacy and your data")
+        XCTAssertGreaterThanOrEqual(privacyLink.frame.height, 44)
         for _ in 0..<6 {
             if privacyLink.isHittable { break }
             app.swipeUp()
@@ -744,6 +747,36 @@ final class LuminaUITests: XCTestCase {
         XCTAssertTrue(back.isHittable)
         back.tap()
         XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 5))
+
+        // A separate QA preference store exercises Arabic at the same real
+        // app text-size override without changing another test's saved choice.
+        app.terminate()
+        let arabicApp = XCUIApplication()
+        arabicApp.launchArguments = ["--lumina-ui-qa", "-AppleLanguages", "(ar)", "-AppleLocale", "ar_SA",
+            "-UIPreferredContentSizeCategoryName", UIContentSizeCategory.accessibilityExtraExtraExtraLarge.rawValue]
+        arabicApp.launchEnvironment["LUMINA_QA_ID"] = UUID().uuidString
+        arabicApp.launch()
+        XCTAssertTrue(arabicApp.staticTexts["lumina.qa-store"].waitForExistence(timeout: 15))
+        try tapRecordControl(arabicApp.buttons["lumina.settings"], in: arabicApp)
+        XCTAssertTrue(arabicApp.navigationBars["الإعدادات"].waitForExistence(timeout: 5))
+        let arabicPrivacy = arabicApp.buttons["lumina.privacy"]
+        XCTAssertTrue(arabicPrivacy.isHittable, "The same privacy route must be immediately reachable in Arabic at largest text")
+        XCTAssertEqual(arabicPrivacy.label, "الخصوصية وبياناتك")
+        XCTAssertGreaterThanOrEqual(arabicPrivacy.frame.height, 44)
+        arabicPrivacy.tap()
+        let arabicNavigation = arabicApp.navigationBars["الخصوصية وبياناتك"]
+        XCTAssertTrue(arabicNavigation.waitForExistence(timeout: 5))
+        let arabicHeading = arabicApp.staticTexts.matching(NSPredicate(format: "label ==[c] %@", "يومياتك")).firstMatch
+        XCTAssertTrue(arabicHeading.waitForExistence(timeout: 5))
+        XCTAssertTrue(arabicHeading.isHittable)
+        XCTAssertGreaterThanOrEqual(arabicHeading.frame.minX, arabicApp.frame.minX)
+        XCTAssertLessThanOrEqual(arabicHeading.frame.maxX, arabicApp.frame.maxX)
+        let arabicBack = arabicNavigation.buttons.firstMatch
+        XCTAssertTrue(arabicBack.isHittable)
+        attachRecordScreenshot(arabicApp, "Arabic privacy information at largest text")
+        arabicBack.tap()
+        XCTAssertTrue(arabicApp.navigationBars["الإعدادات"].waitForExistence(timeout: 5))
+        arabicApp.terminate()
     }
 
     @MainActor
@@ -981,9 +1014,10 @@ final class LuminaUITests: XCTestCase {
         app.tabBars.buttons["Workouts"].tap()
         try tapRecordControl(app.buttons["lumina.workout.history"], in: app)
         try tapRecordControl(app.collectionViews.staticTexts["Unrecorded effort fixture"], in: app)
-        let unrecorded = app.textFields.matching(
-            NSPredicate(format: "label == %@", "Exertion 1–10 (optional)")).firstMatch
+        let unrecorded = app.textFields["lumina.workout.record-effort"]
         XCTAssertTrue(unrecorded.waitForExistence(timeout: 5))
+        XCTAssertEqual(unrecorded.label, "Exertion 1–10 (optional)")
+        XCTAssertTrue(unrecorded.isHittable, "The saved optional field must be reachable before reading its persisted value")
         let unrecordedValue = try XCTUnwrap(unrecorded.value as? String)
         XCTAssertTrue(unrecordedValue.isEmpty || unrecordedValue == unrecorded.placeholderValue,
                       "An untouched effort field must stay empty after saving and relaunching, never become 7 or 0")
@@ -1054,6 +1088,8 @@ final class LuminaUITests: XCTestCase {
         try tapRecordControl(app.collectionViews.staticTexts["Explicit effort fixture"], in: app)
         let recorded = app.textFields["lumina.workout.record-effort"]
         XCTAssertTrue(recorded.waitForExistence(timeout: 5))
+        XCTAssertEqual(recorded.label, "Exertion 1–10 (optional)")
+        XCTAssertTrue(recorded.isHittable)
         XCTAssertEqual(recorded.value as? String, "6",
                        "An explicit effort rating must be retained in the persisted record")
         XCTAssertEqual(app.textViews["lumina.workout.record-notes"].value as? String,
@@ -1286,6 +1322,13 @@ final class LuminaUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["How am I doing?"].exists)
         XCTAssertEqual(input.value as? String, initialEmptyValue)
         XCTAssertFalse(send.isEnabled)
+        let provenance = app.staticTexts.matching(identifier: "lumina.coach.reply-source")
+            .matching(NSPredicate(format: "label == %@", "Offline coaching · local rules")).firstMatch
+        XCTAssertTrue(provenance.waitForExistence(timeout: 5))
+        XCTAssertTrue(provenance.isHittable)
+        let explanation = app.staticTexts["lumina.coach.reply-source-detail"]
+        XCTAssertEqual(explanation.label, "The system model is unavailable. Local guidance is available.")
+        XCTAssertTrue(explanation.isHittable, "The fallback reason must remain visible separately from its source label")
         attachRecordScreenshot(app, "Offline Coach local response")
         try tapRecordControl(app.buttons["lumina.coach.insights"], in: app)
         XCTAssertTrue(app.navigationBars["Insights"].waitForExistence(timeout: 5))
@@ -1364,6 +1407,12 @@ final class LuminaUITests: XCTestCase {
         XCTAssertTrue(arabicReply.waitForExistence(timeout: 10),
                       "The existing UI-QA fallback must use the selected Arabic language")
         XCTAssertTrue(app.staticTexts["إرشاد دون اتصال · قواعد محلية"].exists)
+        let arabicProvenance = app.staticTexts.matching(identifier: "lumina.coach.reply-source")
+            .matching(NSPredicate(format: "label == %@", "إرشاد دون اتصال · قواعد محلية")).firstMatch
+        XCTAssertTrue(arabicProvenance.isHittable)
+        let arabicExplanation = app.staticTexts["lumina.coach.reply-source-detail"]
+        XCTAssertEqual(arabicExplanation.label, "نموذج النظام غير متاح. الإرشاد المحلي متاح.")
+        XCTAssertTrue(arabicExplanation.isHittable)
         let insights = app.buttons["lumina.coach.insights"]
         try tapRecordControl(insights, in: app)
         XCTAssertTrue(app.staticTexts["رؤى المدرب"].waitForExistence(timeout: 5))

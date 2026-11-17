@@ -16,6 +16,14 @@ struct SettingsView: View {
 
     var body: some View {
         Form {
+            // Keep the single privacy route immediately reachable even when
+            // larger text makes the explanatory settings rows several screens tall.
+            Section {
+                NavigationLink(L("Privacy and your data")) {
+                    LuminaPrivacyInfoView()
+                }
+                .accessibilityIdentifier("lumina.privacy")
+            }
             Section(L("Reminders")) {
                 Toggle(L("Weekly journal reminder"), isOn: Binding(
                     get: { reminders.isEnabled },
@@ -45,10 +53,6 @@ struct SettingsView: View {
             }
             Section(L("About")) {
                 Text(L("Coach uses Apple’s on-device model when available, or clearly labeled local guidance. Replies can be inaccurate. Photos are not attached to model requests. Coaching is not a validated health measurement or evidence of a habit’s effects."))
-                NavigationLink(L("Privacy and your data")) {
-                    LuminaPrivacyInfoView()
-                }
-                .accessibilityIdentifier("lumina.privacy")
             }
             Section(L("Language")) {
                 Picker(L("App language"), selection: Binding(

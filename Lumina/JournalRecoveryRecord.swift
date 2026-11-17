@@ -235,7 +235,11 @@ nonisolated struct JournalRecoveryRecord: Codable, Equatable, Sendable {
         // The original bytes are retained; validation never recompresses photos.
         let options = [kCGImageSourceShouldCache: false] as CFDictionary
         guard let source = CGImageSourceCreateWithData(photo as CFData, options),
-              CGImageSourceGetType(source) != nil else { throw JournalTransferError.invalid }
+              let type = CGImageSourceGetType(source) else { throw JournalTransferError.invalid }
+        // ImageIO deliberately recovers previews from some incomplete files.
+        // Its complete status is not evidence that the original container is
+        // intact. Check framing before decoding, without rewriting saved bytes.
+        try validatePhotoContainer(photo, type: type as String, budget: budget)
         guard CGImageSourceGetStatus(source) == .statusComplete else { throw JournalTransferError.invalid }
         let count = CGImageSourceGetCount(source)
         guard count > 0 else { throw JournalTransferError.invalid }
@@ -261,7 +265,8 @@ nonisolated struct JournalRecoveryRecord: Codable, Equatable, Sendable {
             // Headers can be readable even when compressed image data is not.
             // Ask ImageIO for a small thumbnail from the actual full image and
             // draw it, after the original byte/frame/pixel bounds are checked.
-            // This validates decoding; the original saved bytes remain intact.
+            // This checks bounded decoding in addition to the container checks;
+            // it is not a checksum or a proof that every encoded pixel is valid.
             let thumbnailOptions: [CFString: Any] = [
                 kCGImageSourceCreateThumbnailFromImageAlways: true,
                 kCGImageSourceThumbnailMaxPixelSize: 64,
@@ -276,6 +281,157 @@ nonisolated struct JournalRecoveryRecord: Codable, Equatable, Sendable {
             context.draw(thumbnail, in: CGRect(x: 0, y: 0, width: CGFloat(thumbnail.width), height: CGFloat(thumbnail.height)))
             guard CGImageSourceGetStatusAtIndex(source, index) == .statusComplete else { throw JournalTransferError.invalid }
             try budget?.check()
+        }
+    }
+
+    private static let pngCRC32Table: [UInt32] = (0..<256).map { value in
+        var crc = UInt32(value)
+        for _ in 0..<8 { crc = (crc >> 1) ^ ((crc & 1) == 0 ? 0 : 0xedb88320) }
+        return crc
+    }
+
+    private static func validatePhotoContainer(_ photo: Data, type: String,
+                                               budget: JournalTransferBudget?) throws {
+        try photo.withUnsafeBytes { raw in
+            let bytes = raw.bindMemory(to: UInt8.self)
+            func require(_ condition: Bool) throws {
+                guard condition else { throw JournalTransferError.invalid }
+            }
+            func big32(_ offset: Int) -> UInt32 {
+                (UInt32(bytes[offset]) << 24) | (UInt32(bytes[offset + 1]) << 16)
+                    | (UInt32(bytes[offset + 2]) << 8) | UInt32(bytes[offset + 3])
+            }
+            switch type {
+            case "public.png":
+                try require(bytes.count >= 8 && Array(bytes.prefix(8)) == [137, 80, 78, 71, 13, 10, 26, 10])
+                var offset = 8, sawImageData = false
+                while offset < bytes.count {
+                    try budget?.check()
+                    try require(bytes.count - offset >= 12)
+                    let length = Int(big32(offset)), kind = big32(offset + 4)
+                    try require(length <= bytes.count - offset - 12)
+                    if offset == 8 { try require(kind == 0x49484452 && length == 13) }
+                    else { try require(kind != 0x49484452) }
+                    let end = offset + 8 + length
+                    var crc = UInt32.max
+                    for index in (offset + 4)..<end {
+                        if (index & 0xffff) == 0 { try budget?.check() }
+                        crc = (crc >> 8) ^ pngCRC32Table[Int((crc ^ UInt32(bytes[index])) & 255)]
+                    }
+                    try require((crc ^ UInt32.max) == big32(end))
+                    if kind == 0x49444154 { sawImageData = true }
+                    if kind == 0x49454e44 {
+                        try require(length == 0 && sawImageData && end + 4 == bytes.count)
+                        return
+                    }
+                    offset = end + 4
+                }
+                throw JournalTransferError.invalid
+            case "public.jpeg":
+                try require(bytes.count >= 4 && bytes[0] == 0xff && bytes[1] == 0xd8)
+                var offset = 2, inScan = false, sawScan = false
+                while offset < bytes.count {
+                    try budget?.check()
+                    if inScan {
+                        while offset < bytes.count && bytes[offset] != 0xff {
+                            if (offset & 0xffff) == 0 { try budget?.check() }
+                            offset += 1
+                        }
+                    }
+                    try require(offset < bytes.count && bytes[offset] == 0xff)
+                    while offset < bytes.count && bytes[offset] == 0xff {
+                        if (offset & 0xffff) == 0 { try budget?.check() }
+                        offset += 1
+                    }
+                    try require(offset < bytes.count)
+                    let marker = bytes[offset]; offset += 1
+                    if marker == 0x00 || (0xd0...0xd7).contains(marker) {
+                        try require(inScan)
+                        continue
+                    }
+                    if marker == 0xd9 {
+                        try require(sawScan)
+                        // JPEG permits application bytes after its image. Walk
+                        // markers rather than mistaking an EXIF thumbnail's EOI
+                        // or an arbitrary trailing byte pair for the outer EOI.
+                        return
+                    }
+                    if marker == 0x01 { continue } // Standalone TEM marker.
+                    try require(marker != 0xd8 && bytes.count - offset >= 2)
+                    let length = (Int(bytes[offset]) << 8) | Int(bytes[offset + 1])
+                    try require(length >= 2 && length <= bytes.count - offset)
+                    offset += length
+                    if marker == 0xda { sawScan = true; inScan = true }
+                    else if marker != 0xdc { inScan = false } // DNL can occur inside a scan.
+                }
+                throw JournalTransferError.invalid
+            case "com.compuserve.gif":
+                try require(bytes.count >= 13)
+                let signature = String(decoding: bytes.prefix(6), as: UTF8.self)
+                try require(signature == "GIF87a" || signature == "GIF89a")
+                var offset = 13, sawImage = false
+                func advance(_ count: Int) throws {
+                    try require(count <= bytes.count - offset)
+                    offset += count
+                }
+                func subblocks() throws {
+                    while true {
+                        try budget?.check()
+                        try require(offset < bytes.count)
+                        let count = Int(bytes[offset]); offset += 1
+                        if count == 0 { return }
+                        try advance(count)
+                    }
+                }
+                if bytes[10] & 0x80 != 0 { try advance(3 * (1 << (Int(bytes[10] & 7) + 1))) }
+                while offset < bytes.count {
+                    try budget?.check()
+                    let block = bytes[offset]; offset += 1
+                    switch block {
+                    case 0x3b:
+                        try require(sawImage)
+                        return
+                    case 0x21:
+                        try advance(1) // Extension label; each extension has sub-block framing.
+                        try subblocks()
+                    case 0x2c:
+                        try require(bytes.count - offset >= 9)
+                        let packed = bytes[offset + 8]
+                        try advance(9)
+                        if packed & 0x80 != 0 { try advance(3 * (1 << (Int(packed & 7) + 1))) }
+                        try advance(1) // LZW minimum code size, then bounded data sub-blocks.
+                        try subblocks()
+                        sawImage = true
+                    default: throw JournalTransferError.invalid
+                    }
+                }
+                throw JournalTransferError.invalid
+            case "public.heic", "public.heif", "public.avif", "public.heics":
+                // ISO BMFF box lengths include their headers. This catches a
+                // truncated mdat that ImageIO can render from partial payload.
+                // A size-zero box legitimately extends to EOF; decoding and
+                // the existing frame/pixel limits remain required as well.
+                var offset = 0, sawFileType = false
+                while offset < bytes.count {
+                    try budget?.check()
+                    try require(bytes.count - offset >= 8)
+                    let shortLength = big32(offset), kind = big32(offset + 4)
+                    var length = UInt64(shortLength), header = 8
+                    if shortLength == 1 {
+                        try require(bytes.count - offset >= 16)
+                        length = (UInt64(big32(offset + 8)) << 32) | UInt64(big32(offset + 12))
+                        header = 16
+                    } else if shortLength == 0 { length = UInt64(bytes.count - offset) }
+                    try require(length >= UInt64(header) && length <= UInt64(bytes.count - offset))
+                    if kind == 0x66747970 { sawFileType = true }
+                    offset += Int(length)
+                }
+                try require(sawFileType)
+            default:
+                // Preserve ImageIO-supported historical formats. They still
+                // pass the original byte, frame, dimension and decode limits.
+                break
+            }
         }
     }
 

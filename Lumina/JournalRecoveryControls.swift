@@ -35,7 +35,7 @@ final class JournalTransferController {
     private(set) var errorKey: String?
     private(set) var restoredCount: Int?
     private(set) var canOfferRawCopy = false
-    private(set) var exportFilename = "Lumina-backup.sqlite"
+    var exportFilename: String { exportFile?.filename ?? JournalExportKind.restorable.filename }
     @ObservationIgnored private var task: Task<Void, Never>?
     @ObservationIgnored private var ownedExport: OwnedJournalFile?
     @ObservationIgnored private var ownedRestore: OwnedJournalFile?
@@ -102,7 +102,6 @@ final class JournalTransferController {
         guard acquirePreparation() != nil else { return }
         isWorking = true; workLabel = "Preparing database backup…"; errorKey = nil; restoredCount = nil
         canOfferRawCopy = false
-        exportFilename = raw ? "Lumina-raw-recovery.sqlite" : "Lumina-backup.sqlite"
         task = Task {
             defer { finishedWork() }
             do {
@@ -110,7 +109,9 @@ final class JournalTransferController {
                 if raw { file = try await rawExporter(model) }
                 else { file = try await exporter(model) }
                 if Task.isCancelled { file.remove(); throw CancellationError() }
-                ownedExport = file; exportFile = JournalExportFile(file: file.file); exporting = true
+                ownedExport = file
+                exportFile = JournalExportFile(file: file.file, kind: raw ? .rawRecovery : .restorable)
+                exporting = true
                 canOfferRawCopy = raw
             } catch {
                 record(error)

@@ -1,0 +1,163 @@
+{
+  "actual_export_picker_test_bodies_byte_identical": [
+    "testNavigationAndDataControlCancelPaths",
+    "testRecoveryPreviewFixtureConfirmationReopenAndPickerCancelPaths"
+  ],
+  "advertising_scope": "No ad SDK added. R6 advertising-preparation root was not transferred; this handoff declares only the exact Lumina Source and unchanged runner/tool.",
+  "all_old_ui_assertions_retained_verbatim_with_multiplicity": true,
+  "all_old_unit_expect_require_calls_and_trailing_closures_retained_verbatim_with_multiplicity": true,
+  "artifact_verifier_sha256": "d91a60b51ab9c1bb959157f9dfe82c3645beb952ede80303d541d6d15ebe718b",
+  "base_commit": "174f68316d776ef437623e82f019e847e7b073e5",
+  "expected_tests": {
+    "LuminaTests": 61,
+    "LuminaUITests": 18
+  },
+  "limits": [
+    "No R7 Swift compilation, native tests, archive, signing, upload, review or public-release result exists in this source receipt.",
+    "Container framing is not proof against all corrupt encoded pixels or nested HEIF item extents; size-zero BMFF boxes legitimately extend to EOF.",
+    "Other ImageIO-supported historical formats retain pre-existing decode and size limits.",
+    "This manifest uses local staging paths. Root must independently seal actual Mac paths and any separate advertising root before its authorized native run."
+  ],
+  "mac_access": false,
+  "native_or_build_execution": false,
+  "prepared_at": "2026-11-17T11:11:18.682518+00:00",
+  "preserved_site_files": [
+    "docs/.nojekyll",
+    "docs/index.html",
+    "docs/privacy-ar.html",
+    "docs/privacy.html",
+    "docs/styles.css",
+    "docs/support-ar.html",
+    "docs/support.html"
+  ],
+  "pure_existing_source_inventory_and_scheme_guards": {
+    "archive_configuration": "Release",
+    "selected_counts": {
+      "LuminaTests": 61,
+      "LuminaUITests": 18
+    },
+    "selection_modes": {
+      "LuminaTests": "entire sealed 61-case target",
+      "LuminaUITests": "eighteen explicit XCTest methods"
+    },
+    "test_configuration": "UIQA",
+    "test_plan": "Lumina AI personal trainer"
+  },
+  "push": false,
+  "runner_sha256": "7431ba3fa0d30eaf939f440a468aca25808ea954aec64833c24b2a0ee6f1bd4f",
+  "source_additions": 0,
+  "source_changes": {
+    "Lumina/DatabaseSnapshotIO.swift": {
+      "after_sha256": "9651a6b5746053b8ee22dc214d281aefd7c5998036a0d4d6992b7bbeb99050a9",
+      "before_sha256": "ae414aefbdb807587ddddea052f2a89025d04450ab1dd8a997535fd18f102836",
+      "bytes": 21393
+    },
+    "Lumina/Features/AIChat/RealAIChatView.swift": {
+      "after_sha256": "4ec512366361a2ff85c5eff8f3c7cc17494b14095a5b39f00157aefc159b8b59",
+      "before_sha256": "2889622173dc79f2155d23fcdcdb8bbc2ecf17064882ef3e33815e72184a4a1c",
+      "bytes": 12725
+    },
+    "Lumina/Features/Settings/SettingsView.swift": {
+      "after_sha256": "a607e6821075a44091335ed1c62101e0419377d5453b2cfced69c3f5211fa381",
+      "before_sha256": "9baf2c34b6ab3021a91c0a9b924467e79ad1726ab7adcdf8d5ed1f7cd81ac915",
+      "bytes": 11088
+    },
+    "Lumina/JournalRecoveryControls.swift": {
+      "after_sha256": "c948f85e0406f88c0c97814a8dbf581871441a25ab34859e40d50717feee4aff",
+      "before_sha256": "2579a167a0bd9166631dd4deae76df980debef35434532405032f4a6bdf44680",
+      "bytes": 18409
+    },
+    "Lumina/JournalRecoveryRecord.swift": {
+      "after_sha256": "59821cc0c1d5bef7b0347cbad9d0368db6124709ecbcd643c24462e5766bf9a1",
+      "before_sha256": "e33698e04ca043bdf77e7b051a051c08ce65c2af4afd346a338b8091eee51fc9",
+      "bytes": 32104
+    },
+    "Lumina/SavedRecordEditors.swift": {
+      "after_sha256": "7eaf86fe21f1019b4e291d6446bbd938fd4e450a97b7e8a254b11d4de42092bb",
+      "before_sha256": "f4c0af8d3ade8d6a33cb1b2c50611fa273fd969d9c46061a734ca87988c27c0a",
+      "bytes": 18377
+    },
+    "LuminaTests/JournalRecoveryIntegrityTests.swift": {
+      "after_sha256": "b653f4c1d5a6413e984977d16d973b810f66c644547a36b89e2db709c4fee7c6",
+      "before_sha256": "b69a299245533bbcba9f312d67e8dc356af8ce8a3a94dbd4bb9ed060d9941aaa",
+      "bytes": 50479
+    },
+    "LuminaUITests/LuminaUITests.swift": {
+      "after_sha256": "55269d284321202d78da29d7ea34c4d81923e8dfbea9d921cd3e78328aed1da8",
+      "before_sha256": "72aefbc875afd62183bdd9cb579d45a33aac84e86ecb8713cb90b89fa9cdd214",
+      "bytes": 99682
+    }
+  },
+  "source_deletions": 0,
+  "source_file_count": 119,
+  "source_manifest_sha256": "8909eaf3f530dc5f09a938e2806aa0c45eb23212d7797de0a939ce7c8a297263",
+  "status": "SOURCE_PREPARED_ONLY_NATIVE_NOT_RUN",
+  "ui_assertions_after": 299,
+  "ui_assertions_before": 273,
+  "unchanged_source_files": 111,
+  "unit_suites": {
+    "LuminaTests/CoachContextIntegrityTests.swift": {
+      "expect_after": 35,
+      "expect_before": 35,
+      "methods": 5,
+      "require_after": 1,
+      "require_before": 1
+    },
+    "LuminaTests/HabitUndoIntegrityTests.swift": {
+      "expect_after": 63,
+      "expect_before": 63,
+      "methods": 5,
+      "require_after": 15,
+      "require_before": 15
+    },
+    "LuminaTests/JournalRecoveryIntegrityTests.swift": {
+      "expect_after": 144,
+      "expect_before": 131,
+      "methods": 9,
+      "require_after": 27,
+      "require_before": 25
+    },
+    "LuminaTests/LocalizationIntegrityTests.swift": {
+      "expect_after": 21,
+      "expect_before": 21,
+      "methods": 1,
+      "require_after": 1,
+      "require_before": 1
+    },
+    "LuminaTests/LuminaTests.swift": {
+      "expect_after": 73,
+      "expect_before": 73,
+      "methods": 8,
+      "require_after": 2,
+      "require_before": 2
+    },
+    "LuminaTests/OnDeviceCoachTests.swift": {
+      "expect_after": 62,
+      "expect_before": 62,
+      "methods": 10,
+      "require_after": 3,
+      "require_before": 3
+    },
+    "LuminaTests/PhotoImportIntegrityTests.swift": {
+      "expect_after": 17,
+      "expect_before": 17,
+      "methods": 5,
+      "require_after": 0,
+      "require_before": 0
+    },
+    "LuminaTests/SavedRecordIntegrityTests.swift": {
+      "expect_after": 80,
+      "expect_before": 80,
+      "methods": 8,
+      "require_after": 7,
+      "require_before": 7
+    },
+    "LuminaTests/SettingsIntegrityTests.swift": {
+      "expect_after": 46,
+      "expect_before": 46,
+      "methods": 10,
+      "require_after": 7,
+      "require_before": 7
+    }
+  }
+}

@@ -1,0 +1,131 @@
+{
+  "observed_from_actual_R6_receipts": true,
+  "native_summary_sha256": "19824e7c29a7ed15afcc0dbe3d626d78ea500afa931fdbb55282f1e7aff157ed",
+  "result": "Failed",
+  "passed": 72,
+  "failed": 7,
+  "skipped": 0,
+  "failures": [
+    {
+      "test": "JournalRecoveryIntegrityTests/forcedWALSnapshotReopensAloneWithMultiMegabytePhotos()",
+      "failure": "Expectation failed: logFrames > copiedFrames && copiedFrames >= 0\nlogFrames > copiedFrames → false\ncopiedFrames >= 0 → <not evaluated>: Fixture must actually retain committed frames outside the main database"
+    },
+    {
+      "test": "JournalRecoveryIntegrityTests/typedRecordsRejectUnknownFieldsDuplicateIDsDanglingOwnersAndDeepJSON()",
+      "failure": "Expectation failed: an error was expected but none was thrown: JournalTransferError.invalid\nJournalTransferError → <not evaluated>\ninvalid → <not evaluated>"
+    },
+    {
+      "test": "LuminaUITests/testLanguageChoiceUpdatesVisibleFlowsAndPersistsWithoutLosingDrafts()",
+      "failure": "XCTAssertTrue failed"
+    },
+    {
+      "test": "LuminaUITests/testNavigationAndDataControlCancelPaths()",
+      "failure": "SA.Lumina crashed"
+    },
+    {
+      "test": "LuminaUITests/testPrivacyInformationAtLargestTextAndBackNavigation()",
+      "failure": "XCTAssertTrue failed"
+    },
+    {
+      "test": "LuminaUITests/testRecoveryPreviewFixtureConfirmationReopenAndPickerCancelPaths()",
+      "failure": "SA.Lumina crashed"
+    },
+    {
+      "test": "LuminaUITests/testWorkoutEffortIsOptionalAndExplicitRatingSurvivesDraftLanguageAndRelaunch()",
+      "failure": "XCTAssertTrue failed"
+    }
+  ],
+  "crashes": [
+    {
+      "file": "Lumina-2026-11-17-132853.ips",
+      "sha256": "7e0e2bee5dc26ae3b2775f0ac27d4eeb0758ce54d82c4688dc854d6687bb4c9f",
+      "captureTime": "2026-11-17 13:28:48.5910 +0300",
+      "exception": {
+        "codes": "0x0000000000000000, 0x0000000000000000",
+        "rawCodes": [
+          0,
+          0
+        ],
+        "type": "EXC_CRASH",
+        "signal": "SIGABRT"
+      },
+      "termination": {
+        "flags": 0,
+        "code": 6,
+        "namespace": "SIGNAL",
+        "indicator": "Abort trap: 6",
+        "byProc": "Lumina",
+        "byPid": 44287
+      },
+      "last_exception_symbols": [
+        "__exceptionPreprocess",
+        "objc_exception_throw",
+        "-[NSFileWrapper setPreferredFilename:]",
+        "fileWrapper #1 <A>(for:item:) in closure #1 in AnyTransferable.init<A>(_:)",
+        "closure #1 in AnyTransferable.init<A>(_:)",
+        "partial apply for closure #1 in AnyTransferable.init<A>(_:)",
+        "AnyTransferable.newFileWrapper(contentType:)",
+        "FileExportOperation.File.init(_:contentType:)",
+        "FileExportOperation.makeFiles()",
+        "FileExportOperation.writeTemporaryFilesIfNecessary()",
+        "FileImportExportBridge.presentExportPicker(operation:)",
+        "FileImportExportBridge.apply(_:)"
+      ],
+      "applicationSpecificInformation": null
+    },
+    {
+      "file": "Lumina-2026-11-17-133034.ips",
+      "sha256": "67e3af93d04efd0391ca98f270c7b06bbbb9a67438c3ba546d9d475ff8f3ca0e",
+      "captureTime": "2026-11-17 13:30:33.4271 +0300",
+      "exception": {
+        "codes": "0x0000000000000000, 0x0000000000000000",
+        "rawCodes": [
+          0,
+          0
+        ],
+        "type": "EXC_CRASH",
+        "signal": "SIGABRT"
+      },
+      "termination": {
+        "flags": 0,
+        "code": 6,
+        "namespace": "SIGNAL",
+        "indicator": "Abort trap: 6",
+        "byProc": "Lumina",
+        "byPid": 45276
+      },
+      "last_exception_symbols": [
+        "__exceptionPreprocess",
+        "objc_exception_throw",
+        "-[NSFileWrapper setPreferredFilename:]",
+        "fileWrapper #1 <A>(for:item:) in closure #1 in AnyTransferable.init<A>(_:)",
+        "closure #1 in AnyTransferable.init<A>(_:)",
+        "partial apply for closure #1 in AnyTransferable.init<A>(_:)",
+        "AnyTransferable.newFileWrapper(contentType:)",
+        "FileExportOperation.File.init(_:contentType:)",
+        "FileExportOperation.makeFiles()",
+        "FileExportOperation.writeTemporaryFilesIfNecessary()",
+        "FileImportExportBridge.presentExportPicker(operation:)",
+        "FileImportExportBridge.apply(_:)"
+      ],
+      "applicationSpecificInformation": null
+    }
+  ],
+  "correction_status": "Prepared source; actual R7 execution not performed",
+  "contract_sources": [
+    {
+      "url": "https://developer.apple.com/documentation/coretransferable/transferable/suggestedfilename",
+      "claim": "The transferable suggested filename is nil when none is specified; the transfer representation supplies it."
+    },
+    {
+      "url": "https://developer.apple.com/documentation/coretransferable/transferrepresentation/suggestedfilename(_:)-47rg0",
+      "claim": "A Sendable closure supplies an item-specific suggested filename including extension."
+    }
+  ],
+  "qualifications": [
+    "The language UI failure occurred before relaunch; it does not establish a persistence defect.",
+    "The new effort test failed when locating the field before inspecting its persisted value.",
+    "An archive/verifier pass does not override the seven failing native tests.",
+    "The requested filename metadata correction still needs both real export-picker tests on R7."
+  ]
+}

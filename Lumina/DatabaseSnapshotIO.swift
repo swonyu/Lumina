@@ -75,12 +75,34 @@ nonisolated struct OwnedJournalFile: Sendable {
     }
 }
 
+nonisolated enum JournalExportKind: Sendable {
+    case restorable, rawRecovery
+
+    var filename: String {
+        switch self {
+        case .restorable: return "Lumina-backup.sqlite"
+        case .rawRecovery: return "Lumina-raw-recovery.sqlite"
+        }
+    }
+}
+
 nonisolated struct JournalExportFile: Transferable, Sendable {
     let file: URL
+    let kind: JournalExportKind
+
+    init(file: URL, kind: JournalExportKind = .restorable) {
+        self.file = file; self.kind = kind
+    }
+
+    var filename: String { kind.filename }
+
     static var transferRepresentation: some TransferRepresentation {
         FileRepresentation(exportedContentType: .database) { item in
             SentTransferredFile(item.file, allowAccessingOriginalFile: false)
         }
+        // The transferred item's filename is independent of the export dialog's
+        // default. Supply a nonempty, app-owned name for the FileWrapper bridge.
+        .suggestedFileName { $0.filename }
     }
 }
 

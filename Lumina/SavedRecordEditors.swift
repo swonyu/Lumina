@@ -234,6 +234,7 @@ struct WorkoutRecordEditor: View {
                 DatePicker(L("Recorded at"), selection: $draft.date)
                 TextField(L("Exertion 1–10 (optional)"), text: $draft.exertion).keyboardType(.numberPad)
                     .focused($focusedField, equals: .workoutExertion)
+                    .accessibilityLabel(L("Exertion 1–10 (optional)"))
                     .accessibilityIdentifier("lumina.workout.record-effort")
                 TextField(L("Duration in minutes (optional)"), text: $draft.duration).keyboardType(.numberPad)
                     .focused($focusedField, equals: .duration)

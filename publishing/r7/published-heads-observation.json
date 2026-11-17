@@ -1,0 +1,12 @@
+{
+  "observed_by": "/root/lumina_review",
+  "recorded_at": "2026-11-17T11:12:24.654989+00:00",
+  "method": "git ls-remote --heads origin; completed successfully during this source freeze",
+  "heads": {
+    "refs/heads/app-store/lumina-release-fixes-20261116": "6335146222ec167e3dd0850ca7c6054121e516ec",
+    "refs/heads/docs/lumina-support-20261117": "e6e3a84eaa277e04fb6a71c921bbb07cacdbc118",
+    "refs/heads/main": "d7d48ddca09fb2676202665c86d55a9678e3f33f"
+  },
+  "all_heads_ancestors_of_preserved_r6": true,
+  "claim_scope": "Exact three published heads observed in this check; future remote changes are not claimed integrated."
+}

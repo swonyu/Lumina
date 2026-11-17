@@ -5,6 +5,7 @@ import SQLite3
 import CryptoKit
 import ImageIO
 import UniformTypeIdentifiers
+import CoreTransferable
 @testable import Lumina
 
 @MainActor
@@ -13,6 +14,8 @@ struct JournalRecoveryIntegrityTests {
         let fixture = try RecoveryFixture(name: "wal")
         defer { fixture.remove() }
         let reader = try SQLFixture(url: fixture.url)
+        #expect(try reader.text("PRAGMA main.journal_mode") == "wal",
+                "The recovery fixture must use the actual WAL journal mode")
         try reader.exec("BEGIN")
         _ = try reader.integer("SELECT count(*) FROM sqlite_master")
         let mealPhoto = try patternPhoto(minimumBytes: 3 * 1_024 * 1_024, seed: 17)
@@ -25,8 +28,13 @@ struct JournalRecoveryIntegrityTests {
         let photo = ProgressPhoto(photoData: progressPhoto); photo.owner = profile; fixture.context.insert(photo)
         try fixture.context.save()
         let checkpoint = try SQLFixture(url: fixture.url)
+        // Open this connection's pager before asking for counters. Passing nil
+        // requests all databases and SQLite explicitly leaves both output
+        // counters undefined in that mode; a named main database is required.
+        #expect(try checkpoint.text("PRAGMA main.journal_mode") == "wal")
+        _ = try checkpoint.integer("SELECT count(*) FROM main.sqlite_master")
         var logFrames: Int32 = -1, copiedFrames: Int32 = -1
-        let checkpointResult = sqlite3_wal_checkpoint_v2(checkpoint.handle, nil, SQLITE_CHECKPOINT_PASSIVE, &logFrames, &copiedFrames)
+        let checkpointResult = sqlite3_wal_checkpoint_v2(checkpoint.handle, "main", SQLITE_CHECKPOINT_PASSIVE, &logFrames, &copiedFrames)
         #expect(checkpointResult == SQLITE_OK)
         #expect(logFrames > copiedFrames && copiedFrames >= 0,
                 "Fixture must actually retain committed frames outside the main database")
@@ -359,7 +367,46 @@ struct JournalRecoveryIntegrityTests {
                     "The damaged real image must still expose metadata, unlike random invalid bytes")
             var truncated = meal; truncated.photo = partial
             #expect(throws: JournalTransferError.invalid) { try truncated.validate(limits: .standard) }
+            for missing in [1, 12] {
+                var missingTail = meal; missingTail.photo = Data(complete.dropLast(missing))
+                #expect(throws: JournalTransferError.invalid) { try missingTail.validate(limits: .standard) }
+            }
         }
+        // A preview is not enough: preserve complete images exactly, while
+        // rejecting missing container tails across additional import formats.
+        for type in [UTType.heic, .gif, .tiff] {
+            let encoded = NSMutableData()
+            let destination = try #require(CGImageDestinationCreateWithData(encoded, type.identifier as CFString, 1, nil))
+            CGImageDestinationAddImage(destination, pixels, nil)
+            #expect(CGImageDestinationFinalize(destination))
+            let complete = encoded as Data
+            var readable = meal; readable.photo = complete
+            let before = SHA256.hash(data: complete)
+            try readable.validate(limits: .standard)
+            #expect(SHA256.hash(data: try #require(readable.photo)) == before)
+            for remaining in [complete.count / 2, complete.count - 1, complete.count - 12] {
+                var truncated = meal; truncated.photo = Data(complete.prefix(remaining))
+                #expect(throws: JournalTransferError.invalid) { try truncated.validate(limits: .standard) }
+            }
+        }
+        // A structurally complete PNG with a corrupted chunk checksum must
+        // not become a restorable record even if a decoder repairs its preview.
+        var corruptPNG = validPNG
+        corruptPNG[29] ^= 1 // IHDR CRC; preserve signature, dimensions and IEND.
+        var checksumPhoto = meal; checksumPhoto.photo = corruptPNG
+        #expect(throws: JournalTransferError.invalid) { try checksumPhoto.validate(limits: .standard) }
+        // A retained JPEG thumbnail/APP EOI cannot stand in for the outer EOI.
+        let appPayload = Data([0xff, 0xef, 0x00, 0x06, 0xff, 0xd9, 0x00, 0x00])
+        let jpeg = jpegData as Data
+        var completeWithAPP = Data(jpeg.prefix(2)); completeWithAPP.append(appPayload)
+        completeWithAPP.append(jpeg.dropFirst(2))
+        var completeAPPPhoto = meal; completeAPPPhoto.photo = completeWithAPP
+        try completeAPPPhoto.validate(limits: .standard)
+        #expect(completeAPPPhoto.photo == completeWithAPP)
+        var misleadingJPEG = Data(jpeg.prefix(2)); misleadingJPEG.append(appPayload)
+        misleadingJPEG.append(jpeg.dropFirst(2).dropLast(2))
+        var embeddedEOI = meal; embeddedEOI.photo = misleadingJPEG
+        #expect(throws: JournalTransferError.invalid) { try embeddedEOI.validate(limits: .standard) }
         var workout = try #require(records.first { $0.kind == .workout })
         let tooManySets = try JSONSerialization.data(withJSONObject: (0..<201).map { _ in
             ["id": UUID().uuidString, "reps": 8] as [String: Any]
@@ -490,6 +537,9 @@ struct JournalRecoveryIntegrityTests {
         try await waitUntil { second.exporting && !second.isWorking }
         #expect(second.exportFile?.file == current.file && admission.isBusy,
                 "The prepared file retains ownership until its export presentation finishes")
+        #expect(second.exportFile?.suggestedFilename == "Lumina-backup.sqlite",
+                "The actual Transferable representation must supply a nonempty filename to the native picker")
+        #expect(second.exportFile?.suggestedFilename == second.exportFilename)
         #expect(!first.exporting && first.exportFile == nil)
         second.finishedExport()
         #expect(!admission.isBusy)
@@ -524,6 +574,8 @@ struct JournalRecoveryIntegrityTests {
         try await waitUntil { fallback.exporting && !fallback.isWorking }
         #expect(rawCalls == 1 && fallback.exportFilename == "Lumina-raw-recovery.sqlite")
         #expect(fallback.exportFile?.file == explicitRaw.file && admission.isBusy)
+        #expect(fallback.exportFile?.suggestedFilename == "Lumina-raw-recovery.sqlite")
+        #expect(fallback.exportFile?.suggestedFilename == fallback.exportFilename)
         fallback.finishedExport()
         #expect(!admission.isBusy && !FileManager.default.fileExists(atPath: explicitRaw.directory.path))
     }

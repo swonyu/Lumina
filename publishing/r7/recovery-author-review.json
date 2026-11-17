@@ -1,0 +1,48 @@
+{
+  "created_at": "2026-11-17T11:03:58.964638+00:00",
+  "owner": "/root, isolated two-file candidate; no changes to integration clone",
+  "native_status": "not run",
+  "imageio_evidence": "../continuation-evidence/native/imageio-status-probe-r1",
+  "changes": [
+    "Explicit main database for defined SQLite checkpoint counters; original strict WAL assertion retained",
+    "Actual Transferable suggestedFilename assertions for normal and raw exports",
+    "PNG bounded chunks, IEND and CRC; JPEG framed markers and outer EOI; GIF blocks and trailer; HEIF bounded top-level boxes",
+    "Original decode/frame/pixel/byte limits and original bytes retained",
+    "Additional complete-image and truncated-image regressions; no skipped or removed tests"
+  ],
+  "limits": [
+    "Container framing plus bounded ImageIO decoding is not proof against every corrupt entropy stream",
+    "Size-zero BMFF box legitimately extends to EOF; no claim it verifies every HEIF item extent",
+    "Other historical ImageIO formats retain original bounds and decode gate",
+    "Full native suite plus archive still required"
+  ],
+  "sources": [
+    "https://www.sqlite.org/c3ref/wal_checkpoint_v2.html",
+    "https://developer.apple.com/documentation/coretransferable/transferable/suggestedfilename",
+    "https://www.w3.org/TR/png/",
+    "https://www.w3.org/Graphics/JPEG/itu-t81.pdf",
+    "https://giflib.sourceforge.net/gifstandard/GIF89a.html",
+    "https://www.loc.gov/preservation/digital/formats/fdd/fdd000079.shtml"
+  ],
+  "files": [
+    {
+      "path": "Lumina/JournalRecoveryRecord.swift",
+      "before_sha256": "e33698e04ca043bdf77e7b051a051c08ce65c2af4afd346a338b8091eee51fc9",
+      "after_sha256": "59821cc0c1d5bef7b0347cbad9d0368db6124709ecbcd643c24462e5766bf9a1",
+      "before_test_methods": 0,
+      "after_test_methods": 0,
+      "before_expect_count": 0,
+      "after_expect_count": 0
+    },
+    {
+      "path": "LuminaTests/JournalRecoveryIntegrityTests.swift",
+      "before_sha256": "b69a299245533bbcba9f312d67e8dc356af8ce8a3a94dbd4bb9ed060d9941aaa",
+      "after_sha256": "b653f4c1d5a6413e984977d16d973b810f66c644547a36b89e2db709c4fee7c6",
+      "before_test_methods": 9,
+      "after_test_methods": 9,
+      "before_expect_count": 131,
+      "after_expect_count": 144
+    }
+  ],
+  "patch_sha256": "bd8b69b0e120f766d93eac38437b05bc70efba52af98baab8980af824148b0b4"
+}

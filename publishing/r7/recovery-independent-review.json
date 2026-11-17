@@ -1,0 +1,39 @@
+{
+  "reviewer": "/root/lumina_review",
+  "reviewed_at": "2026-11-17T11:12:24.655298+00:00",
+  "status": "PASS_SOURCE_REVIEW_ONLY",
+  "patch_sha256": "bd8b69b0e120f766d93eac38437b05bc70efba52af98baab8980af824148b0b4",
+  "reviewed_files": [
+    "Lumina/JournalRecoveryRecord.swift",
+    "LuminaTests/JournalRecoveryIntegrityTests.swift"
+  ],
+  "independent_evidence_inspected": [
+    "continuation-evidence/native/imageio-status-probe-r1/measurement.json (60 measured rows; complete and truncated samples for five formats across three decoder modes)",
+    "Lumina R6 test-summary.json and two NSFileWrapper export crash reports (previously inspected for separate UI/export correction)"
+  ],
+  "findings": [
+    "No blocking source defect found in bounded container validation, Swift control flow, integer conversions, WAL setup, or controller filename assertions.",
+    "PNG reads are bounded before offsets; chunk CRC includes type and payload, IEND and exact framing required, valid unknown chunks remain supported.",
+    "JPEG walks actual marker/segment boundaries and entropy transitions, skips APP payload EOIs, retains restart, TEM, DNL and multi-scan handling; this is not a complete entropy validator.",
+    "GIF local/global table spans and extension/image data sub-blocks are bounded, with an image and a trailer required. A non-image palette-only GIF already cannot satisfy the existing decoded-photo gate.",
+    "HEIF-family top-level box sizes are checked against remaining bytes before conversion to Int. Size-zero boxes retain legitimate EOF semantics; nested item extents are not comprehensively checked.",
+    "Other ImageIO-supported historical types retain the original bounds and thumbnail/decode gate; no new restrictive format allowlist or recompression.",
+    "Deadline/cancellation checks remain within long parser loops and original file, total-photo, frame, dimension and pixel limits remain unchanged.",
+    "SQLite documentation explicitly makes output counters undefined for nil/empty database names. Explicit main plus pager read corrects the fixture while retaining the strict logFrames > copiedFrames assertion.",
+    "Actual normal and raw controller tests now inspect Transferable.suggestedFilename as well as dialog exportFilename; filename enum alone is not treated as native-picker proof."
+  ],
+  "sources": [
+    "https://www.sqlite.org/c3ref/wal_checkpoint_v2.html",
+    "https://www.w3.org/TR/png/",
+    "https://giflib.sourceforge.net/gifstandard/GIF89a.html",
+    "https://developer.apple.com/documentation/coretransferable/transferable/suggestedfilename"
+  ],
+  "limits": [
+    "No Swift/compiler/native/build execution by reviewer.",
+    "R7 79-case suite plus archive required; source review cannot prove native export, language, large text, or physical-device behavior.",
+    "Framing plus bounded decoder work is not proof against every corrupt entropy stream or every HEIF item-extent problem."
+  ],
+  "mac_access": false,
+  "native_or_build_execution": false,
+  "source_change_by_reviewer": "Applied exact root-owned two-file patch after review; no modifications to its bytes."
+}

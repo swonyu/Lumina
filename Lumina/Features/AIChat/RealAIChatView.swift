@@ -42,12 +42,18 @@ struct RealAIChatView: View {
                             VStack(alignment: .leading, spacing: 5) {
                                 MessageBubble(message: item.base)
                                 if item.base.role == .assistant {
-                                    Text(sourceLabel(item.source))
-                                        .font(.caption)
-                                        .foregroundStyle(.white.opacity(0.85))
-                                        .fixedSize(horizontal: false, vertical: true)
-                                        .accessibilityIdentifier("lumina.coach.reply-source")
-                                        .padding(.horizontal, 14)
+                                    VStack(alignment: .leading, spacing: 3) {
+                                        Text(sourceLabel(item.source))
+                                            .accessibilityIdentifier("lumina.coach.reply-source")
+                                        if let explanation = sourceExplanation(item.source) {
+                                            Text(explanation)
+                                                .accessibilityIdentifier("lumina.coach.reply-source-detail")
+                                        }
+                                    }
+                                    .font(.caption)
+                                    .foregroundStyle(.white.opacity(0.85))
+                                    .fixedSize(horizontal: false, vertical: true)
+                                    .padding(.horizontal, 14)
                                 }
                             }
                             .id(item.id)
@@ -204,18 +210,20 @@ struct RealAIChatView: View {
         switch source {
         case .appleIntelligence: return L("coach.ai.source_model")
         case .appNotice: return "Lumina"
-        case .offlineRules(let reason):
-            let detail: String
-            switch reason {
-            case .unavailable(let why): detail = unavailableExplanation(why)
-            case .messageTooLong: detail = L("coach.ai.message_long")
-            case .contextLimit: detail = L("coach.ai.context_limit")
-            case .rateLimited: detail = L("coach.ai.busy")
-            case .inProgress: detail = L("coach.ai.still_stopping")
-            case .timedOut: detail = L("coach.ai.timeout")
-            case .failed: detail = L("coach.ai.failed")
-            }
-            return L("coach.ai.source_rules") + " · " + detail
+        case .offlineRules: return L("coach.ai.source_rules")
+        }
+    }
+
+    private func sourceExplanation(_ source: CoachReplySource) -> String? {
+        guard case .offlineRules(let reason) = source else { return nil }
+        switch reason {
+        case .unavailable(let why): return unavailableExplanation(why)
+        case .messageTooLong: return L("coach.ai.message_long")
+        case .contextLimit: return L("coach.ai.context_limit")
+        case .rateLimited: return L("coach.ai.busy")
+        case .inProgress: return L("coach.ai.still_stopping")
+        case .timedOut: return L("coach.ai.timeout")
+        case .failed: return L("coach.ai.failed")
         }
     }
 
