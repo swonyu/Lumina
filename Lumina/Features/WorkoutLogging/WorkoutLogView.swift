@@ -5,10 +5,14 @@ struct WorkoutLogView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(LuminaViewModel.self) private var viewModel
     @State private var workoutName = ""
-    @State private var exercises: [LoggedExercise] = []
+    @FocusState private var focusedTextField: WorkoutInputFocus?
+    @State private var exercises: [WorkoutExerciseDraft] = []
     @State private var notes = ""
-    @State private var rpe: Int = 7
+    @State private var rpe: Int? = nil
     @State private var showingSuccess = false
+    @State private var showingHistory = false
+    @State private var saveError: String?
+    @State private var showingSaveError = false
     
     @Query(sort: \WorkoutLog.date, order: .reverse) private var recentLogs: [WorkoutLog]
     
@@ -18,6 +22,13 @@ struct WorkoutLogView: View {
                 Text(L("workout.log_title"))
                     .font(.largeTitle.bold())
                 
+                Button(L("View all saved workouts")) { showingHistory = true }
+                    .accessibilityIdentifier("lumina.workout.history")
+                if let saveError {
+                    Text(L(saveError)).foregroundStyle(.primary)
+                        .accessibilityIdentifier("lumina.workout.save-error")
+                }
+
                 // Round 34: Coach nudge in the logging flow (memory-aware)
                 if !viewModel.smartMemorySummary.isEmpty || !viewModel.memorySummary.isEmpty {
                     let mem = !viewModel.smartMemorySummary.isEmpty ? viewModel.smartMemorySummary : viewModel.memorySummary
@@ -26,7 +37,7 @@ struct WorkoutLogView: View {
                             HStack(spacing: 8) {
                                 Image(systemName: "sparkles")
                                     .foregroundStyle(.orange)
-                                Text("Coach note: Recent patterns suggest logging perceived exertion and notes carefully today.")
+                                Text(L("Review your saved notes and record exertion if useful. Notes do not establish a health trend."))
                                     .font(.caption)
                                     .foregroundStyle(.white.opacity(0.9))
                             }
@@ -36,6 +47,8 @@ struct WorkoutLogView: View {
                 
                 GlassCard {
                     TextField(L("workout.name_placeholder"), text: $workoutName)
+                        .focused($focusedTextField, equals: .name)
+                        .accessibilityIdentifier("lumina.workout.new-name")
                         .textFieldStyle(.roundedBorder)
                 }
                 
@@ -43,91 +56,55 @@ struct WorkoutLogView: View {
                     Text(L("workout.exercises_label"))
                         .font(.headline)
                     
-                    if exercises.isEmpty {
-                        Text(L("workout.no_exercises"))
-                            .foregroundStyle(.secondary)
-                            .font(.caption)
-                    }
-                    
-                    ForEach($exercises) { $exercise in
-                        VStack(alignment: .leading, spacing: 4) {
-                            HStack {
-                                TextField("Exercise name", text: $exercise.name)
-                                    .textFieldStyle(.roundedBorder)
-                                
-                                Button {
-                                    if let index = exercises.firstIndex(where: { $0.id == exercise.id }) {
-                                        exercises.remove(at: index)
-                                    }
-                                } label: {
-                                    Image(systemName: "trash")
-                                        .foregroundStyle(.red.opacity(0.7))
-                                }
-                                .buttonStyle(.plain)
-                            }
-                            
-                            HStack {
-                                Text(L("workout.sets_count", exercise.sets.count))
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                                Spacer()
-                                Button {
-                                    exercise.sets.append(LoggedSet(reps: 8, weight: 0))
-                                } label: {
-                                    Label(L("workout.add_set"), systemImage: "plus.circle")
-                                        .font(.caption)
-                                }
-                            }
-                            
-                            ForEach($exercise.sets) { $set in
-                                HStack {
-                                    Text(L("workout.set_label"))
-                                    TextField(L("workout.reps_placeholder"), value: $set.reps, format: .number)
-                                        .frame(width: 50)
-                                        .textFieldStyle(.roundedBorder)
-                                    
-                                    Text(L("workout.reps_at"))
-                                    TextField(L("workout.kg_placeholder"), value: $set.weight.boundToZero, format: .number)
-                                    .frame(width: 55)
-                                    .textFieldStyle(.roundedBorder)
-                                    Text(L("workout.kg_unit"))
-                                    
-                                    Button {
-                                        if let index = exercise.sets.firstIndex(where: { $0.id == set.id }) {
-                                            exercise.sets.remove(at: index)
-                                        }
-                                    } label: {
-                                        Image(systemName: "minus.circle")
-                                            .foregroundStyle(.red.opacity(0.7))
-                                    }
-                                    .buttonStyle(.plain)
-                                }
-                                .font(.caption)
-                            }
-                        }
-                        .padding(.vertical, 4)
-                    }
-                    
-                    Button(L("workout.add_exercise")) {
-                        exercises.append(LoggedExercise(name: "New Exercise", sets: []))
-                    }
-                    .buttonStyle(.bordered)
+                    WorkoutExerciseFields(exercises: $exercises, focusedField: $focusedTextField)
                 }
                 
                 GlassCard {
-                    Stepper(L("workout.rpe_label", rpe), value: $rpe, in: 1...10)
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(L("workout.effort_optional"))
+                            .font(.headline)
+                        Picker(L("workout.effort_optional"), selection: $rpe) {
+                            Text(L("workout.effort_not_recorded")).tag(Optional<Int>.none)
+                            ForEach(1...10, id: \.self) { value in
+                                Text(L("workout.effort_value", value)).tag(Optional(value))
+                            }
+                        }
+                        .pickerStyle(.menu)
+                        .buttonStyle(.bordered)
+                        .controlSize(.large)
+                        .labelsHidden()
+                        .frame(minHeight: 44)
+                        .accessibilityLabel(L("workout.effort_optional"))
+                        .accessibilityValue(rpe.map { L("workout.effort_value", $0) }
+                            ?? L("workout.effort_not_recorded"))
+                        .accessibilityHint(L("workout.effort_hint"))
+                        .accessibilityIdentifier("lumina.workout.new-effort")
+                        Text(L("workout.effort_hint"))
+                            .font(.caption)
+                            .foregroundStyle(.primary)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .accessibilityIdentifier("lumina.workout.effort-scale")
+                    }
                 }
                 
                 GlassCard {
                     Text(L("workout.notes_label"))
                         .font(.headline)
                     TextField(L("workout.feel_placeholder"), text: $notes)
+                        .focused($focusedTextField, equals: .notes)
+                        .accessibilityIdentifier("lumina.workout.new-notes")
                         .textFieldStyle(.roundedBorder)
                 }
                 
                 GlassButton(title: L("workout.save_button"), isProminent: true, action: {
                     saveWorkout()
                 })
+                .accessibilityIdentifier("lumina.workout.new-save")
+                .alert(L("Could not save workout"), isPresented: $showingSaveError) {
+                    Button(L("OK")) { }
+                } message: {
+                    Text(L(saveError ?? "Your workout draft has been kept. Please try again."))
+                }
                 
                 if recentLogs.isEmpty {
                     Text(L("workout.empty_state"))
@@ -155,7 +132,14 @@ struct WorkoutLogView: View {
         }
         .glassBackground()
         .navigationTitle(L("tab.workouts"))
+        .scrollDismissesKeyboard(.interactively)
+        .keyboardDismissalBar(isFocused: focusedTextField != nil) {
+            focusedTextField = nil
+        }
         .withAppLanguage()
+        .sheet(isPresented: $showingHistory) {
+            NavigationStack { WorkoutHistoryView() }
+        }
         .alert(L("workout.saved_alert_title"), isPresented: $showingSuccess) {
             Button(L("general.ok")) { }
         } message: {
@@ -164,36 +148,36 @@ struct WorkoutLogView: View {
     }
     
     private func saveWorkout() {
-        guard !workoutName.trimmingCharacters(in: .whitespaces).isEmpty else { return }
-        
-        let log = WorkoutLog(workoutName: workoutName, exercises: exercises, perceivedExertion: rpe, notes: notes.isEmpty ? nil : notes)
-        guard viewModel.saveRecord(log) else { return }
+        let cleanName: String
+        let savedExercises: [LoggedExercise]
+        do {
+            cleanName = try LocalRecordDraft.name(workoutName, field: "a workout name")
+            savedExercises = try exercises.map { try $0.validated() }
+        } catch { saveError = error.localizedDescription; showingSaveError = true; return }
+        let log = WorkoutLog(workoutName: cleanName, exercises: savedExercises,
+                             perceivedExertion: rpe, notes: notes.isEmpty ? nil : notes)
+        guard viewModel.saveRecord(log) else {
+            saveError = viewModel.errorMessage ?? "Could not save the workout. Your draft has been kept."
+            viewModel.errorMessage = nil
+            showingSaveError = true
+            return
+        }
+        saveError = nil
         
         viewModel.invalidateWorkoutsCache()
 
         // Round 37: Update Live Activity dynamically after workout log + feed coach
-        Task {
-            await viewModel.updateCoachFocusLiveActivity()
-            await MainActor.run {
-                viewModel.saveCoachMemoryEntry(type: .pattern, content: "Logged workout: \(log.workoutName) with RPE \(log.perceivedExertion ?? 0)")
-            }
-        }
+        viewModel.updateCoachFocusLiveActivity()
+        let effortNote = log.perceivedExertion.map { " with RPE \($0)" } ?? ""
+        viewModel.saveCoachMemoryEntry(type: .pattern,
+            content: "Logged workout: \(log.workoutName)\(effortNote)")
         
         // Reset form
         workoutName = ""
         exercises = []
         notes = ""
-        rpe = 7
+        rpe = nil
         showingSuccess = true
     }
 }
 
-// MARK: - Optional Binding Helper (cleans up weight editing)
-extension Binding where Value == Double? {
-    var boundToZero: Binding<Double> {
-        Binding<Double>(
-            get: { self.wrappedValue ?? 0 },
-            set: { self.wrappedValue = $0 }
-        )
-    }
-}

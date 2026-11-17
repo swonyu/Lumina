@@ -11,6 +11,8 @@ struct ProgressPhotosView: View {
     @State private var showingPicker = false
     @State private var showAddedFeedback = false
     @State private var photoToDelete: ProgressPhoto?
+    @State private var selectedPhotoPreview: SavedProgressPhotoPreview?
+    @State private var photoImport = LocalPhotoImport()
 
     var body: some View {
         ScrollView {
@@ -21,6 +23,24 @@ struct ProgressPhotosView: View {
                 GlassButton(title: L("progress.add_photo_button"), action: {
                     showingPicker = true
                 })
+                .accessibilityIdentifier("lumina.progress.add-photo")
+
+                if photoImport.isLoading {
+                    ProgressView(L("Importing selected photo…"))
+                }
+                if let error = photoImport.errorMessage {
+                    Text(L(error)).foregroundStyle(.primary)
+                        .accessibilityIdentifier("lumina.progress.photo-error")
+                }
+                if let data = photoImport.data {
+                    Button(L("Retry saving imported photo")) { saveImportedPhoto(data) }
+                }
+                if selectedItem != nil {
+                    Button(L("Cancel selected photo")) {
+                        selectedItem = nil
+                        photoImport.clear()
+                    }
+                }
                 
                 // Round 61 + 62: Coach habit outcome nudge — tappable to trigger real photo capture for the coach's recommended habit
                 if viewModel.proactiveRecommendationCategory == "habit" && !viewModel.proactiveCoachRecommendation.isEmpty {
@@ -35,7 +55,7 @@ struct ProgressPhotosView: View {
                                 HStack(spacing: 8) {
                                     Image(systemName: "sparkles")
                                         .foregroundStyle(.yellow)
-                                    Text("Coach: \(viewModel.proactiveCoachRecommendation.prefix(80)) — tap to capture photo for this habit.")
+                                    Text(L("Saved suggestion: %@. Add a photo for your own records; photos do not measure a habit’s effects.", String(viewModel.proactiveCoachRecommendation.prefix(80))))
                                         .font(.caption)
                                         .foregroundStyle(.white.opacity(0.9))
                                 }
@@ -48,6 +68,7 @@ struct ProgressPhotosView: View {
                 
                 if photos.isEmpty {
                     Text(L("progress.empty_state"))
+                        .accessibilityIdentifier("lumina.progress.empty")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
@@ -66,14 +87,14 @@ struct ProgressPhotosView: View {
                         .font(.headline)
                     
                     HStack {
-                        PhotoThumbnail(photo: oldestPhoto)
-                        PhotoThumbnail(photo: newestPhoto)
+                        photoButton(oldestPhoto, location: "comparison.earliest")
+                        photoButton(newestPhoto, location: "comparison.latest")
                     }
                 }
                 
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())]) {
                     ForEach(photos) { photo in
-                        PhotoThumbnail(photo: photo)
+                        photoButton(photo, location: "history")
                             .contextMenu {
                                 Button(role: .destructive) {
                                     photoToDelete = photo
@@ -85,13 +106,14 @@ struct ProgressPhotosView: View {
                 }
             }
             .padding()
-            .drawingGroup()   // Perf: reduce overdraw for image-heavy view
         }
         .glassBackground()
         .navigationTitle(L("tab.progress"))
         .withAppLanguage()
-        .drawingGroup() // Round 17 perf (image heavy)
         .photosPicker(isPresented: $showingPicker, selection: $selectedItem, matching: .images)
+        .sheet(item: $selectedPhotoPreview) { preview in
+            SavedProgressPhotoDetail(preview: preview)
+        }
         .onAppear {
             // Round 63 + 64: If coach requested a photo for a habit outcome, open the picker.
             // We intentionally do NOT clear the flag here — we keep it so the save handler can record special memory.
@@ -106,36 +128,60 @@ struct ProgressPhotosView: View {
             }
         }
         .onChange(of: selectedItem) { _, newItem in
-            guard let newItem else { return }
-            Task {
-                do {
-                    guard let data = try await newItem.loadTransferable(type: Data.self) else {
-                        viewModel.errorMessage = "Could not read the selected photo. Try another image."
-                        return
-                    }
-                    guard viewModel.saveRecord(ProgressPhoto(photoData: data)) else { return }
-                    showAddedFeedback = true
-                    viewModel.coachWantsProgressPhotoForHabit = false
-                    viewModel.pendingCoachPhotoAnalysis = false
-                    selectedItem = nil
-                } catch { viewModel.errorMessage = "Could not load photo: \(error.localizedDescription)" }
+            guard let newItem else {
+                photoImport.clear()
+                return
             }
+            showAddedFeedback = false
+            let generation = viewModel.dataRevision
+            photoImport.load(using: { try await newItem.loadTransferable(type: Data.self) },
+                isCurrentSession: { generation == 0 && viewModel.dataRevision == generation },
+                onLoaded: { saveImportedPhoto($0) })
         }
-        .confirmationDialog("Delete this saved photo?", isPresented: Binding(
+        .onDisappear { photoImport.cancelPending() }
+        .onChange(of: viewModel.dataRevision) { _, _ in
+            selectedPhotoPreview = nil
+            selectedItem = nil
+            photoImport.clear()
+        }
+        .confirmationDialog(L("Delete this saved photo?"), isPresented: Binding(
             get: { photoToDelete != nil }, set: { if !$0 { photoToDelete = nil } }), titleVisibility: .visible) {
-                Button("Delete photo", role: .destructive) {
+                Button(L("Delete photo"), role: .destructive) {
                     if let photo = photoToDelete { deletePhoto(photo) }
                     photoToDelete = nil
                 }
-                Button("Cancel", role: .cancel) { photoToDelete = nil }
-        } message: { Text("This cannot be undone. The original in your Photos library is not deleted.") }
+                Button(L("Cancel"), role: .cancel) { photoToDelete = nil }
+        } message: { Text(L("This cannot be undone. The original in your Photos library is not deleted.")) }
+    }
+
+    private func photoButton(_ photo: ProgressPhoto, location: String) -> some View {
+        Button {
+            selectedPhotoPreview = SavedProgressPhotoPreview(
+                id: photo.id, date: photo.date, data: photo.photoData,
+                notes: photo.notes, weight: photo.weightAtTime)
+        } label: {
+            PhotoThumbnail(photo: photo)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(L("Open progress photo from %@", photo.date.formatted(Date.FormatStyle(date: .abbreviated, time: .omitted).locale(LocalizationManager.shared.currentLanguage.locale))))
+        .accessibilityHint(L("Shows the complete saved image and its recorded details."))
+        .accessibilityIdentifier("lumina.progress.\(location).\(photo.id.uuidString)")
+    }
+
+    private func saveImportedPhoto(_ data: Data) {
+        guard viewModel.saveRecord(ProgressPhoto(photoData: data)) else { return }
+        showAddedFeedback = true
+        viewModel.coachWantsProgressPhotoForHabit = false
+        viewModel.pendingCoachPhotoAnalysis = false
+        selectedItem = nil
+        photoImport.clear()
     }
 
     private func deletePhoto(_ photo: ProgressPhoto) {
         do {
             try modelContext.save()
             try modelContext.transaction { modelContext.delete(photo) }
-        } catch { viewModel.errorMessage = "Could not delete photo: \(error.localizedDescription)" }
+        } catch { viewModel.errorMessage = L("Could not delete photo: %@", error.localizedDescription) }
     }
 }
 
@@ -158,8 +204,70 @@ struct PhotoThumbnail: View {
                     .fill(.gray.opacity(0.2))
                     .frame(height: 160)
             }
-            Text(photo.date.formatted(date: .abbreviated, time: .omitted))
+            Text(photo.date.formatted(Date.FormatStyle(date: .abbreviated, time: .omitted).locale(LocalizationManager.shared.currentLanguage.locale)))
                 .font(.caption)
+        }
+    }
+}
+
+
+private struct SavedProgressPhotoPreview: Identifiable {
+    let id: UUID
+    let date: Date
+    let data: Data?
+    let notes: String?
+    let weight: Double?
+}
+
+private struct SavedProgressPhotoDetail: View {
+    @Environment(\.dismiss) private var dismiss
+    let preview: SavedProgressPhotoPreview
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    Text(preview.date.formatted(Date.FormatStyle(date: .complete, time: .shortened).locale(LocalizationManager.shared.currentLanguage.locale)))
+                        .font(.headline)
+                        .accessibilityIdentifier("lumina.progress.detail.date")
+                    if let data = preview.data, let image = UIImage(data: data) {
+                        Image(uiImage: image)
+                            .resizable()
+                            .scaledToFit()
+                            .accessibilityLabel(L("Saved progress photo"))
+                            .accessibilityIdentifier("lumina.progress.detail.image")
+                    } else {
+                        ContentUnavailableView(L("Saved image unavailable"), systemImage: "photo",
+                            description: Text(L("This record does not contain a readable saved image. Its other details remain available below.")))
+                            .accessibilityIdentifier("lumina.progress.detail.image-unavailable")
+                    }
+                    if let notes = preview.notes, !notes.isEmpty {
+                        Text(L("Saved notes")).font(.headline)
+                        Text(notes)
+                            .textSelection(.enabled)
+                            .accessibilityIdentifier("lumina.progress.detail.notes")
+                    }
+                    if let weight = preview.weight {
+                        Text(L("Saved weight value")).font(.headline)
+                        if weight.isFinite {
+                            Text(weight.formatted())
+                        } else {
+                            Text(L("This saved value is not a finite number."))
+                        }
+                        Text(L("The earlier record does not include a weight unit."))
+                            .font(.caption).foregroundStyle(.secondary)
+                    }
+                }
+                .padding()
+            }
+            .navigationTitle(L("Progress photo"))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(L("Done")) { dismiss() }
+                        .accessibilityIdentifier("lumina.progress.detail.done")
+                }
+            }
         }
     }
 }

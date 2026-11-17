@@ -1,22 +1,29 @@
+> **Current implementation: free on-device and local coaching.** The paid xAI client and API-key setup flow have been retired in every build configuration. No separate AI account or manual model download is required. See [FREE_LOCAL_RELEASE.md](FREE_LOCAL_RELEASE.md) for availability, fallback, privacy and verification boundaries.
+>
+> The older setup and offline-release notes below are retained as historical records; their cloud-model requirements and earlier AI capability descriptions do not apply to the current implementation. Signing and App Store credentials remain separate and unchanged.
+
+---
+
 # Lumina
 
-An experimental iOS personal-coaching and wellness-journal interface built with **SwiftUI** and **SwiftData**.
+An iOS personal-coaching and wellness journal built with SwiftUI and SwiftData.
 
-## Source components
+This checkout prepares the owner-selected offline release. It is not yet approved or publicly released in the App Store.
 
-- Goals, habits, journal entries, meals and workouts.
-- Daily check-ins and progress-photo views.
-- Persisted coach-memory models and an optional xAI chat client.
-- HealthKit, notifications and Live Activity integration code.
+## Current behavior
 
-## Current status
+- Release builds disable external cloud-coaching credentials and use local general suggestions.
+- Fresh installs start without sample profiles, activity or health measurements. Earlier prototype records are preserved; review them before treating them as personal measurements.
+- Home shows saved journal counts and consecutive check-in days. Unvalidated health scores and causal habit/photo claims are not presented as measured results.
+- Workouts, meals, check-ins, habits, goals, journal entries and progress photos remain local features.
+- Settings offers a SQLite backup and explicit confirmation before deleting local records. Exported copies and Apple Health data are not deleted. In-app backup restore is not implemented.
 
-This is a personal software prototype. It seeds demonstration profile and activity data. Navigation, device integrations and live AI connectivity still require validation. The demo entries are illustrative.
+## Development and verification
 
-Optional AI chat sends requests to xAI when configured.
+Open `Lumina.xcodeproj`, scheme `Lumina AI personal trainer`, with a compatible SDK (deployment target iOS 26.5; Swift 5 language mode).
 
-## Development
+Debug may optionally use a developer `XAI_API_KEY` and send coaching context to xAI. Release ignores that key. Do not treat build-time secrets as runtime production credentials.
 
-Open `Lumina.xcodeproj` in Xcode. The shared scheme is `Lumina AI personal trainer`, targeting `Lumina`.
+Release tests cover sample-free launch, preservation, consecutive-day streaks, backup round-tripping, isolated deletion, read-only save rejection and local coaching. `ci_scripts/verify_release_archive.py` checks archive icons, their metadata and the selected Release iCloud environment; actual distribution signing must be verified separately.
 
-The project currently specifies Swift 5 language mode and an iOS 26.5 deployment target; use a compatible SDK. Live AI calls require your own `XAI_API_KEY` environment value and network access. No live service is needed to inspect the source.
+Privacy permission configuration, manual screen/accessibility/device QA, provisioning, support/privacy URLs and App Store metadata remain release gates. A push may trigger Xcode Cloud; check workflow actions and authorization before pushing.

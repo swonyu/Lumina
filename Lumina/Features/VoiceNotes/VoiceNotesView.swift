@@ -94,7 +94,7 @@ struct VoiceNotesView: View {
     }
 
     private func requestMicrophonePermission() {
-        AVAudioSession.sharedInstance().requestRecordPermission { _ in }
+        AVAudioApplication.requestRecordPermission { _ in }
         SFSpeechRecognizer.requestAuthorization { _ in }
     }
 

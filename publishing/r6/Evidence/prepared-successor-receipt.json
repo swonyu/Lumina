@@ -1,0 +1,55 @@
+{
+  "prepared_at_utc": "2026-11-17T09:54:36.979420+00:00",
+  "status": "PREPARED_ONLY_NATIVE_NOT_RUN",
+  "owner": "root-d597fc87411f",
+  "previous_candidate": "/Users/saleh/Library/Caches/Publishing-Continuation-20261117-d597fc87411f/Lumina/Successor-v7-R5-Privacy",
+  "candidate": "/Users/saleh/Library/Caches/Publishing-Continuation-20261117-d597fc87411f/Lumina/Successor-v7-R6-OptionalEffort",
+  "source_count": 119,
+  "source_changed_since_r5": [
+    "Lumina AI personal trainer.xctestplan",
+    "Lumina/Features/WorkoutLogging/WorkoutLogView.swift",
+    "Lumina/SavedRecordEditors.swift",
+    "Lumina/ar.lproj/Localizable.strings",
+    "Lumina/en.lproj/Localizable.strings",
+    "LuminaUITests/LuminaUITests.swift"
+  ],
+  "expected_native_test_counts": {
+    "LuminaTests": 61,
+    "LuminaUITests": 18
+  },
+  "expected_native_total": 79,
+  "privacy_correction_preserved": {
+    "Source/Lumina/PrivacyInfo.xcprivacy": "f1f2c26a052f0831094d746903f91583c2a3157f25dc1ec7d5f8bd0e41593238",
+    "Source/ci_scripts/verify_release_archive.py": "aa5b292670babe8cd50d854b2789473199e6438541b8f87878eb6e7c4a51ccf7",
+    "Tools/verify_app_store_artifact.py": "d91a60b51ab9c1bb959157f9dfe82c3645beb952ede80303d541d6d15ebe718b"
+  },
+  "patches": {
+    "lumina-optional-effort-source.patch": {
+      "bytes": 13293,
+      "sha256": "baf2b1489b484eea2d612a856e2bbb83b04daebd43587cfa8effeab114d31813",
+      "paths": [
+        "Source/Lumina/Features/WorkoutLogging/WorkoutLogView.swift",
+        "Source/Lumina/SavedRecordEditors.swift",
+        "Source/Lumina/en.lproj/Localizable.strings",
+        "Source/Lumina/ar.lproj/Localizable.strings",
+        "Source/LuminaUITests/LuminaUITests.swift"
+      ]
+    },
+    "lumina-optional-effort-gates.patch": {
+      "bytes": 3472,
+      "sha256": "1c55e39c54c80c6d158a40da381c75a93b37dad22369066ba760b84b1d5b688f",
+      "paths": [
+        "Runner/verify_publishing.py",
+        "Source/Lumina AI personal trainer.xctestplan"
+      ]
+    }
+  },
+  "source_manifest": "/Users/saleh/Library/Caches/Publishing-Continuation-20261117-d597fc87411f/Lumina/Successor-v7-R6-OptionalEffort/Evidence/candidate-source-manifest-v7-r6.json",
+  "source_manifest_sha256": "c0bae4ffdb3ac74d3f896145cc29e665444fdc75c85ce0064e15e934c47ce4af",
+  "runner_sha256": "7431ba3fa0d30eaf939f440a468aca25808ea954aec64833c24b2a0ee6f1bd4f",
+  "advertising_preparation_root": "/Users/saleh/Library/Caches/Publishing-Continuation-20261117-d597fc87411f/AdvertisingPreparation-VerifiedCopy",
+  "original_r5_preserved": true,
+  "native_build_started": false,
+  "shared_lock_touched": false,
+  "signing_or_store_action": false
+}

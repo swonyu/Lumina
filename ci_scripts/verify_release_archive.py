@@ -39,7 +39,16 @@ assert privacy["NSPrivacyTracking"] is False
 reasons = next(entry["NSPrivacyAccessedAPITypeReasons"] for entry in privacy["NSPrivacyAccessedAPITypes"]
                if entry["NSPrivacyAccessedAPIType"] == "NSPrivacyAccessedAPICategoryUserDefaults")
 assert {"CA92.1", "1C8F.1"} <= set(reasons)
-print("PASS: iPhone/iPad PNGs, both CFBundleIconName entries, offline Release capabilities and preferences privacy manifest.")
+# These reasons cover recovery deadlines and metadata of user-selected files.
+for category, required in {
+    "NSPrivacyAccessedAPICategorySystemBootTime": {"35F9.1"},
+    "NSPrivacyAccessedAPICategoryFileTimestamp": {"3B52.1"},
+}.items():
+    declared = {reason for entry in privacy["NSPrivacyAccessedAPITypes"]
+                if entry["NSPrivacyAccessedAPIType"] == category
+                for reason in entry["NSPrivacyAccessedAPITypeReasons"]}
+    assert required <= declared, f"Missing reviewed recovery privacy reasons: {category}"
+print("PASS: iPhone/iPad PNGs, both CFBundleIconName entries, offline Release capabilities and preferences/recovery privacy manifest.")
 signed = subprocess.run(["codesign", "-d", "--entitlements", ":-", str(app)],
                         capture_output=True)
 if signed.returncode == 0:

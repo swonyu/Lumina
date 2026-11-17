@@ -6,8 +6,8 @@ struct HabitTrackerView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Habit.createdAt, order: .reverse) private var habits: [Habit]
     
+    @State private var showingHistory = false
     @State private var showingNewHabit = false
-    @State private var newHabitName = ""
     @State private var showingCoachSuggestions = false
     
     var body: some View {
@@ -18,6 +18,10 @@ struct HabitTrackerView: View {
                     .foregroundStyle(.white)
                     .padding(.horizontal)
                 
+                Button(L("Manage saved habits")) { showingHistory = true }
+                    .accessibilityIdentifier("lumina.habit.history")
+                    .padding(.horizontal)
+
                 // Coach Suggestions Section
                 if !habits.filter({ $0.coachSuggested && $0.isActive }).isEmpty {
                     GlassCard {
@@ -25,14 +29,14 @@ struct HabitTrackerView: View {
                             HStack {
                                 Image(systemName: "sparkles")
                                     .foregroundStyle(.purple)
-                                Text("Suggested habits")
+                                Text(L("Suggested habits"))
                                     .font(.headline)
                                     .foregroundStyle(.purple)
                             }
                             
                             // Round 82/86 polish: subtle outcome awareness for coach habits with limited impact (now uses cheap VM computed)
                             if viewModel.hasLimitedCoachHabitImpact {
-                                Text("Saved coach notes may contain earlier prototype claims. Review them as notes, not measured outcomes.")
+                                Text(L("Saved coach notes may contain earlier prototype claims. Review them as notes, not measured outcomes."))
                                     .font(.caption2)
                                     .foregroundStyle(.white.opacity(0.6))
                             }
@@ -47,13 +51,13 @@ struct HabitTrackerView: View {
                 
                 // All Active Habits
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("Your Habits")
+                    Text(L("Your Habits"))
                         .font(.headline)
                         .padding(.horizontal)
                     
                     if habits.filter({ $0.isActive }).isEmpty {
                         GlassCard {
-                            Text("No habits yet. Add one or browse general habit ideas.")
+                            Text(L("No habits yet. Add one or browse general habit ideas."))
                                 .foregroundStyle(.white.opacity(0.7))
                         }
                         .padding(.horizontal)
@@ -67,7 +71,7 @@ struct HabitTrackerView: View {
                     }
                 }
                 
-                GlassButton(title: "Browse habit ideas", action: {
+                GlassButton(title: L("Browse habit ideas"), action: {
                     showingCoachSuggestions = true
                     Task {
                         await viewModel.generateCoachHabitSuggestions()
@@ -78,6 +82,7 @@ struct HabitTrackerView: View {
                 GlassButton(title: L("habits.add_button"), action: {
                     showingNewHabit = true
                 })
+                .accessibilityIdentifier("lumina.habit.add")
                 .padding(.horizontal)
             }
             .padding(.vertical)
@@ -85,32 +90,22 @@ struct HabitTrackerView: View {
         .glassBackground()
         .navigationTitle(L("tab.habits"))
         .withAppLanguage()
+        .sheet(isPresented: $showingHistory) {
+            NavigationStack { HabitHistoryView() }
+        }
         .sheet(isPresented: $showingCoachSuggestions) {
             CoachHabitSuggestionsView()
         }
-        .alert(L("habits.new_alert_title"), isPresented: $showingNewHabit) {
-            TextField(L("habits.name_placeholder"), text: $newHabitName)
-            Button(L("general.add")) {
-                if !newHabitName.trimmingCharacters(in: .whitespaces).isEmpty {
-                    let habit = Habit(name: newHabitName)
-                    guard viewModel.saveRecord(habit) else { return }
-                    viewModel.invalidateHabitsCache()
-                    newHabitName = ""
-                }
-            }
-            Button(L("general.cancel"), role: .cancel) { newHabitName = "" }
-        } message: {
-            Text(L("habits.new_alert_message"))
+        .sheet(isPresented: $showingNewHabit) {
+            NavigationStack { NewHabitRecordView() }
         }
     }
     
     private func toggleHabit(_ habit: Habit) {
         do {
-            try modelContext.save()
-            try modelContext.transaction { habit.toggleCompletion() }
-            viewModel.invalidateHabitsCache()
+            try viewModel.commitLocalEdit { habit.toggleCompletion() }
         } catch {
-            viewModel.errorMessage = "Could not save habit completion: \(error.localizedDescription)"
+            viewModel.errorMessage = L("Could not save habit completion: %@", error.localizedDescription)
             return
         }
 
@@ -135,12 +130,12 @@ struct HabitRow: View {
                 }
                 
                 HStack(spacing: 4) {
-                    Text("Last recorded streak: \(habit.currentStreak) days")
+                    Text(L("Last recorded streak: %d days", habit.currentStreak))
                         .font(.caption2)
                         .foregroundStyle(.green)
                     
                     if habit.coachSuggested {
-                        Text("• Target: \(habit.targetFrequencyPerWeek)x/week")
+                        Text(L("• Target: %d times/week", habit.targetFrequencyPerWeek))
                             .font(.caption2)
                             .foregroundStyle(.white.opacity(0.6))
                     }
@@ -155,12 +150,12 @@ struct HabitRow: View {
                     .font(.title2)
             }
             .accessibilityLabel(isCompletedToday(habit)
-                ? "Undo today's completion for \(habit.name)"
-                : "Mark \(habit.name) complete for today")
-            .accessibilityValue(isCompletedToday(habit) ? "Completed today" : "Not completed today")
-            .accessibilityHint(isCompletedToday(habit)
+                ? L("Undo today's completion for %@", habit.name)
+                : L("Mark %@ complete for today", habit.name))
+            .accessibilityValue(L(isCompletedToday(habit) ? "Completed today" : "Not completed today"))
+            .accessibilityHint(L(isCompletedToday(habit)
                 ? "Removes today's completion and updates the recorded streak."
-                : "Records one completion for today and updates the recorded streak.")
+                : "Records one completion for today and updates the recorded streak."))
         }
     }
     
@@ -182,11 +177,11 @@ struct CoachHabitSuggestionsView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     HStack {
-                        Text("Habit ideas")
+                        Text(L("Habit ideas"))
                             .font(.title.bold())
                         Spacer()
                         if !viewModel.coachHabitSuggestions.isEmpty {
-                            Button("More ideas") {
+                            Button(L("More ideas")) {
                                 Task {
                                     await viewModel.generateCoachHabitSuggestions()
                                 }
@@ -198,7 +193,7 @@ struct CoachHabitSuggestionsView: View {
                     .padding(.horizontal)
 
                     if let saveError {
-                        Label(saveError, systemImage: "exclamationmark.circle")
+                        Label(L(saveError), systemImage: "exclamationmark.circle")
                             .font(.body)
                             .foregroundStyle(.primary)
                             .fixedSize(horizontal: false, vertical: true)
@@ -214,11 +209,11 @@ struct CoachHabitSuggestionsView: View {
                                 HStack {
                                     Image(systemName: "checkmark.circle.fill")
                                         .foregroundStyle(.green)
-                                    Text("Added \"\(added)\" to your habits.")
+                                    Text(L("Added \"%@\" to your habits.", added))
                                         .foregroundStyle(.white)
                                 }
                                 
-                                Text("Use the habit's completion button after you finish it.")
+                                Text(L("Use the habit's completion button after you finish it."))
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                             }
@@ -228,7 +223,7 @@ struct CoachHabitSuggestionsView: View {
                     
                     if viewModel.coachHabitSuggestions.isEmpty && viewModel.justAddedCoachHabit == nil {
                         GlassCard {
-                            Text("No more general ideas to show. You can add your own habit.")
+                            Text(L("No more general ideas to show. You can add your own habit."))
                                 .foregroundStyle(.white.opacity(0.85))
                         }
                         .padding(.horizontal)
@@ -241,9 +236,9 @@ struct CoachHabitSuggestionsView: View {
                                     Text(suggestion)
                                         .foregroundStyle(.white)
                                     
-                                    Button("Add This Habit") {
+                                    Button(L("Add This Habit")) {
                                         guard viewModel.addCoachSuggestedHabit(name: suggestion,
-                                            reason: "Selected from general habit ideas") else {
+                                            reason: L("Selected from general habit ideas")) else {
                                             saveError = viewModel.errorMessage ?? "Could not add the habit. Please try again."
                                             viewModel.errorMessage = nil
                                             saveErrorFocused = true
@@ -263,10 +258,10 @@ struct CoachHabitSuggestionsView: View {
                 .padding(.vertical)
             }
             .glassBackground()
-            .navigationTitle("Habit ideas")
+            .navigationTitle(L("Habit ideas"))
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Done") { dismiss() }
+                    Button(L("Done")) { dismiss() }
                 }
             }
         }

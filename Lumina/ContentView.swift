@@ -25,24 +25,21 @@ struct ContentView: View {
             ProgressPhotosView()
                 .tabItem { Label(L("tab.progress"), systemImage: "photo.on.rectangle") }
                 .tag(4)
-            DailyCheckInView()
-                .tabItem { Label(L("tab.checkin"), systemImage: "heart") }
-                .tag(5)
         }
         .id(luminaViewModel?.sessionID)
         .environment(luminaViewModel ?? createTemporaryViewModel())
         .onChange(of: luminaViewModel?.dataRevision) { _, revision in
             guard revision != nil, revision != 0 else { return }
             selectedTab = 0
-            let model = LuminaViewModel(modelContext: modelContext)
+            let model = LuminaViewModel(modelContext: modelContext, weeklyReminders: LuminaApp.weeklyReminders)
             luminaViewModel = model
             Task { await model.bootstrapAfterLaunch() }
         }
-        .alert("Lumina", isPresented: Binding(
+        .alert(L("Lumina"), isPresented: Binding(
             get: { luminaViewModel?.errorMessage != nil },
             set: { if !$0 { luminaViewModel?.errorMessage = nil } })) {
-                Button("OK") { luminaViewModel?.errorMessage = nil }
-        } message: { Text(luminaViewModel?.errorMessage ?? "") }
+                Button(L("OK")) { luminaViewModel?.errorMessage = nil }
+        } message: { Text(L(luminaViewModel?.errorMessage ?? "")) }
         .preferredColorScheme(.dark)
         .tint(.white)
         .background(Color.black)
@@ -67,7 +64,7 @@ struct ContentView: View {
         }
         .task {
             if luminaViewModel == nil {
-                let vm = LuminaViewModel(modelContext: modelContext)
+                let vm = LuminaViewModel(modelContext: modelContext, weeklyReminders: LuminaApp.weeklyReminders)
                 luminaViewModel = vm
 
                 // Heavy work (HealthKit, notifications, Live Activity, data loading) happens in background
@@ -82,7 +79,7 @@ struct ContentView: View {
 
     // Temporary fallback only while the real VM is being created (rare after first launch)
     private func createTemporaryViewModel() -> LuminaViewModel {
-        LuminaViewModel(modelContext: modelContext)
+        LuminaViewModel(modelContext: modelContext, weeklyReminders: LuminaApp.weeklyReminders)
     }
 }
 

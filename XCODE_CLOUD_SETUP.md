@@ -1,3 +1,9 @@
+> **Current implementation: free on-device and local coaching.** The paid xAI client and API-key setup flow have been retired in every build configuration. No separate AI account or manual model download is required. See [FREE_LOCAL_RELEASE.md](FREE_LOCAL_RELEASE.md) for availability, fallback, privacy and verification boundaries.
+>
+> The older setup and offline-release notes below are retained as historical records; their cloud-model requirements and earlier AI capability descriptions do not apply to the current implementation. Signing and App Store credentials remain separate and unchanged.
+
+---
+
 # Xcode Cloud Setup for Lumina
 
 ## The Error You're Seeing

@@ -1,0 +1,1509 @@
+{
+  "created_at_utc": "2026-11-17T10:31:24.767464+00:00",
+  "owner": "/root/lumina_review",
+  "authorization": "Root explicitly transferred sole isolated Lumina repo editing/Git composition ownership; no push/native/Mac work.",
+  "repo": "/workspace/scratch/d597fc87411f/branch-integration/lumina",
+  "branch": "integration/publishing-20261117-d597fc",
+  "base_head": "251f5c18b1526369246338c269c4af3bea7061ca",
+  "input": "/workspace/scratch/d597fc87411f/lumina-r6-exact-mac-source",
+  "source_manifest_sha256": "c0bae4ffdb3ac74d3f896145cc29e665444fdc75c85ce0064e15e934c47ce4af",
+  "source_files": 119,
+  "plan": [
+    {
+      "path": "FREE_LOCAL_RELEASE.md",
+      "action": "add",
+      "before_sha256": null,
+      "r6_sha256": "86323aa1cadde30edfec61ec156e2f61bc5d7b0a8e5ea8de97335cf77a9c443f",
+      "r6_bytes": 3016,
+      "r6_mode": "0o644"
+    },
+    {
+      "path": "File.swift",
+      "action": "unchanged",
+      "before_sha256": "da79390f6bd0b92e54bc40a2fca83c7c3937b4911f0c73979fa5870069c8ea23",
+      "r6_sha256": "da79390f6bd0b92e54bc40a2fca83c7c3937b4911f0c73979fa5870069c8ea23",
+      "r6_bytes": 100,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina AI personal trainer.xctestplan",
+      "action": "replace-with-exact-R6",
+      "before_sha256": "a77d405a20d85b230f3bf18747c5d5388f543b2433ca098066111da375693609",
+      "r6_sha256": "4bee19802ac7e410317d1033b146c87c7873242ef3fc4c78f297580d1ea58913",
+      "r6_bytes": 2072,
+      "r6_mode": "0o644"
+    },
+    {
+      "path": "OFFLINE_RELEASE.md",
+      "action": "add",
+      "before_sha256": null,
+      "r6_sha256": "7a825a1691eb138cd02ce93a347dc958c1843df9b14290208a4e320bc887128a",
+      "r6_bytes": 3551,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "README.md",
+      "action": "replace-with-exact-R6",
+      "before_sha256": "f438119d86e87f3eb2fbdf98f025104fb60b35ca272d0e6d85994869faa00aab",
+      "r6_sha256": "562f5246883d24f93a8a54372fc9480f6de5168c54412c8c905cc5bd6f1e66a2",
+      "r6_bytes": 2507,
+      "r6_mode": "0o644"
+    },
+    {
+      "path": "XCODE_CLOUD_SETUP.md",
+      "action": "replace-with-exact-R6",
+      "before_sha256": "b564e83769288ad628cec6a92a0b333c51335b5cb0dbc929a6977b60e89355fa",
+      "r6_sha256": "eba8fd39a8332818bb51467083f404de104082f739c09b4dab95a233dc2a56ff",
+      "r6_bytes": 5962,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "rich_coach_contexts.json",
+      "action": "add",
+      "before_sha256": null,
+      "r6_sha256": "2c78683ba42725497ffd9db630f5588ebb049a2cfa8c001ee8099b0045efdb8d",
+      "r6_bytes": 2241,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/CoachMessage.swift",
+      "action": "unchanged",
+      "before_sha256": "76b43b37781be7998783a2b55ffc0945cb3dee3ca11fe192a94c6f49c3b2a64f",
+      "r6_sha256": "76b43b37781be7998783a2b55ffc0945cb3dee3ca11fe192a94c6f49c3b2a64f",
+      "r6_bytes": 2312,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/ContentView.swift",
+      "action": "replace-with-exact-R6",
+      "before_sha256": "dab76c433f6b37ae577e28b155008e9aad5ffa87f29d7f537264b7cbfd5525b2",
+      "r6_sha256": "33979ccdffce9a594d55c67231a9b9c5c8664ce2c0bbb18cbb5298c7ddf45462",
+      "r6_bytes": 3690,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/DataControls.swift",
+      "action": "replace-with-exact-R6",
+      "before_sha256": "48ede16200ca8cad27a9f02f1f5a72af7eff10d6b01ad05f565075bfe970e081",
+      "r6_sha256": "53cabe58c13c36582e03d37638171d93439e58fa917fbbd3f8290b460674606b",
+      "r6_bytes": 9039,
+      "r6_mode": "0o644"
+    },
+    {
+      "path": "Lumina/DatabaseSnapshotIO.swift",
+      "action": "add",
+      "before_sha256": null,
+      "r6_sha256": "ae414aefbdb807587ddddea052f2a89025d04450ab1dd8a997535fd18f102836",
+      "r6_bytes": 20731,
+      "r6_mode": "0o644"
+    },
+    {
+      "path": "Lumina/Info.plist",
+      "action": "unchanged",
+      "before_sha256": "97704a8960b4facceef54397a08fb5d0a456247c3627359215aa2a27df22656c",
+      "r6_sha256": "97704a8960b4facceef54397a08fb5d0a456247c3627359215aa2a27df22656c",
+      "r6_bytes": 181,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/Item.swift",
+      "action": "unchanged",
+      "before_sha256": "2e5db060e637fa220c7d0601f92a51126af60992a85615d6915c612734d899b3",
+      "r6_sha256": "2e5db060e637fa220c7d0601f92a51126af60992a85615d6915c612734d899b3",
+      "r6_bytes": 743,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/JournalRecordModels.swift",
+      "action": "add",
+      "before_sha256": null,
+      "r6_sha256": "b8165c16d217c44a3e67741635cea5b4febe682b9917f20d6a5e9b529ec01b62",
+      "r6_bytes": 33476,
+      "r6_mode": "0o644"
+    },
+    {
+      "path": "Lumina/JournalRecoveryControls.swift",
+      "action": "add",
+      "before_sha256": null,
+      "r6_sha256": "2579a167a0bd9166631dd4deae76df980debef35434532405032f4a6bdf44680",
+      "r6_bytes": 18388,
+      "r6_mode": "0o644"
+    },
+    {
+      "path": "Lumina/JournalRecoveryIO.swift",
+      "action": "add",
+      "before_sha256": null,
+      "r6_sha256": "7fc63881c183c3ca51024683b263fef571041a0e5b8ad10506dde1aaa9eed338",
+      "r6_bytes": 18924,
+      "r6_mode": "0o644"
+    },
+    {
+      "path": "Lumina/JournalRecoveryRecord.swift",
+      "action": "add",
+      "before_sha256": null,
+      "r6_sha256": "e33698e04ca043bdf77e7b051a051c08ce65c2af4afd346a338b8091eee51fc9",
+      "r6_bytes": 23794,
+      "r6_mode": "0o644"
+    },
+    {
+      "path": "Lumina/KeyboardDismissalBar.swift",
+      "action": "add",
+      "before_sha256": null,
+      "r6_sha256": "69286db2bd8961519424d7473667f48fb0e85e1f7819cbebd6528426d255cdd6",
+      "r6_bytes": 1014,
+      "r6_mode": "0o644"
+    },
+    {
+      "path": "Lumina/LocalPhotoImport.swift",
+      "action": "add",
+      "before_sha256": null,
+      "r6_sha256": "354ee6266c86105cd2eb8db35540ce994cbec695af49a11ff21b24f5bd823429",
+      "r6_bytes": 2547,
+      "r6_mode": "0o644"
+    },
+    {
+      "path": "Lumina/LocalRecordEdits.swift",
+      "action": "add",
+      "before_sha256": null,
+      "r6_sha256": "854fabf681cf467dbd8ddabb46c97080df26a3b340ed631b57c3a84abad9f20b",
+      "r6_bytes": 13727,
+      "r6_mode": "0o644"
+    },
+    {
+      "path": "Lumina/Lumina.entitlements",
+      "action": "unchanged",
+      "before_sha256": "89ac460fca05dfd77035c23c1d4da63a0c86445b4701212d76773765ea63fa30",
+      "r6_sha256": "89ac460fca05dfd77035c23c1d4da63a0c86445b4701212d76773765ea63fa30",
+      "r6_bytes": 292,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/LuminaApp.swift",
+      "action": "replace-with-exact-R6",
+      "before_sha256": "b0f1ff66bbfb225dde27315355964b19a0e0b0b65a82cfbaec260ff1d43a03ff",
+      "r6_sha256": "bdb7227b65aa7c314d75bd934e37fc5701d37e495b72dfc8eae0fe0c2928b820",
+      "r6_bytes": 3450,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/LuminaViewModel.swift",
+      "action": "replace-with-exact-R6",
+      "before_sha256": "515c7456096437060b34f003336ca6582e06d74bbb2b2448411a7a3cd3b7a027",
+      "r6_sha256": "d283c4c75493f63eee18f870fa857aa8a87d20f65b89200d8a6ff57432e562db",
+      "r6_bytes": 91392,
+      "r6_mode": "0o644"
+    },
+    {
+      "path": "Lumina/Models.swift",
+      "action": "unchanged",
+      "before_sha256": "6b1fb61ae1edbe6dd288e74a01019c73233c41f3050b544e357d79943ca306e3",
+      "r6_sha256": "6b1fb61ae1edbe6dd288e74a01019c73233c41f3050b544e357d79943ca306e3",
+      "r6_bytes": 4369,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/ModernHomeView.swift",
+      "action": "replace-with-exact-R6",
+      "before_sha256": "43e117b29984984a10424e8dbbbe37b892670384c0864a9fe9d50657a702b542",
+      "r6_sha256": "65556300c372c896aafd0a3b0029653d261205ff1cfb7f1eaf7e84d601dfd5da",
+      "r6_bytes": 4228,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/OptimizedGlassCard.swift",
+      "action": "unchanged",
+      "before_sha256": "013815a8978b3ea1d05b84da8e64facecc612aeabffb56393ec7a8e2ccadd3aa",
+      "r6_sha256": "013815a8978b3ea1d05b84da8e64facecc612aeabffb56393ec7a8e2ccadd3aa",
+      "r6_bytes": 902,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/PERFORMANCE_NOTES.md",
+      "action": "add",
+      "before_sha256": null,
+      "r6_sha256": "b24c2714b7f52e0c79ba89388d749fcf38541b8c1d05ce3e15f67bbe7d7300a4",
+      "r6_bytes": 180426,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/PrivacyInfo.xcprivacy",
+      "action": "replace-with-exact-R6",
+      "before_sha256": "96a3a3712b4d648c911695babe81c52a3a2b78eb1ee546792eb168559db0d83d",
+      "r6_sha256": "f1f2c26a052f0831094d746903f91583c2a3157f25dc1ec7d5f8bd0e41593238",
+      "r6_bytes": 1061,
+      "r6_mode": "0o644"
+    },
+    {
+      "path": "Lumina/SavedRecordEditors.swift",
+      "action": "add",
+      "before_sha256": null,
+      "r6_sha256": "f4c0af8d3ade8d6a33cb1b2c50611fa273fd969d9c46061a734ca87988c27c0a",
+      "r6_bytes": 18304,
+      "r6_mode": "0o644"
+    },
+    {
+      "path": "Lumina/SavedRecordHistoryViews.swift",
+      "action": "add",
+      "before_sha256": null,
+      "r6_sha256": "d303a97dba591902a6f1856a30ff286d05207b7c524cce628cbf07766806e61f",
+      "r6_bytes": 4179,
+      "r6_mode": "0o644"
+    },
+    {
+      "path": "Lumina/UltraLightGlassCard.swift",
+      "action": "unchanged",
+      "before_sha256": "e99e3999812063d68be30958c2ad540cf5285d03bcd5cc32685a1a8a509dd8af",
+      "r6_sha256": "e99e3999812063d68be30958c2ad540cf5285d03bcd5cc32685a1a8a509dd8af",
+      "r6_bytes": 877,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/WeeklyReminderCoordinator.swift",
+      "action": "add",
+      "before_sha256": null,
+      "r6_sha256": "8a6a4718aa5f717db2df78cbb255f266bf935c822f944f8f871b8cb30a519560",
+      "r6_bytes": 6645,
+      "r6_mode": "0o644"
+    },
+    {
+      "path": "Lumina/AI/AIPrompts.swift",
+      "action": "unchanged",
+      "before_sha256": "c0121d91f9f992ba32d3723cd1072c1e9ce55e1fbdf68aa826d226ea4f31d1ee",
+      "r6_sha256": "c0121d91f9f992ba32d3723cd1072c1e9ce55e1fbdf68aa826d226ea4f31d1ee",
+      "r6_bytes": 4648,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/AI/GrokService.swift",
+      "action": "replace-with-exact-R6",
+      "before_sha256": "54be84d6de82eb1d01602f896cad6d6d066a61178982100a24a03942a9570a6a",
+      "r6_sha256": "e864ab0ce3ebd64e79c5f8da34116f9c724d66045b7b1b160f77b61a32841e2f",
+      "r6_bytes": 2060,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/AI/Coach/CoachContext.swift",
+      "action": "replace-with-exact-R6",
+      "before_sha256": "e9ce47194d035b09ed6c545b6b3bc77235923c05fd74ff433b05b561b635cc8b",
+      "r6_sha256": "f2c5cb075e7fb9ad80dbc3a809cd22eb2f0785fe6090a801fe80c3e97ffb1198",
+      "r6_bytes": 4393,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/AI/Coach/CoachMemory.swift",
+      "action": "unchanged",
+      "before_sha256": "9b61324cb8a3d8e9be2bdb6c86ec3e4679eee7c74dde550706a34d390cc3156c",
+      "r6_sha256": "9b61324cb8a3d8e9be2bdb6c86ec3e4679eee7c74dde550706a34d390cc3156c",
+      "r6_bytes": 1223,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/AI/Coach/FoundationModelCoachGenerator.swift",
+      "action": "add",
+      "before_sha256": null,
+      "r6_sha256": "fd84ce1cfac71a0e3d480461c50bec3c879d561fdf726505b56a9ecfc78aa82f",
+      "r6_bytes": 5227,
+      "r6_mode": "0o644"
+    },
+    {
+      "path": "Lumina/AI/Coach/LocalCoachRules.swift",
+      "action": "add",
+      "before_sha256": null,
+      "r6_sha256": "e31a81d8dbe3fa6c61636667e8389454521f8bb7c11abffe38df00d5c73c2970",
+      "r6_bytes": 5710,
+      "r6_mode": "0o644"
+    },
+    {
+      "path": "Lumina/AI/Coach/OnDeviceCoach.swift",
+      "action": "add",
+      "before_sha256": null,
+      "r6_sha256": "d0282f516cf6b3954f00d509517e4572599d7cb1589553fb0cc0911de9220a33",
+      "r6_bytes": 13241,
+      "r6_mode": "0o644"
+    },
+    {
+      "path": "Lumina/AI/Coach/SmartCoachPrompts.swift",
+      "action": "unchanged",
+      "before_sha256": "8c30c769aa5878475177dbeb06e65658eebb4eae8adbd95f557f0469f46404fd",
+      "r6_sha256": "8c30c769aa5878475177dbeb06e65658eebb4eae8adbd95f557f0469f46404fd",
+      "r6_bytes": 6644,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/AI/Coach/SmartGrokCoach.swift",
+      "action": "replace-with-exact-R6",
+      "before_sha256": "a5385b6d7ee67f5e1c807d98e016ce4098bd4eb168d167c20ca303c94c540f56",
+      "r6_sha256": "b6583bf65d036a08cdc880640b4743ff6f002b9a592d4b98f9bf6e721ef7f229",
+      "r6_bytes": 1968,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/Assets.xcassets/Contents.json",
+      "action": "unchanged",
+      "before_sha256": "0fd49ba3c3585c709678e0046a821c3c60685ec7063720d30d3a3448be3a208b",
+      "r6_sha256": "0fd49ba3c3585c709678e0046a821c3c60685ec7063720d30d3a3448be3a208b",
+      "r6_bytes": 63,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/Assets.xcassets/AccentColor.colorset/Contents.json",
+      "action": "unchanged",
+      "before_sha256": "9af65086fa30b49252fae1a1225731691de794f7775af74d71befeb507d12b7c",
+      "r6_sha256": "9af65086fa30b49252fae1a1225731691de794f7775af74d71befeb507d12b7c",
+      "r6_bytes": 123,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/Assets.xcassets/AppIcon.appiconset/AppIcon.png",
+      "action": "unchanged",
+      "before_sha256": "d70b24114f8cce0057042c4483ce93fc0539f8a368ed5a0ee376f80a518e76fd",
+      "r6_sha256": "d70b24114f8cce0057042c4483ce93fc0539f8a368ed5a0ee376f80a518e76fd",
+      "r6_bytes": 861686,
+      "r6_mode": "0o644"
+    },
+    {
+      "path": "Lumina/Assets.xcassets/AppIcon.appiconset/Contents.json",
+      "action": "unchanged",
+      "before_sha256": "852920cb36e95beb53771138a4b8195a16fcce1cc31250632f246081cc638f9a",
+      "r6_sha256": "852920cb36e95beb53771138a4b8195a16fcce1cc31250632f246081cc638f9a",
+      "r6_bytes": 203,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/DesignSystem/AdvancedGlassComponents.swift",
+      "action": "unchanged",
+      "before_sha256": "cba7cd91c5e2043c8cfc5e9cee05daa17a07cf011152ae42e606b61530963e0b",
+      "r6_sha256": "cba7cd91c5e2043c8cfc5e9cee05daa17a07cf011152ae42e606b61530963e0b",
+      "r6_bytes": 1462,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/DesignSystem/GlassComponents.swift",
+      "action": "unchanged",
+      "before_sha256": "58497ac09f6bc74fefc5eda7565453430a73b0992f8f99267e467d804bf94b9a",
+      "r6_sha256": "58497ac09f6bc74fefc5eda7565453430a73b0992f8f99267e467d804bf94b9a",
+      "r6_bytes": 2639,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/DesignSystem/PerformanceHelpers.swift",
+      "action": "unchanged",
+      "before_sha256": "7e5c1937c4ca233d33068154ea0c7f237439a91b281201aaae5d276855b105cf",
+      "r6_sha256": "7e5c1937c4ca233d33068154ea0c7f237439a91b281201aaae5d276855b105cf",
+      "r6_bytes": 500,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/DesignSystem/Components/GlassCelebrationBanner.swift",
+      "action": "unchanged",
+      "before_sha256": "00a93be7f262bba5a543e3f47cfeb646dce9545bf5fec0ae40db4ac2ad77a471",
+      "r6_sha256": "00a93be7f262bba5a543e3f47cfeb646dce9545bf5fec0ae40db4ac2ad77a471",
+      "r6_bytes": 346,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/DesignSystem/Components/GlassDivider.swift",
+      "action": "unchanged",
+      "before_sha256": "6c9a0e5ae23ab0b302a17ce32d5c69d4ad56936bfa189adb91c748f052e05d9e",
+      "r6_sha256": "6c9a0e5ae23ab0b302a17ce32d5c69d4ad56936bfa189adb91c748f052e05d9e",
+      "r6_bytes": 208,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/DesignSystem/Components/GlassListRow.swift",
+      "action": "unchanged",
+      "before_sha256": "55f57ca847028121410b980bcb16b53f8d3c7b5853732115b1473c1e873b8774",
+      "r6_sha256": "55f57ca847028121410b980bcb16b53f8d3c7b5853732115b1473c1e873b8774",
+      "r6_bytes": 507,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/DesignSystem/Components/GlassMetricCard.swift",
+      "action": "unchanged",
+      "before_sha256": "b0be411ffde5470d285cf1b6364270655dd4a090208fb8c89d39f13945c6c853",
+      "r6_sha256": "b0be411ffde5470d285cf1b6364270655dd4a090208fb8c89d39f13945c6c853",
+      "r6_bytes": 949,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/DesignSystem/Components/GlassMotivationBanner.swift",
+      "action": "unchanged",
+      "before_sha256": "651407b36450900fa10fadf756c395cc8b5534d4894e2c8d977bec6095c1b187",
+      "r6_sha256": "651407b36450900fa10fadf756c395cc8b5534d4894e2c8d977bec6095c1b187",
+      "r6_bytes": 498,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/DesignSystem/Components/GlassProgressRing.swift",
+      "action": "unchanged",
+      "before_sha256": "7bb120f0811cb326c72a107ca4e5ecf6899ff9caf62110d134e74d434c7f08b5",
+      "r6_sha256": "7bb120f0811cb326c72a107ca4e5ecf6899ff9caf62110d134e74d434c7f08b5",
+      "r6_bytes": 1252,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/DesignSystem/Components/GlassSectionHeader.swift",
+      "action": "unchanged",
+      "before_sha256": "376e2448db7e514bb42f790344ff9acdd3432b2c49a0de23504e6aa13cdb36ad",
+      "r6_sha256": "376e2448db7e514bb42f790344ff9acdd3432b2c49a0de23504e6aa13cdb36ad",
+      "r6_bytes": 702,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/DesignSystem/Components/GlassStatRing.swift",
+      "action": "unchanged",
+      "before_sha256": "d9dfb8802ecf1e0b551c70c43dcf490e9e5cff2806d4268f38cf3a4d01249f33",
+      "r6_sha256": "d9dfb8802ecf1e0b551c70c43dcf490e9e5cff2806d4268f38cf3a4d01249f33",
+      "r6_bytes": 1324,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/Features/AIChat/AIChatView.swift",
+      "action": "unchanged",
+      "before_sha256": "d4ed14a981ae2fa9d68655fe3d48d006da79fb2f12c180fadd2fbdc7a0b315d6",
+      "r6_sha256": "d4ed14a981ae2fa9d68655fe3d48d006da79fb2f12c180fadd2fbdc7a0b315d6",
+      "r6_bytes": 2979,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/Features/AIChat/RealAIChatView.swift",
+      "action": "replace-with-exact-R6",
+      "before_sha256": "53086c89a4c1af43330061e2304af8718b6371bd041c2c09e0751847ab0a20d1",
+      "r6_sha256": "2889622173dc79f2155d23fcdcdb8bbc2ecf17064882ef3e33815e72184a4a1c",
+      "r6_bytes": 12276,
+      "r6_mode": "0o644"
+    },
+    {
+      "path": "Lumina/Features/AIDailyInsight/DailyInsightCard.swift",
+      "action": "unchanged",
+      "before_sha256": "e5413954cc154082c29d85291b845cdc62be024498eaa9db8e77d109849ba9c9",
+      "r6_sha256": "e5413954cc154082c29d85291b845cdc62be024498eaa9db8e77d109849ba9c9",
+      "r6_bytes": 1063,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/Features/AdaptivePlans/AdaptivePlanLogic.swift",
+      "action": "replace-with-exact-R6",
+      "before_sha256": "8672dfba8dc87136fd62d5f8ffcc118e3f3683efd617b65a1ecff72d252c3943",
+      "r6_sha256": "882adeb0ebf5293b2f66c1f9a53bd2d6b20b4200a113fbf280dd73c205c2bf04",
+      "r6_bytes": 1808,
+      "r6_mode": "0o644"
+    },
+    {
+      "path": "Lumina/Features/AdaptivePlans/AdaptivePlanView.swift",
+      "action": "replace-with-exact-R6",
+      "before_sha256": "9def8d96ec5aec9fde223ea8bd366e53782199258d60932e904b879b3c2cc11a",
+      "r6_sha256": "0cfe8cb875609572faab72cb88c1e4f62e14075ce5696e0853c377aa6db96cdf",
+      "r6_bytes": 5213,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/Features/Coach/CoachMemoryEntry.swift",
+      "action": "unchanged",
+      "before_sha256": "de000bdbcdeffdde6590a9120db08ac80503c0de864f5275846d8de2d68e1b05",
+      "r6_sha256": "de000bdbcdeffdde6590a9120db08ac80503c0de864f5275846d8de2d68e1b05",
+      "r6_bytes": 579,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/Features/CoachInsights/CoachInsightsView.swift",
+      "action": "replace-with-exact-R6",
+      "before_sha256": "3008bd707e6b8c0bf2562609d2eb6b3040a848ed42eed6e6b763a333ec8320b8",
+      "r6_sha256": "427c53fbb9a4b8a4914b01b61134479ed4e712156f4d63e9392702795c112ad7",
+      "r6_bytes": 1280,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/Features/CoachMemoryInsights/CoachMemoryInsightsView.swift",
+      "action": "unchanged",
+      "before_sha256": "e118ea0443941f2af461e4519d6a3483224e12ff81b31afc021dcf1b2d2f6d13",
+      "r6_sha256": "e118ea0443941f2af461e4519d6a3483224e12ff81b31afc021dcf1b2d2f6d13",
+      "r6_bytes": 6393,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/Features/DailyCheckIn/DailyCheckIn.swift",
+      "action": "unchanged",
+      "before_sha256": "4dd2d4c1e48390e0727bfb5d8d29e9d56c5cfb8f4da3b661e8b5e81a774e3f69",
+      "r6_sha256": "4dd2d4c1e48390e0727bfb5d8d29e9d56c5cfb8f4da3b661e8b5e81a774e3f69",
+      "r6_bytes": 952,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/Features/DailyCheckIn/DailyCheckInView.swift",
+      "action": "replace-with-exact-R6",
+      "before_sha256": "7261af4e31d4f311c9c4f2c9a343283b52864a8df8e04a2bf118b3a7eaca5282",
+      "r6_sha256": "660174dffe8840c9604035460cee4df1551ec9e2cb88d98bf99731fcc78f5ee7",
+      "r6_bytes": 5665,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/Features/DailyOverview/DailyOverviewView.swift",
+      "action": "unchanged",
+      "before_sha256": "ace883a4017bda8cc77af95265083571e48b1b7f37b0a7c3ad2046f6ce38aabe",
+      "r6_sha256": "ace883a4017bda8cc77af95265083571e48b1b7f37b0a7c3ad2046f6ce38aabe",
+      "r6_bytes": 2289,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/Features/DailyTip/DailyTipCard.swift",
+      "action": "unchanged",
+      "before_sha256": "27d62889db3ea4d1c155251312bef385dc8aeb1700505e1695eefb7fe8974666",
+      "r6_sha256": "27d62889db3ea4d1c155251312bef385dc8aeb1700505e1695eefb7fe8974666",
+      "r6_bytes": 696,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/Features/Goals/Goal.swift",
+      "action": "unchanged",
+      "before_sha256": "e0d07863d4051d520c3056272312bed9d0967b70dcd41f28f40090a0516aeeee",
+      "r6_sha256": "e0d07863d4051d520c3056272312bed9d0967b70dcd41f28f40090a0516aeeee",
+      "r6_bytes": 987,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/Features/Goals/GoalsView.swift",
+      "action": "replace-with-exact-R6",
+      "before_sha256": "95e759103fc739875daf5af5ea4c30fedcd9feccd8d1518fb91c21dfcd9ce376",
+      "r6_sha256": "26c16084fe162ca47affd999b10cc4dee3cd63f2963fa3b1cbcde4fac7879db8",
+      "r6_bytes": 6790,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/Features/Habits/Habit.swift",
+      "action": "replace-with-exact-R6",
+      "before_sha256": "c74ded6ccd392122d376acd5614da0d4d9bf6f5c22f4adb13a4e728d30dbd390",
+      "r6_sha256": "6b95bed0378f230913ed0337a6f5ca9f38f86f22610cbe717646d5fcbaa8f512",
+      "r6_bytes": 4572,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/Features/Habits/HabitTrackerView.swift",
+      "action": "replace-with-exact-R6",
+      "before_sha256": "a16f48d7bd15d77fc3f9f77533c629414b1799e44dfc84a06739c7b25ff97822",
+      "r6_sha256": "415050ef58461d3863cc75d57704dd46e2fd97f2bdb30c6b4b4d62a301e2b6dc",
+      "r6_bytes": 11857,
+      "r6_mode": "0o644"
+    },
+    {
+      "path": "Lumina/Features/ImageGeneration/EmotionalImageGenerator.swift",
+      "action": "unchanged",
+      "before_sha256": "fd6ecfbd414ae4e0fa382c516bf369ce9c5214cf04aa6bff5992cb4c68d1feb0",
+      "r6_sha256": "fd6ecfbd414ae4e0fa382c516bf369ce9c5214cf04aa6bff5992cb4c68d1feb0",
+      "r6_bytes": 1117,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/Features/Insights/WeeklyInsightsView.swift",
+      "action": "unchanged",
+      "before_sha256": "e8719ec749ce2a83ee7df16788d41e66bea31f3fcec081cc296eacc614dd8d49",
+      "r6_sha256": "e8719ec749ce2a83ee7df16788d41e66bea31f3fcec081cc296eacc614dd8d49",
+      "r6_bytes": 6952,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/Features/Journal/JournalEntry.swift",
+      "action": "unchanged",
+      "before_sha256": "6cb0a98dd7d19b1101461b1247b0b62da3bdcca77a445d1e04ece635384f7150",
+      "r6_sha256": "6cb0a98dd7d19b1101461b1247b0b62da3bdcca77a445d1e04ece635384f7150",
+      "r6_bytes": 519,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/Features/Journal/JournalView.swift",
+      "action": "replace-with-exact-R6",
+      "before_sha256": "af4d803444a1bb4632ef936dc18ca049e3186479a8a53dee10a7841a5fcc6c74",
+      "r6_sha256": "88db144299cb7fb115209c72990e72e471995e50ec90a5584430e70cd896055d",
+      "r6_bytes": 4905,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/Features/MealLogging/MealLog.swift",
+      "action": "unchanged",
+      "before_sha256": "a6fe0ca8a8e1a374aff0958a450c387212bb72f7831ab50d8a9c2de0daf1c2e5",
+      "r6_sha256": "a6fe0ca8a8e1a374aff0958a450c387212bb72f7831ab50d8a9c2de0daf1c2e5",
+      "r6_bytes": 833,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/Features/MealLogging/MealLogView.swift",
+      "action": "replace-with-exact-R6",
+      "before_sha256": "dac8076570730e624f61651ff322d195561686d1e2c7710a48fc895c1c2db3f4",
+      "r6_sha256": "5aaaf2b0881dc852a845ec8b0e1115ebca7c26f015f1d451131f264211d81c79",
+      "r6_bytes": 7293,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/Features/Milestones/Milestone.swift",
+      "action": "unchanged",
+      "before_sha256": "29f753a94399bebf7f8cedfd9418dc5bd9a8ee1c132d4cd095ecbd4267eca75f",
+      "r6_sha256": "29f753a94399bebf7f8cedfd9418dc5bd9a8ee1c132d4cd095ecbd4267eca75f",
+      "r6_bytes": 595,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/Features/Milestones/MilestoneCelebrationView.swift",
+      "action": "unchanged",
+      "before_sha256": "6aa619e6c2ea070b183f4fb09548e245a6359cc4ce571e558ea0c9e15d5f60de",
+      "r6_sha256": "6aa619e6c2ea070b183f4fb09548e245a6359cc4ce571e558ea0c9e15d5f60de",
+      "r6_bytes": 789,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/Features/Milestones/MilestonesView.swift",
+      "action": "unchanged",
+      "before_sha256": "c8d1c6e5d480a5b319a6ce2bf450b45ac28e53e61d4256ac82cbbab709e3b5be",
+      "r6_sha256": "c8d1c6e5d480a5b319a6ce2bf450b45ac28e53e61d4256ac82cbbab709e3b5be",
+      "r6_bytes": 1435,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/Features/ProgressPhotos/ProgressPhoto.swift",
+      "action": "unchanged",
+      "before_sha256": "2541a73be6425c3de7d14dd746bdf58689acee10b4bf34ca9a9d9540db000d63",
+      "r6_sha256": "2541a73be6425c3de7d14dd746bdf58689acee10b4bf34ca9a9d9540db000d63",
+      "r6_bytes": 510,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/Features/ProgressPhotos/ProgressPhotoComparisonView.swift",
+      "action": "unchanged",
+      "before_sha256": "922e679c5237b4f7e4f4f99419c95e36578c8c8a95a856afe80f9c4c63c48691",
+      "r6_sha256": "922e679c5237b4f7e4f4f99419c95e36578c8c8a95a856afe80f9c4c63c48691",
+      "r6_bytes": 3931,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/Features/ProgressPhotos/ProgressPhotosView.swift",
+      "action": "replace-with-exact-R6",
+      "before_sha256": "d771d07dc694a2d9a0b27b398dc820c09a69879473b55a6219761c2178320da0",
+      "r6_sha256": "253cea613aa006fb58f8bce4b64ecc62e245919258c723ce21aaa654ef79f5cd",
+      "r6_bytes": 12669,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/Features/QuickActions/QuickActionsView.swift",
+      "action": "unchanged",
+      "before_sha256": "617237151437c1156fee0260d9868a062151656d34e346f1790d25cbf7b218a9",
+      "r6_sha256": "617237151437c1156fee0260d9868a062151656d34e346f1790d25cbf7b218a9",
+      "r6_bytes": 827,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/Features/Readiness/ReadinessView.swift",
+      "action": "unchanged",
+      "before_sha256": "955c11c253aed6609cac293d497e4428eef04c60fbdb2140b219ef4391da0eac",
+      "r6_sha256": "955c11c253aed6609cac293d497e4428eef04c60fbdb2140b219ef4391da0eac",
+      "r6_bytes": 379,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/Features/Recovery/RecoveryScoreCard.swift",
+      "action": "replace-with-exact-R6",
+      "before_sha256": "f83a758fab8d3993902f8d4d99f21d8f20b8e88052421aae0c41f793ebfe848b",
+      "r6_sha256": "99ef89d8ccabec8684f4afca126fe922fc0be92e34dc4984016a44b685d18795",
+      "r6_bytes": 928,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/Features/Recovery/RecoveryView.swift",
+      "action": "unchanged",
+      "before_sha256": "4103d2b7988a3cb9d3f3d784a77eb43436297e7286fde472d689f2f7e1b8ca08",
+      "r6_sha256": "4103d2b7988a3cb9d3f3d784a77eb43436297e7286fde472d689f2f7e1b8ca08",
+      "r6_bytes": 390,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/Features/Settings/SettingsView.swift",
+      "action": "replace-with-exact-R6",
+      "before_sha256": "411a0380bde25f4c2d209549e8204bc3e3054b66d37e88bfd4c99aa17cb3eaa7",
+      "r6_sha256": "9baf2c34b6ab3021a91c0a9b924467e79ad1726ab7adcdf8d5ed1f7cd81ac915",
+      "r6_bytes": 10890,
+      "r6_mode": "0o644"
+    },
+    {
+      "path": "Lumina/Features/StreakCalendar/StreakCalendarView.swift",
+      "action": "unchanged",
+      "before_sha256": "a29efe7974ac4fc136242459e67446edb78017c64940e6594a32cd120af7a542",
+      "r6_sha256": "a29efe7974ac4fc136242459e67446edb78017c64940e6594a32cd120af7a542",
+      "r6_bytes": 1658,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/Features/Streaks/StreakTracker.swift",
+      "action": "unchanged",
+      "before_sha256": "22c8f5f115b915264488251088498739ff3ec285b08a02c043cd69860decf2a5",
+      "r6_sha256": "22c8f5f115b915264488251088498739ff3ec285b08a02c043cd69860decf2a5",
+      "r6_bytes": 405,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/Features/Streaks/StreakView.swift",
+      "action": "unchanged",
+      "before_sha256": "ac97114d10ea0d658e5c51436470e74b3393e0a800910016a472824c5d5b078e",
+      "r6_sha256": "ac97114d10ea0d658e5c51436470e74b3393e0a800910016a472824c5d5b078e",
+      "r6_bytes": 788,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/Features/Today/TodayView.swift",
+      "action": "unchanged",
+      "before_sha256": "fdbb068313304751b46a68b7c9591005676eb1cfac077e7289d71bc892ef9790",
+      "r6_sha256": "fdbb068313304751b46a68b7c9591005676eb1cfac077e7289d71bc892ef9790",
+      "r6_bytes": 1826,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/Features/VoiceNotes/VoiceNotesView.swift",
+      "action": "replace-with-exact-R6",
+      "before_sha256": "c8c4c5e18a3cdf60d605cb3c99255811a772c2cd1b83283dafb13e9152b197ae",
+      "r6_sha256": "8163ce70c691d2f0f98df90c66412b96322f42143b2c13e19861d74300b98e22",
+      "r6_bytes": 6071,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/Features/WorkoutLogging/WorkoutLog.swift",
+      "action": "unchanged",
+      "before_sha256": "832d146d44ce2237f13fb630d96fc469be20c4eebda5987163d5d25709743a87",
+      "r6_sha256": "832d146d44ce2237f13fb630d96fc469be20c4eebda5987163d5d25709743a87",
+      "r6_bytes": 974,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/Features/WorkoutLogging/WorkoutLogView.swift",
+      "action": "replace-with-exact-R6",
+      "before_sha256": "e6de52b1ac04289af53cdc85e72b65899920179bc7690e89a6148d851e242640",
+      "r6_sha256": "058eeb3e5cb8d72738c2d402e2fa8f9c1e75ed121e0cf365ebc4f7986670516f",
+      "r6_bytes": 8269,
+      "r6_mode": "0o644"
+    },
+    {
+      "path": "Lumina/LiveActivities/CoachFocusAttributes.swift",
+      "action": "replace-with-exact-R6",
+      "before_sha256": "6eeaeebcda0031336dfcca070a7773716024d5fade1f714f3251b1fe415b6c1e",
+      "r6_sha256": "9636cfa649eb19128ea78360c2879a0183cb22b245739dcdbea33c57538f9c64",
+      "r6_bytes": 290,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/LiveActivities/CoachFocusLiveActivity.swift",
+      "action": "unchanged",
+      "before_sha256": "05f569773de83411398ca57cb1523053ef403b35ce90b40da1909540fd04eade",
+      "r6_sha256": "05f569773de83411398ca57cb1523053ef403b35ce90b40da1909540fd04eade",
+      "r6_bytes": 874,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/Localization/LocalizationManager.swift",
+      "action": "replace-with-exact-R6",
+      "before_sha256": "14e8572e934311af90224fe43703a7b5d1734edcb45359a0a5a83eaea4eb324f",
+      "r6_sha256": "6be0955b2962c012199d73a4cdfe9129033be88db488575a498c8a5636fab4d9",
+      "r6_bytes": 4282,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/Widgets/LuminaWidget.swift",
+      "action": "unchanged",
+      "before_sha256": "fbf1132a47030ae35a7ef0d8b68456ff6e48d6b5d54238d13e1a1fe3907991a5",
+      "r6_sha256": "fbf1132a47030ae35a7ef0d8b68456ff6e48d6b5d54238d13e1a1fe3907991a5",
+      "r6_bytes": 1138,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "Lumina/ar.lproj/Localizable.strings",
+      "action": "replace-with-exact-R6",
+      "before_sha256": "4effa2fe44419a425e758e2f97b6f1dd9f01b23fd4fbc5287076da2c519efc42",
+      "r6_sha256": "168ce1888dc2326936e090c830a130c400972ce107e90ca47519e4ec3a652faf",
+      "r6_bytes": 60706,
+      "r6_mode": "0o644"
+    },
+    {
+      "path": "Lumina/en.lproj/Localizable.strings",
+      "action": "replace-with-exact-R6",
+      "before_sha256": "4f6462282893ff018aa8addbaf07b42878e922ded7bc5d4bfaaa270c44c6234c",
+      "r6_sha256": "5dcc08da39231f212782577cb5311de7e0a88ea4e4d7bae5f9f131a1d342ec1b",
+      "r6_bytes": 47283,
+      "r6_mode": "0o644"
+    },
+    {
+      "path": "Lumina.xcodeproj/project.pbxproj",
+      "action": "unchanged",
+      "before_sha256": "43c51352b97d205358a763ffc2a27f656775edc61d078f90fe237a774b19b79c",
+      "r6_sha256": "43c51352b97d205358a763ffc2a27f656775edc61d078f90fe237a774b19b79c",
+      "r6_bytes": 26993,
+      "r6_mode": "0o640"
+    },
+    {
+      "path": "Lumina.xcodeproj/project.xcworkspace/contents.xcworkspacedata",
+      "action": "unchanged",
+      "before_sha256": "7f3b00b5c3fdb45242d7b87e1e5c4e25d1fa8129a16c94295ecc4e8ea2235c5f",
+      "r6_sha256": "7f3b00b5c3fdb45242d7b87e1e5c4e25d1fa8129a16c94295ecc4e8ea2235c5f",
+      "r6_bytes": 135,
+      "r6_mode": "0o640"
+    },
+    {
+      "path": "Lumina.xcodeproj/xcshareddata/xcschemes/Lumina AI personal trainer.xcscheme",
+      "action": "unchanged",
+      "before_sha256": "a0187140c6ff74ead070230ae1e98e6260a153bc08c2975b7b53cd5882f71303",
+      "r6_sha256": "a0187140c6ff74ead070230ae1e98e6260a153bc08c2975b7b53cd5882f71303",
+      "r6_bytes": 3083,
+      "r6_mode": "0o640"
+    },
+    {
+      "path": "LuminaTests/CoachContextIntegrityTests.swift",
+      "action": "add",
+      "before_sha256": null,
+      "r6_sha256": "1578f4bbca11dd0e0b518c7f6159c61e47a904e0f0d38623276f94760e3a4524",
+      "r6_bytes": 6899,
+      "r6_mode": "0o644"
+    },
+    {
+      "path": "LuminaTests/HabitUndoIntegrityTests.swift",
+      "action": "add",
+      "before_sha256": null,
+      "r6_sha256": "63fed492e58fe4e84e6ea3e34f7afb77a8d54971562b6806f4993f3e9df4b643",
+      "r6_bytes": 20783,
+      "r6_mode": "0o644"
+    },
+    {
+      "path": "LuminaTests/JournalRecoveryIntegrityTests.swift",
+      "action": "add",
+      "before_sha256": null,
+      "r6_sha256": "b69a299245533bbcba9f312d67e8dc356af8ce8a3a94dbd4bb9ed060d9941aaa",
+      "r6_bytes": 46842,
+      "r6_mode": "0o644"
+    },
+    {
+      "path": "LuminaTests/LocalizationIntegrityTests.swift",
+      "action": "add",
+      "before_sha256": null,
+      "r6_sha256": "b3d51206ff7c6da43f70a20167bd9540961cf11317f9112cb36a7895d405f202",
+      "r6_bytes": 2778,
+      "r6_mode": "0o644"
+    },
+    {
+      "path": "LuminaTests/LuminaTests.swift",
+      "action": "replace-with-exact-R6",
+      "before_sha256": "2b61fa824bc06d13f69d9c5991dff7b17b1970b844260ce04f672a39ddf5f59b",
+      "r6_sha256": "d63ae97f140294c8149ff939e6c8ad9c814ec52efaa17420c8cd6cb7fc71408d",
+      "r6_bytes": 14801,
+      "r6_mode": "0o644"
+    },
+    {
+      "path": "LuminaTests/OnDeviceCoachTests.swift",
+      "action": "add",
+      "before_sha256": null,
+      "r6_sha256": "e130c389327815e7e1027bc61108403ac48d4a1ad128aafb9a3f6868c9e4e94f",
+      "r6_bytes": 13502,
+      "r6_mode": "0o644"
+    },
+    {
+      "path": "LuminaTests/PhotoImportIntegrityTests.swift",
+      "action": "add",
+      "before_sha256": null,
+      "r6_sha256": "2125a3f37c87c9a9a835d7c8892ec9f87a529f79bfe3ebce2a8c46ea4afade5a",
+      "r6_bytes": 5852,
+      "r6_mode": "0o644"
+    },
+    {
+      "path": "LuminaTests/SavedRecordIntegrityTests.swift",
+      "action": "add",
+      "before_sha256": null,
+      "r6_sha256": "102717970262887593fef9357b1ffd24284165a9d2a45040d8abeed61c4777a0",
+      "r6_bytes": 16356,
+      "r6_mode": "0o644"
+    },
+    {
+      "path": "LuminaTests/SettingsIntegrityTests.swift",
+      "action": "add",
+      "before_sha256": null,
+      "r6_sha256": "5628d684db368a378263ecb75c57d3918b1a9be026a63f06aeb58bed16cfa2d3",
+      "r6_bytes": 13464,
+      "r6_mode": "0o644"
+    },
+    {
+      "path": "LuminaUITests/LuminaUITests.swift",
+      "action": "replace-with-exact-R6",
+      "before_sha256": "9639f743a66d5c14c1a7626714b0d6966f03e435531ae9953da8c6d9f349fba0",
+      "r6_sha256": "72aefbc875afd62183bdd9cb579d45a33aac84e86ecb8713cb90b89fa9cdd214",
+      "r6_bytes": 95937,
+      "r6_mode": "0o644"
+    },
+    {
+      "path": "LuminaUITests/LuminaUITestsLaunchTests.swift",
+      "action": "unchanged",
+      "before_sha256": "6b6e134155142ae9c08c5b6cea3ceabc3f73f963de9164c7faf3586038798f5c",
+      "r6_sha256": "6b6e134155142ae9c08c5b6cea3ceabc3f73f963de9164c7faf3586038798f5c",
+      "r6_bytes": 928,
+      "r6_mode": "0o600"
+    },
+    {
+      "path": "ci_scripts/ci_post_clone.sh",
+      "action": "unchanged",
+      "before_sha256": "a462eb28f7bdd36f892e9f65d6590397701ab376510fe05a04feffb9ec26d989",
+      "r6_sha256": "a462eb28f7bdd36f892e9f65d6590397701ab376510fe05a04feffb9ec26d989",
+      "r6_bytes": 871,
+      "r6_mode": "0o700"
+    },
+    {
+      "path": "ci_scripts/ci_pre_xcodebuild.sh",
+      "action": "unchanged",
+      "before_sha256": "0f756cc03cff884d837d9d5029d696427d599b16b979052715de79c25f9a3416",
+      "r6_sha256": "0f756cc03cff884d837d9d5029d696427d599b16b979052715de79c25f9a3416",
+      "r6_bytes": 338,
+      "r6_mode": "0o700"
+    },
+    {
+      "path": "ci_scripts/verify_release_archive.py",
+      "action": "replace-with-exact-R6",
+      "before_sha256": "35f707319b509b2883a9516b4ef5850b10423c6e0001dc511850eb8d7788dc58",
+      "r6_sha256": "aa5b292670babe8cd50d854b2789473199e6438541b8f87878eb6e7c4a51ccf7",
+      "r6_bytes": 3711,
+      "r6_mode": "0o644"
+    }
+  ],
+  "preserved_non_R6_files": {
+    "docs/.nojekyll": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "mode": "0o644"
+    },
+    "docs/index.html": {
+      "sha256": "ba65c0d7fac8a2d4f70690658ec6a220e7dff1e832f8c6c2bbd096e077394597",
+      "bytes": 2435,
+      "mode": "0o644"
+    },
+    "docs/privacy-ar.html": {
+      "sha256": "a516ff856b38daefc25909ecac4dcfb5e1632000e984abaad3c74a4738eaa7b4",
+      "bytes": 10003,
+      "mode": "0o644"
+    },
+    "docs/privacy.html": {
+      "sha256": "898edbbbfa9125825ebb0badc2ff53b7d4e864d9b66e11878c99972aae338f66",
+      "bytes": 7260,
+      "mode": "0o644"
+    },
+    "docs/styles.css": {
+      "sha256": "739312f9588d121756c9d379acc5b895c0ecc2a55ea869668022a6e5298e5e4a",
+      "bytes": 2898,
+      "mode": "0o644"
+    },
+    "docs/support-ar.html": {
+      "sha256": "204ea4d8c2c315ee1a435c4256d59c1c21eecb3d30ec298cf72dc62d2dd8c78d",
+      "bytes": 8545,
+      "mode": "0o644"
+    },
+    "docs/support.html": {
+      "sha256": "3949a80265eb9886806066a356ca3ef607eb2c33d6a76cae8e57403e7fe5c0c1",
+      "bytes": 6134,
+      "mode": "0o644"
+    }
+  },
+  "base_tracked_files": {
+    "File.swift": {
+      "sha256": "da79390f6bd0b92e54bc40a2fca83c7c3937b4911f0c73979fa5870069c8ea23",
+      "bytes": 100,
+      "mode": "0o644"
+    },
+    "Lumina AI personal trainer.xctestplan": {
+      "sha256": "a77d405a20d85b230f3bf18747c5d5388f543b2433ca098066111da375693609",
+      "bytes": 1156,
+      "mode": "0o644"
+    },
+    "Lumina.xcodeproj/project.pbxproj": {
+      "sha256": "43c51352b97d205358a763ffc2a27f656775edc61d078f90fe237a774b19b79c",
+      "bytes": 26993,
+      "mode": "0o644"
+    },
+    "Lumina.xcodeproj/project.xcworkspace/contents.xcworkspacedata": {
+      "sha256": "7f3b00b5c3fdb45242d7b87e1e5c4e25d1fa8129a16c94295ecc4e8ea2235c5f",
+      "bytes": 135,
+      "mode": "0o644"
+    },
+    "Lumina.xcodeproj/xcshareddata/xcschemes/Lumina AI personal trainer.xcscheme": {
+      "sha256": "a0187140c6ff74ead070230ae1e98e6260a153bc08c2975b7b53cd5882f71303",
+      "bytes": 3083,
+      "mode": "0o644"
+    },
+    "Lumina/AI/AIPrompts.swift": {
+      "sha256": "c0121d91f9f992ba32d3723cd1072c1e9ce55e1fbdf68aa826d226ea4f31d1ee",
+      "bytes": 4648,
+      "mode": "0o644"
+    },
+    "Lumina/AI/Coach/CoachContext.swift": {
+      "sha256": "e9ce47194d035b09ed6c545b6b3bc77235923c05fd74ff433b05b561b635cc8b",
+      "bytes": 3091,
+      "mode": "0o644"
+    },
+    "Lumina/AI/Coach/CoachMemory.swift": {
+      "sha256": "9b61324cb8a3d8e9be2bdb6c86ec3e4679eee7c74dde550706a34d390cc3156c",
+      "bytes": 1223,
+      "mode": "0o644"
+    },
+    "Lumina/AI/Coach/SmartCoachPrompts.swift": {
+      "sha256": "8c30c769aa5878475177dbeb06e65658eebb4eae8adbd95f557f0469f46404fd",
+      "bytes": 6644,
+      "mode": "0o644"
+    },
+    "Lumina/AI/Coach/SmartGrokCoach.swift": {
+      "sha256": "a5385b6d7ee67f5e1c807d98e016ce4098bd4eb168d167c20ca303c94c540f56",
+      "bytes": 8905,
+      "mode": "0o644"
+    },
+    "Lumina/AI/GrokService.swift": {
+      "sha256": "54be84d6de82eb1d01602f896cad6d6d066a61178982100a24a03942a9570a6a",
+      "bytes": 2426,
+      "mode": "0o644"
+    },
+    "Lumina/Assets.xcassets/AccentColor.colorset/Contents.json": {
+      "sha256": "9af65086fa30b49252fae1a1225731691de794f7775af74d71befeb507d12b7c",
+      "bytes": 123,
+      "mode": "0o644"
+    },
+    "Lumina/Assets.xcassets/AppIcon.appiconset/AppIcon.png": {
+      "sha256": "d70b24114f8cce0057042c4483ce93fc0539f8a368ed5a0ee376f80a518e76fd",
+      "bytes": 861686,
+      "mode": "0o644"
+    },
+    "Lumina/Assets.xcassets/AppIcon.appiconset/Contents.json": {
+      "sha256": "852920cb36e95beb53771138a4b8195a16fcce1cc31250632f246081cc638f9a",
+      "bytes": 203,
+      "mode": "0o644"
+    },
+    "Lumina/Assets.xcassets/Contents.json": {
+      "sha256": "0fd49ba3c3585c709678e0046a821c3c60685ec7063720d30d3a3448be3a208b",
+      "bytes": 63,
+      "mode": "0o644"
+    },
+    "Lumina/CoachMessage.swift": {
+      "sha256": "76b43b37781be7998783a2b55ffc0945cb3dee3ca11fe192a94c6f49c3b2a64f",
+      "bytes": 2312,
+      "mode": "0o644"
+    },
+    "Lumina/ContentView.swift": {
+      "sha256": "dab76c433f6b37ae577e28b155008e9aad5ffa87f29d7f537264b7cbfd5525b2",
+      "bytes": 3679,
+      "mode": "0o644"
+    },
+    "Lumina/DataControls.swift": {
+      "sha256": "48ede16200ca8cad27a9f02f1f5a72af7eff10d6b01ad05f565075bfe970e081",
+      "bytes": 3553,
+      "mode": "0o644"
+    },
+    "Lumina/DesignSystem/AdvancedGlassComponents.swift": {
+      "sha256": "cba7cd91c5e2043c8cfc5e9cee05daa17a07cf011152ae42e606b61530963e0b",
+      "bytes": 1462,
+      "mode": "0o644"
+    },
+    "Lumina/DesignSystem/Components/GlassCelebrationBanner.swift": {
+      "sha256": "00a93be7f262bba5a543e3f47cfeb646dce9545bf5fec0ae40db4ac2ad77a471",
+      "bytes": 346,
+      "mode": "0o644"
+    },
+    "Lumina/DesignSystem/Components/GlassDivider.swift": {
+      "sha256": "6c9a0e5ae23ab0b302a17ce32d5c69d4ad56936bfa189adb91c748f052e05d9e",
+      "bytes": 208,
+      "mode": "0o644"
+    },
+    "Lumina/DesignSystem/Components/GlassListRow.swift": {
+      "sha256": "55f57ca847028121410b980bcb16b53f8d3c7b5853732115b1473c1e873b8774",
+      "bytes": 507,
+      "mode": "0o644"
+    },
+    "Lumina/DesignSystem/Components/GlassMetricCard.swift": {
+      "sha256": "b0be411ffde5470d285cf1b6364270655dd4a090208fb8c89d39f13945c6c853",
+      "bytes": 949,
+      "mode": "0o644"
+    },
+    "Lumina/DesignSystem/Components/GlassMotivationBanner.swift": {
+      "sha256": "651407b36450900fa10fadf756c395cc8b5534d4894e2c8d977bec6095c1b187",
+      "bytes": 498,
+      "mode": "0o644"
+    },
+    "Lumina/DesignSystem/Components/GlassProgressRing.swift": {
+      "sha256": "7bb120f0811cb326c72a107ca4e5ecf6899ff9caf62110d134e74d434c7f08b5",
+      "bytes": 1252,
+      "mode": "0o644"
+    },
+    "Lumina/DesignSystem/Components/GlassSectionHeader.swift": {
+      "sha256": "376e2448db7e514bb42f790344ff9acdd3432b2c49a0de23504e6aa13cdb36ad",
+      "bytes": 702,
+      "mode": "0o644"
+    },
+    "Lumina/DesignSystem/Components/GlassStatRing.swift": {
+      "sha256": "d9dfb8802ecf1e0b551c70c43dcf490e9e5cff2806d4268f38cf3a4d01249f33",
+      "bytes": 1324,
+      "mode": "0o644"
+    },
+    "Lumina/DesignSystem/GlassComponents.swift": {
+      "sha256": "58497ac09f6bc74fefc5eda7565453430a73b0992f8f99267e467d804bf94b9a",
+      "bytes": 2639,
+      "mode": "0o644"
+    },
+    "Lumina/DesignSystem/PerformanceHelpers.swift": {
+      "sha256": "7e5c1937c4ca233d33068154ea0c7f237439a91b281201aaae5d276855b105cf",
+      "bytes": 500,
+      "mode": "0o644"
+    },
+    "Lumina/Features/AIChat/AIChatView.swift": {
+      "sha256": "d4ed14a981ae2fa9d68655fe3d48d006da79fb2f12c180fadd2fbdc7a0b315d6",
+      "bytes": 2979,
+      "mode": "0o644"
+    },
+    "Lumina/Features/AIChat/RealAIChatView.swift": {
+      "sha256": "53086c89a4c1af43330061e2304af8718b6371bd041c2c09e0751847ab0a20d1",
+      "bytes": 25348,
+      "mode": "0o644"
+    },
+    "Lumina/Features/AIDailyInsight/DailyInsightCard.swift": {
+      "sha256": "e5413954cc154082c29d85291b845cdc62be024498eaa9db8e77d109849ba9c9",
+      "bytes": 1063,
+      "mode": "0o644"
+    },
+    "Lumina/Features/AdaptivePlans/AdaptivePlanLogic.swift": {
+      "sha256": "8672dfba8dc87136fd62d5f8ffcc118e3f3683efd617b65a1ecff72d252c3943",
+      "bytes": 1287,
+      "mode": "0o644"
+    },
+    "Lumina/Features/AdaptivePlans/AdaptivePlanView.swift": {
+      "sha256": "9def8d96ec5aec9fde223ea8bd366e53782199258d60932e904b879b3c2cc11a",
+      "bytes": 7968,
+      "mode": "0o644"
+    },
+    "Lumina/Features/Coach/CoachMemoryEntry.swift": {
+      "sha256": "de000bdbcdeffdde6590a9120db08ac80503c0de864f5275846d8de2d68e1b05",
+      "bytes": 579,
+      "mode": "0o644"
+    },
+    "Lumina/Features/CoachInsights/CoachInsightsView.swift": {
+      "sha256": "3008bd707e6b8c0bf2562609d2eb6b3040a848ed42eed6e6b763a333ec8320b8",
+      "bytes": 5005,
+      "mode": "0o644"
+    },
+    "Lumina/Features/CoachMemoryInsights/CoachMemoryInsightsView.swift": {
+      "sha256": "e118ea0443941f2af461e4519d6a3483224e12ff81b31afc021dcf1b2d2f6d13",
+      "bytes": 6393,
+      "mode": "0o644"
+    },
+    "Lumina/Features/DailyCheckIn/DailyCheckIn.swift": {
+      "sha256": "4dd2d4c1e48390e0727bfb5d8d29e9d56c5cfb8f4da3b661e8b5e81a774e3f69",
+      "bytes": 952,
+      "mode": "0o644"
+    },
+    "Lumina/Features/DailyCheckIn/DailyCheckInView.swift": {
+      "sha256": "7261af4e31d4f311c9c4f2c9a343283b52864a8df8e04a2bf118b3a7eaca5282",
+      "bytes": 4821,
+      "mode": "0o644"
+    },
+    "Lumina/Features/DailyOverview/DailyOverviewView.swift": {
+      "sha256": "ace883a4017bda8cc77af95265083571e48b1b7f37b0a7c3ad2046f6ce38aabe",
+      "bytes": 2289,
+      "mode": "0o644"
+    },
+    "Lumina/Features/DailyTip/DailyTipCard.swift": {
+      "sha256": "27d62889db3ea4d1c155251312bef385dc8aeb1700505e1695eefb7fe8974666",
+      "bytes": 696,
+      "mode": "0o644"
+    },
+    "Lumina/Features/Goals/Goal.swift": {
+      "sha256": "e0d07863d4051d520c3056272312bed9d0967b70dcd41f28f40090a0516aeeee",
+      "bytes": 987,
+      "mode": "0o644"
+    },
+    "Lumina/Features/Goals/GoalsView.swift": {
+      "sha256": "95e759103fc739875daf5af5ea4c30fedcd9feccd8d1518fb91c21dfcd9ce376",
+      "bytes": 7030,
+      "mode": "0o644"
+    },
+    "Lumina/Features/Habits/Habit.swift": {
+      "sha256": "c74ded6ccd392122d376acd5614da0d4d9bf6f5c22f4adb13a4e728d30dbd390",
+      "bytes": 1494,
+      "mode": "0o644"
+    },
+    "Lumina/Features/Habits/HabitTrackerView.swift": {
+      "sha256": "a16f48d7bd15d77fc3f9f77533c629414b1799e44dfc84a06739c7b25ff97822",
+      "bytes": 12066,
+      "mode": "0o644"
+    },
+    "Lumina/Features/ImageGeneration/EmotionalImageGenerator.swift": {
+      "sha256": "fd6ecfbd414ae4e0fa382c516bf369ce9c5214cf04aa6bff5992cb4c68d1feb0",
+      "bytes": 1117,
+      "mode": "0o644"
+    },
+    "Lumina/Features/Insights/WeeklyInsightsView.swift": {
+      "sha256": "e8719ec749ce2a83ee7df16788d41e66bea31f3fcec081cc296eacc614dd8d49",
+      "bytes": 6952,
+      "mode": "0o644"
+    },
+    "Lumina/Features/Journal/JournalEntry.swift": {
+      "sha256": "6cb0a98dd7d19b1101461b1247b0b62da3bdcca77a445d1e04ece635384f7150",
+      "bytes": 519,
+      "mode": "0o644"
+    },
+    "Lumina/Features/Journal/JournalView.swift": {
+      "sha256": "af4d803444a1bb4632ef936dc18ca049e3186479a8a53dee10a7841a5fcc6c74",
+      "bytes": 4248,
+      "mode": "0o644"
+    },
+    "Lumina/Features/MealLogging/MealLog.swift": {
+      "sha256": "a6fe0ca8a8e1a374aff0958a450c387212bb72f7831ab50d8a9c2de0daf1c2e5",
+      "bytes": 833,
+      "mode": "0o644"
+    },
+    "Lumina/Features/MealLogging/MealLogView.swift": {
+      "sha256": "dac8076570730e624f61651ff322d195561686d1e2c7710a48fc895c1c2db3f4",
+      "bytes": 4918,
+      "mode": "0o644"
+    },
+    "Lumina/Features/Milestones/Milestone.swift": {
+      "sha256": "29f753a94399bebf7f8cedfd9418dc5bd9a8ee1c132d4cd095ecbd4267eca75f",
+      "bytes": 595,
+      "mode": "0o644"
+    },
+    "Lumina/Features/Milestones/MilestoneCelebrationView.swift": {
+      "sha256": "6aa619e6c2ea070b183f4fb09548e245a6359cc4ce571e558ea0c9e15d5f60de",
+      "bytes": 789,
+      "mode": "0o644"
+    },
+    "Lumina/Features/Milestones/MilestonesView.swift": {
+      "sha256": "c8d1c6e5d480a5b319a6ce2bf450b45ac28e53e61d4256ac82cbbab709e3b5be",
+      "bytes": 1435,
+      "mode": "0o644"
+    },
+    "Lumina/Features/ProgressPhotos/ProgressPhoto.swift": {
+      "sha256": "2541a73be6425c3de7d14dd746bdf58689acee10b4bf34ca9a9d9540db000d63",
+      "bytes": 510,
+      "mode": "0o644"
+    },
+    "Lumina/Features/ProgressPhotos/ProgressPhotoComparisonView.swift": {
+      "sha256": "922e679c5237b4f7e4f4f99419c95e36578c8c8a95a856afe80f9c4c63c48691",
+      "bytes": 3931,
+      "mode": "0o644"
+    },
+    "Lumina/Features/ProgressPhotos/ProgressPhotosView.swift": {
+      "sha256": "d771d07dc694a2d9a0b27b398dc820c09a69879473b55a6219761c2178320da0",
+      "bytes": 7683,
+      "mode": "0o644"
+    },
+    "Lumina/Features/QuickActions/QuickActionsView.swift": {
+      "sha256": "617237151437c1156fee0260d9868a062151656d34e346f1790d25cbf7b218a9",
+      "bytes": 827,
+      "mode": "0o644"
+    },
+    "Lumina/Features/Readiness/ReadinessView.swift": {
+      "sha256": "955c11c253aed6609cac293d497e4428eef04c60fbdb2140b219ef4391da0eac",
+      "bytes": 379,
+      "mode": "0o644"
+    },
+    "Lumina/Features/Recovery/RecoveryScoreCard.swift": {
+      "sha256": "f83a758fab8d3993902f8d4d99f21d8f20b8e88052421aae0c41f793ebfe848b",
+      "bytes": 944,
+      "mode": "0o644"
+    },
+    "Lumina/Features/Recovery/RecoveryView.swift": {
+      "sha256": "4103d2b7988a3cb9d3f3d784a77eb43436297e7286fde472d689f2f7e1b8ca08",
+      "bytes": 390,
+      "mode": "0o644"
+    },
+    "Lumina/Features/Settings/SettingsView.swift": {
+      "sha256": "411a0380bde25f4c2d209549e8204bc3e3054b66d37e88bfd4c99aa17cb3eaa7",
+      "bytes": 7329,
+      "mode": "0o644"
+    },
+    "Lumina/Features/StreakCalendar/StreakCalendarView.swift": {
+      "sha256": "a29efe7974ac4fc136242459e67446edb78017c64940e6594a32cd120af7a542",
+      "bytes": 1658,
+      "mode": "0o644"
+    },
+    "Lumina/Features/Streaks/StreakTracker.swift": {
+      "sha256": "22c8f5f115b915264488251088498739ff3ec285b08a02c043cd69860decf2a5",
+      "bytes": 405,
+      "mode": "0o644"
+    },
+    "Lumina/Features/Streaks/StreakView.swift": {
+      "sha256": "ac97114d10ea0d658e5c51436470e74b3393e0a800910016a472824c5d5b078e",
+      "bytes": 788,
+      "mode": "0o644"
+    },
+    "Lumina/Features/Today/TodayView.swift": {
+      "sha256": "fdbb068313304751b46a68b7c9591005676eb1cfac077e7289d71bc892ef9790",
+      "bytes": 1826,
+      "mode": "0o644"
+    },
+    "Lumina/Features/VoiceNotes/VoiceNotesView.swift": {
+      "sha256": "c8c4c5e18a3cdf60d605cb3c99255811a772c2cd1b83283dafb13e9152b197ae",
+      "bytes": 6084,
+      "mode": "0o644"
+    },
+    "Lumina/Features/WorkoutLogging/WorkoutLog.swift": {
+      "sha256": "832d146d44ce2237f13fb630d96fc469be20c4eebda5987163d5d25709743a87",
+      "bytes": 974,
+      "mode": "0o644"
+    },
+    "Lumina/Features/WorkoutLogging/WorkoutLogView.swift": {
+      "sha256": "e6de52b1ac04289af53cdc85e72b65899920179bc7690e89a6148d851e242640",
+      "bytes": 8831,
+      "mode": "0o644"
+    },
+    "Lumina/Info.plist": {
+      "sha256": "97704a8960b4facceef54397a08fb5d0a456247c3627359215aa2a27df22656c",
+      "bytes": 181,
+      "mode": "0o644"
+    },
+    "Lumina/Item.swift": {
+      "sha256": "2e5db060e637fa220c7d0601f92a51126af60992a85615d6915c612734d899b3",
+      "bytes": 743,
+      "mode": "0o644"
+    },
+    "Lumina/LiveActivities/CoachFocusAttributes.swift": {
+      "sha256": "6eeaeebcda0031336dfcca070a7773716024d5fade1f714f3251b1fe415b6c1e",
+      "bytes": 246,
+      "mode": "0o644"
+    },
+    "Lumina/LiveActivities/CoachFocusLiveActivity.swift": {
+      "sha256": "05f569773de83411398ca57cb1523053ef403b35ce90b40da1909540fd04eade",
+      "bytes": 874,
+      "mode": "0o644"
+    },
+    "Lumina/Localization/LocalizationManager.swift": {
+      "sha256": "14e8572e934311af90224fe43703a7b5d1734edcb45359a0a5a83eaea4eb324f",
+      "bytes": 2442,
+      "mode": "0o644"
+    },
+    "Lumina/Lumina.entitlements": {
+      "sha256": "89ac460fca05dfd77035c23c1d4da63a0c86445b4701212d76773765ea63fa30",
+      "bytes": 292,
+      "mode": "0o644"
+    },
+    "Lumina/LuminaApp.swift": {
+      "sha256": "b0f1ff66bbfb225dde27315355964b19a0e0b0b65a82cfbaec260ff1d43a03ff",
+      "bytes": 3000,
+      "mode": "0o644"
+    },
+    "Lumina/LuminaViewModel.swift": {
+      "sha256": "515c7456096437060b34f003336ca6582e06d74bbb2b2448411a7a3cd3b7a027",
+      "bytes": 104392,
+      "mode": "0o644"
+    },
+    "Lumina/Models.swift": {
+      "sha256": "6b1fb61ae1edbe6dd288e74a01019c73233c41f3050b544e357d79943ca306e3",
+      "bytes": 4369,
+      "mode": "0o644"
+    },
+    "Lumina/ModernHomeView.swift": {
+      "sha256": "43e117b29984984a10424e8dbbbe37b892670384c0864a9fe9d50657a702b542",
+      "bytes": 4190,
+      "mode": "0o644"
+    },
+    "Lumina/OptimizedGlassCard.swift": {
+      "sha256": "013815a8978b3ea1d05b84da8e64facecc612aeabffb56393ec7a8e2ccadd3aa",
+      "bytes": 902,
+      "mode": "0o644"
+    },
+    "Lumina/PrivacyInfo.xcprivacy": {
+      "sha256": "96a3a3712b4d648c911695babe81c52a3a2b78eb1ee546792eb168559db0d83d",
+      "bytes": 626,
+      "mode": "0o644"
+    },
+    "Lumina/UltraLightGlassCard.swift": {
+      "sha256": "e99e3999812063d68be30958c2ad540cf5285d03bcd5cc32685a1a8a509dd8af",
+      "bytes": 877,
+      "mode": "0o644"
+    },
+    "Lumina/Widgets/LuminaWidget.swift": {
+      "sha256": "fbf1132a47030ae35a7ef0d8b68456ff6e48d6b5d54238d13e1a1fe3907991a5",
+      "bytes": 1138,
+      "mode": "0o644"
+    },
+    "Lumina/ar.lproj/Localizable.strings": {
+      "sha256": "4effa2fe44419a425e758e2f97b6f1dd9f01b23fd4fbc5287076da2c519efc42",
+      "bytes": 11554,
+      "mode": "0o644"
+    },
+    "Lumina/en.lproj/Localizable.strings": {
+      "sha256": "4f6462282893ff018aa8addbaf07b42878e922ded7bc5d4bfaaa270c44c6234c",
+      "bytes": 9411,
+      "mode": "0o644"
+    },
+    "LuminaTests/LuminaTests.swift": {
+      "sha256": "2b61fa824bc06d13f69d9c5991dff7b17b1970b844260ce04f672a39ddf5f59b",
+      "bytes": 14368,
+      "mode": "0o644"
+    },
+    "LuminaUITests/LuminaUITests.swift": {
+      "sha256": "9639f743a66d5c14c1a7626714b0d6966f03e435531ae9953da8c6d9f349fba0",
+      "bytes": 27283,
+      "mode": "0o644"
+    },
+    "LuminaUITests/LuminaUITestsLaunchTests.swift": {
+      "sha256": "6b6e134155142ae9c08c5b6cea3ceabc3f73f963de9164c7faf3586038798f5c",
+      "bytes": 928,
+      "mode": "0o644"
+    },
+    "README.md": {
+      "sha256": "f438119d86e87f3eb2fbdf98f025104fb60b35ca272d0e6d85994869faa00aab",
+      "bytes": 1020,
+      "mode": "0o644"
+    },
+    "XCODE_CLOUD_SETUP.md": {
+      "sha256": "b564e83769288ad628cec6a92a0b333c51335b5cb0dbc929a6977b60e89355fa",
+      "bytes": 5356,
+      "mode": "0o644"
+    },
+    "ci_scripts/ci_post_clone.sh": {
+      "sha256": "a462eb28f7bdd36f892e9f65d6590397701ab376510fe05a04feffb9ec26d989",
+      "bytes": 871,
+      "mode": "0o755"
+    },
+    "ci_scripts/ci_pre_xcodebuild.sh": {
+      "sha256": "0f756cc03cff884d837d9d5029d696427d599b16b979052715de79c25f9a3416",
+      "bytes": 338,
+      "mode": "0o755"
+    },
+    "ci_scripts/verify_release_archive.py": {
+      "sha256": "35f707319b509b2883a9516b4ef5850b10423c6e0001dc511850eb8d7788dc58",
+      "bytes": 3162,
+      "mode": "0o644"
+    },
+    "docs/.nojekyll": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "mode": "0o644"
+    },
+    "docs/index.html": {
+      "sha256": "ba65c0d7fac8a2d4f70690658ec6a220e7dff1e832f8c6c2bbd096e077394597",
+      "bytes": 2435,
+      "mode": "0o644"
+    },
+    "docs/privacy-ar.html": {
+      "sha256": "a516ff856b38daefc25909ecac4dcfb5e1632000e984abaad3c74a4738eaa7b4",
+      "bytes": 10003,
+      "mode": "0o644"
+    },
+    "docs/privacy.html": {
+      "sha256": "898edbbbfa9125825ebb0badc2ff53b7d4e864d9b66e11878c99972aae338f66",
+      "bytes": 7260,
+      "mode": "0o644"
+    },
+    "docs/styles.css": {
+      "sha256": "739312f9588d121756c9d379acc5b895c0ecc2a55ea869668022a6e5298e5e4a",
+      "bytes": 2898,
+      "mode": "0o644"
+    },
+    "docs/support-ar.html": {
+      "sha256": "204ea4d8c2c315ee1a435c4256d59c1c21eecb3d30ec298cf72dc62d2dd8c78d",
+      "bytes": 8545,
+      "mode": "0o644"
+    },
+    "docs/support.html": {
+      "sha256": "3949a80265eb9886806066a356ca3ef607eb2c33d6a76cae8e57403e7fe5c0c1",
+      "bytes": 6134,
+      "mode": "0o644"
+    }
+  },
+  "source_deletions": [],
+  "unverified_manifest_roots": [
+    "advertising-preparation (not transferred; not integrated)"
+  ],
+  "native_job": "Root reports current Mac R6 test+archive PID40885; this composition neither probes nor changes it."
+}

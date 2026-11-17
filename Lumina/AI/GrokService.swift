@@ -1,38 +1,25 @@
 import Foundation
 
 struct GrokService {
-    static var configuredAPIKey: String? {
-        #if DEBUG
-        ProcessInfo.processInfo.environment["XAI_API_KEY"]
-        #else
-        nil
-        #endif
-    }
+    // Retained for older call sites. Paid/cloud coaching is retired in every
+    // configuration; environment variables and saved credentials are untouched.
+    static var configuredAPIKey: String? { nil }
 
-    private var smartCoach: SmartGrokCoach
-    private let apiKey: String
+    private let smartCoach = SmartGrokCoach()
 
-    init(apiKey: String = "") {
-        #if DEBUG
-        self.apiKey = apiKey
-        #else
-        self.apiKey = ""
-        #endif
-        self.smartCoach = SmartGrokCoach(apiKey: self.apiKey)
-    }
+    init(apiKey _: String = "") { }
 
-    /// Preferred rich-context smart coach path (uses full LLM + memory + excellent prompts)
+    /// Deterministic local compatibility path; the current chat uses OnDeviceCoach.
     func getSmartEmotionalSupport(userMessage: String, context: CoachContext, longTermMemory: String = "") async throws -> String {
         try await smartCoach.respondToUser(message: userMessage, context: context, longTermMemory: longTermMemory)
     }
     
-    /// Version optimized for agentic behavior — the coach will sometimes suggest concrete actions the app can take.
+    /// Older callers receive local guidance without automatic record actions.
     func getAgenticCoachReply(userMessage: String, context: CoachContext) async throws -> String {
-        // We reuse the core engine but can later extend SmartGrokCoach with a dedicated agentic prompt.
         try await smartCoach.respondToUser(message: userMessage, context: context)
     }
 
-    /// Legacy / thin context path (now also goes through the real coach when key present)
+    /// Legacy thin-context local guidance.
     func getEmotionalSupport(userMessage: String, recentHealth: [HealthSnapshot], profile: UserProfile? = nil) async throws -> String {
         let context = CoachContext(
             profile: profile,
@@ -44,7 +31,7 @@ struct GrokService {
             recentInsights: [],
             currentStreak: 0
         )
-        var coach = SmartGrokCoach(apiKey: apiKey)
+        let coach = SmartGrokCoach()
         return try await coach.respondToUser(message: userMessage, context: context)
     }
 

@@ -25,7 +25,18 @@
         "LuminaUITests/testSaveRelaunchAndDeleteOnlyIsolatedFixtureRecords()",
         "LuminaUITests/testSuggestedHabitPersistsWithoutAutomaticCompletion()",
         "LuminaUITests/testVeryLargeTextExpandsJournalRows()",
-        "LuminaUITests/testFinalHomeLinkRemainsReachableAboveTabBar()"
+        "LuminaUITests/testFinalHomeLinkRemainsReachableAboveTabBar()",
+        "LuminaUITests/testFullJournalEditCancelAndRelaunch()",
+        "LuminaUITests/testGoalValuesEditRelaunchAndConfirmedDeletion()",
+        "LuminaUITests/testAllSavedMealsRemainEditableBeyondTheRecentPreview()",
+        "LuminaUITests/testWorkoutExercisesSetsAndNotesRemainEditableAfterRelaunch()",
+        "LuminaUITests/testManualHabitDuplicateErrorAndManagementPreserveRecords()",
+        "LuminaUITests/testSavedCheckInNoteEditRelaunchAndDeletion()",
+        "LuminaUITests/testDirectProgressAndSavedCheckInObservationRemainReachable()",
+        "LuminaUITests/testOfflineCoachAcceptsMessageAndShowsLocalReply()",
+        "LuminaUITests/testLanguageChoiceUpdatesVisibleFlowsAndPersistsWithoutLosingDrafts()",
+        "LuminaUITests/testRecoveryPreviewFixtureConfirmationReopenAndPickerCancelPaths()",
+        "LuminaUITests/testWorkoutEffortIsOptionalAndExplicitRatingSurvivesDraftLanguageAndRelaunch()"
       ],
       "target": {
         "containerPath": "container:Lumina.xcodeproj",

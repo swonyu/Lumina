@@ -48,7 +48,14 @@ struct LuminaApp: App {
         return .standard
     }
 
+    @MainActor
+    static let weeklyReminders = WeeklyReminderCoordinator(
+        preferences: preferences, client: SystemWeeklyReminderClient())
+
     static func localStorageConfiguration(schema: Schema) throws -> ModelConfiguration {
+        // Crash-left copies belong only to this private transfer namespace.
+        // Cleanup failure must not prevent access to the original journal.
+        if !JournalTransferAdmission.shared.isBusy { try? DatabaseSnapshotIO.removeAbandonedStaging() }
         #if UI_TESTING
         if isUIQA {
             guard let raw = ProcessInfo.processInfo.environment["LUMINA_QA_ID"], let id = UUID(uuidString: raw) else {
@@ -74,8 +81,9 @@ struct LuminaApp: App {
             case .success(let container):
                 ContentView().modelContainer(container).defaultAppStorage(Self.preferences)
             case .failure:
-                ContentUnavailableView("Could not open your records", systemImage: "exclamationmark.triangle",
-                    description: Text("Your existing data has not been deleted. Restart Lumina or contact support. Do not reinstall unless you have a backup."))
+                ContentUnavailableView(L("Could not open your records"), systemImage: "exclamationmark.triangle",
+                    description: Text(L("Your existing data has not been deleted. Restart Lumina or contact support. Do not reinstall unless you have a backup.")))
+                    .withAppLanguage()
             }
         }
     }

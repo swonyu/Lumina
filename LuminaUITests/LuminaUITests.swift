@@ -1,6 +1,7 @@
 import XCTest
 import Foundation
 import UIKit
+import Vision
 
 final class LuminaUITests: XCTestCase {
     override func setUpWithError() throws { continueAfterFailure = false }
@@ -24,7 +25,7 @@ final class LuminaUITests: XCTestCase {
         app.buttons["lumina.settings"].tap()
         XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 5))
 
-        app.buttons["Health permissions"].tap()
+        app.buttons["Apple Health information"].tap()
         XCTAssertTrue(app.alerts.firstMatch.waitForExistence(timeout: 5))
         XCTAssertTrue(app.alerts.staticTexts["Health access is unavailable in this build. Your existing records remain available."].exists)
         app.alerts.buttons["OK"].tap()
@@ -116,10 +117,10 @@ final class LuminaUITests: XCTestCase {
                     ledger.pending.contains($0.key) || !ledger.covered.contains($0.key)
                 }
                 if outstanding.isEmpty { break }
-                let target = outstanding[0]
-                try revealHomeAuditLeaf(target, in: app, ledger: ledger)
+                let targeted = try revealHomeAuditLeaves(outstanding, in: app,
+                    leaves: leaves, ledger: ledger)
                 try auditHomeContrast(app, leaves: leaves, ledger: ledger,
-                    name: "Coverage pass \(attempt) for \(target.key)")
+                    name: "Coverage pass \(attempt) for \(targeted.joined(separator: "; "))")
             }
             try requireHomeAudit(ledger.covered == Set(leaves.map(\.key)),
                 "Missing fully visible contrast coverage: \(Set(leaves.map(\.key)).subtracting(ledger.covered).sorted())")
@@ -152,10 +153,19 @@ final class LuminaUITests: XCTestCase {
         var audits = 0
         var findings: [[String: Any]] = []
         var movements: [[String: Any]] = []
+        var observedFrames: [[String: CGRect]] = []
+        var auditedFrames: [[String: CGRect]] = []
+        var recoveryPlans: [[String: Any]] = []
+        var actuationLoss: [String: CGFloat] = [:]
+        var calibrationProvenance: [[String: Any]] = []
         var summary: [String: Any] {
             ["required_leaf_count": 20, "covered": covered.sorted(),
              "unresolved": pending.sorted(), "full_audit_count": audits,
-             "findings": findings, "movements": movements]
+             "findings": findings, "movements": movements,
+             "observed_reachable_pose_count": observedFrames.count,
+             "audited_pose_count": auditedFrames.count, "recovery_plans": recoveryPlans,
+             "actuation_loss_points": actuationLoss.mapValues { String(describing: $0) },
+             "calibration_provenance": calibrationProvenance]
         }
     }
 
@@ -319,40 +329,324 @@ final class LuminaUITests: XCTestCase {
                 ledger.pending.remove(leaf.key)
             }
         }
+        try requireVisibleHomeTitle(app, name: name)
+        // Successful full audits establish actual reachable content positions.
+        // Recording geometry grants no additional coverage or debt relief.
+        ledger.observedFrames.append(beforeFrames)
+        ledger.auditedFrames.append(beforeFrames)
         ledger.audits += 1
         passed = true
     }
 
     @MainActor
-    private func revealHomeAuditLeaf(_ leaf: HomeAuditLeaf, in app: XCUIApplication,
-                                     ledger: HomeAuditLedger) throws {
+    private func requireVisibleHomeTitle(_ app: XCUIApplication, name: String) throws {
+        let bars = app.navigationBars.matching(identifier: "Lumina")
+        attachHomeAuditScreenshot(app, "Home title after contrast — \(name)")
+        try requireHomeAudit(bars.count == 1, "Home title requires one navigation bar: \(name)")
+        let bar = bars.element(boundBy: 0)
+        let matches = bar.staticTexts.matching(NSPredicate(format: "label == %@", "Lumina"))
+        attachHomeAuditJSON("Home title after contrast — \(name)", [
+            "state": name, "navigation_bar": homeAuditFrame(bar.frame),
+            "match_count": matches.count,
+            "title_matches": matches.allElementsBoundByIndex.map(homeAuditElement),
+        ])
+        try requireHomeAudit(matches.count == 1, "Home title must remain unique: \(name)")
+        let title = matches.element(boundBy: 0)
+        try requireHomeAudit(validHomeAuditFrame(bar.frame) && validHomeAuditFrame(title.frame)
+            && bar.frame.contains(title.frame) && title.isHittable,
+            "Home title must remain fully visible inside the navigation bar: \(name)")
+    }
+
+    private func homeAuditBoundaryCrossings(_ frames: [String: CGRect],
+                                           viewport: CGRect) -> [String] {
+        frames.compactMap { key, frame -> String? in
+            let crossesTop = frame.minY < viewport.minY && frame.maxY > viewport.minY
+            let crossesBottom = frame.minY < viewport.maxY && frame.maxY > viewport.maxY
+            return crossesTop || crossesBottom ? key : nil
+        }.sorted()
+    }
+
+    private struct HomeAuditRecoveryPose {
+        let shift: CGFloat
+        let lower: CGFloat
+        let upper: CGFloat
+        let visibleOutstanding: Set<String>
+        let visiblePending: Set<String>
+    }
+
+    private func homeAuditRecoveryPose(_ frames: [String: CGRect], outstanding: Set<String>,
+                                      pending: Set<String>, viewport: CGRect,
+                                      reachable: (lower: CGFloat, upper: CGFloat),
+                                      auditedFrames: [[String: CGRect]]) throws -> HomeAuditRecoveryPose {
+        try requireHomeAudit(validHomeAuditFrame(viewport) && frames.count == 20,
+            "Recovery requires the measured viewport and all 20 Home leaves")
+        try requireHomeAudit(!outstanding.isEmpty && outstanding.isSubset(of: Set(frames.keys))
+            && pending.isSubset(of: Set(frames.keys)), "Unknown or empty recovery debt set")
+        for frame in frames.values {
+            try requireHomeAudit(validHomeAuditFrame(frame)
+                && frame.minX >= viewport.minX && frame.maxX <= viewport.maxX
+                && frame.width <= viewport.width && frame.height <= viewport.height,
+                "A Home leaf cannot fit the measured recovery viewport")
+        }
+        try requireHomeAudit(reachable.lower.isFinite && reachable.upper.isFinite
+            && reachable.lower <= 0 && reachable.upper >= 0,
+            "Invalid observed recovery range")
+        let lower = reachable.lower
+        let upper = reachable.upper
+        try requireHomeAudit(lower < upper, "No interior recovery range is available")
+        guard let anchor = frames.keys.sorted().first else {
+            throw NSError(domain: "LuminaHomeAudit", code: 1)
+        }
+        // Compare all20 leaf frames, not an approximate scroll offset or screenshot.
+        // Excluding an already-audited visibility interval also prevents a fractional
+        // midpoint from landing on the same pixel-rounded native pose again.
+        let auditedShifts = try auditedFrames.map {
+            try homeAuditCoherentTranslation(frames, after: $0, target: anchor)
+        }
+        var boundaries: Set<CGFloat> = [lower, upper]
+        for frame in frames.values {
+            for edge in [viewport.minY, viewport.maxY] {
+                for shift in [edge - frame.minY, edge - frame.maxY]
+                    where shift >= lower && shift <= upper {
+                    boundaries.insert(shift)
+                }
+            }
+        }
+        let cuts = boundaries.sorted()
+        var selected: HomeAuditRecoveryPose?
+        for index in 0..<(cuts.count - 1) {
+            let low = cuts[index]
+            let high = cuts[index + 1]
+            guard low < high,
+                  !auditedShifts.contains(where: { low < $0 && $0 < high }) else { continue }
+            let shift: CGFloat = low < 0 && 0 < high ? 0 : low + (high - low) / 2
+            let moved = frames.mapValues { $0.offsetBy(dx: 0, dy: shift) }
+            let visible = Set(moved.compactMap { viewport.contains($0.value) ? $0.key : nil })
+            let visibleOutstanding = visible.intersection(outstanding)
+            let visiblePending = visible.intersection(pending)
+            guard !visibleOutstanding.isEmpty,
+                  homeAuditBoundaryCrossings(moved, viewport: viewport).isEmpty else { continue }
+            let candidate = HomeAuditRecoveryPose(shift: shift, lower: low, upper: high,
+                visibleOutstanding: visibleOutstanding, visiblePending: visiblePending)
+            // First cover the largest actual outstanding set. Prefer unresolved
+            // findings over first-time coverage, then wider landing clearance.
+            // Geometry selects a pose only; it never grants audit coverage or clears debt.
+            if let current = selected {
+                let better = candidate.visibleOutstanding.count > current.visibleOutstanding.count
+                    || (candidate.visibleOutstanding.count == current.visibleOutstanding.count
+                        && candidate.visiblePending.count > current.visiblePending.count)
+                    || (candidate.visibleOutstanding.count == current.visibleOutstanding.count
+                        && candidate.visiblePending.count == current.visiblePending.count
+                        && high - low > current.upper - current.lower)
+                    || (candidate.visibleOutstanding.count == current.visibleOutstanding.count
+                        && candidate.visiblePending.count == current.visiblePending.count
+                        && high - low == current.upper - current.lower
+                        && abs(shift) < abs(current.shift))
+                if better { selected = candidate }
+            } else {
+                selected = candidate
+            }
+        }
+        guard let selected else {
+            throw NSError(domain: "LuminaHomeAudit", code: 1,
+                userInfo: [NSLocalizedDescriptionKey:
+                    "No unaudited gap-aligned pose inside the observed scroll range can cover the outstanding leaves"])
+        }
+        return selected
+    }
+
+    @MainActor
+    private func homeAuditRecoveryFrames(_ leaves: [HomeAuditLeaf],
+                                         in app: XCUIApplication) throws -> [String: CGRect] {
+        try requireHomeAudit(leaves.count == 20 && Set(leaves.map(\.key)).count == 20,
+            "Recovery requires exactly 20 unique Home leaves")
+        var frames: [String: CGRect] = [:]
+        for leaf in leaves { frames[leaf.key] = try resolveHomeAuditLeaf(leaf, in: app).frame }
+        return frames
+    }
+
+    private func homeAuditCoherentTranslation(_ before: [String: CGRect],
+                                              after: [String: CGRect], target: String) throws -> CGFloat {
+        try requireHomeAudit(before.count == 20 && Set(before.keys) == Set(after.keys),
+            "Actuation calibration requires the same 20 Home leaves")
+        guard let oldTarget = before[target], let newTarget = after[target] else {
+            throw NSError(domain: "LuminaHomeAudit", code: 1,
+                userInfo: [NSLocalizedDescriptionKey: "Unknown actuation target: \(target)"])
+        }
+        let measured = newTarget.minY - oldTarget.minY
+        try requireHomeAudit(measured.isFinite, "Nonfinite recovery translation")
+        for (key, old) in before {
+            guard let new = after[key] else { throw NSError(domain: "LuminaHomeAudit", code: 1) }
+            let magnitudes: [CGFloat] = [1, abs(old.minY), abs(new.minY), abs(old.height), abs(new.height),
+                                        abs(old.minX), abs(new.minX), abs(old.width), abs(new.width)]
+            let arithmeticAllowance = CGFloat.ulpOfOne * (magnitudes.max() ?? 1) * 16
+            // Floating-point arithmetic allowance only, many orders below a pixel.
+            try requireHomeAudit(validHomeAuditFrame(old) && validHomeAuditFrame(new)
+                && abs(new.minX - old.minX) <= arithmeticAllowance
+                && abs(new.width - old.width) <= arithmeticAllowance
+                && abs(new.height - old.height) <= arithmeticAllowance
+                && abs((new.minY - old.minY) - measured) <= arithmeticAllowance,
+                "Home leaves did not translate coherently: \(key)")
+        }
+        return measured
+    }
+
+    @MainActor
+    private func homeAuditReachableRange(_ frames: [String: CGRect], target: String,
+                                         ledger: HomeAuditLedger) throws -> (lower: CGFloat, upper: CGFloat) {
+        try requireHomeAudit(ledger.observedFrames.count >= 3,
+            "Recovery requires all three original audited poses")
+        var lower: CGFloat = 0
+        var upper: CGFloat = 0
+        for observed in ledger.observedFrames {
+            let shift = try homeAuditCoherentTranslation(frames, after: observed, target: target)
+            lower = min(lower, shift)
+            upper = max(upper, shift)
+        }
+        return (lower, upper)
+    }
+
+    @MainActor
+    private func revealHomeAuditLeaves(_ outstanding: [HomeAuditLeaf], in app: XCUIApplication,
+                                      leaves: [HomeAuditLeaf], ledger: HomeAuditLedger) throws -> [String] {
+        let outstandingKeys = Set(outstanding.map(\.key))
+        try requireHomeAudit(outstandingKeys.count == outstanding.count && !outstanding.isEmpty,
+            "Recovery requires a nonempty unique outstanding set")
+        guard let anchor = leaves.first else { throw NSError(domain: "LuminaHomeAudit", code: 1) }
         for gesture in 0..<10 {
             let viewport = try homeAuditViewport(app)
+            let window = app.frame
+            let frames = try homeAuditRecoveryFrames(leaves, in: app)
+            let reachable = try homeAuditReachableRange(frames, target: anchor.key, ledger: ledger)
+            let pose = try homeAuditRecoveryPose(frames, outstanding: outstandingKeys,
+                pending: ledger.pending, viewport: viewport, reachable: reachable,
+                auditedFrames: ledger.auditedFrames)
+            guard let leaf = outstanding.first(where: { pose.visibleOutstanding.contains($0.key) }) else {
+                throw NSError(domain: "LuminaHomeAudit", code: 1)
+            }
             let element = try resolveHomeAuditLeaf(leaf, in: app)
             let frame = element.frame
-            if viewport.contains(frame) && element.isHittable { return }
-            try requireHomeAudit(frame.width <= viewport.width && frame.height <= viewport.height
-                && frame.minX >= viewport.minX && frame.maxX <= viewport.maxX,
-                "Home leaf cannot fit the unobscured viewport: \(leaf.key)")
-            try requireHomeAudit(!viewport.contains(frame),
+            ledger.recoveryPlans.append([
+                "gesture": gesture, "outstanding": outstandingKeys.sorted(),
+                "pending": ledger.pending.sorted(), "selected_visible": pose.visibleOutstanding.sorted(),
+                "selected_pending": pose.visiblePending.sorted(), "audited_pose_count": ledger.auditedFrames.count,
+                "planned_content_shift": String(describing: pose.shift),
+                "feasible_shift_lower": String(describing: pose.lower),
+                "feasible_shift_upper": String(describing: pose.upper)])
+            let plannedViewport = try homeAuditViewport(app)
+            try requireHomeAudit(frames[leaf.key] == frame
+                && plannedViewport == viewport && app.frame == window,
+                "Home geometry changed while planning recovery")
+            let crossing = homeAuditBoundaryCrossings(frames, viewport: viewport)
+            if pose.shift == 0 {
+                try requireHomeAudit(crossing.isEmpty, "Selected recovery pose crosses a viewport boundary")
+                for target in outstanding where pose.visibleOutstanding.contains(target.key) {
+                    let visible = try resolveHomeAuditLeaf(target, in: app)
+                    try requireHomeAudit(viewport.contains(visible.frame) && visible.isHittable,
+                        "Selected recovery target is not fully visible and hittable: \(target.key)")
+                }
+                return pose.visibleOutstanding.sorted()
+            }
+            try requireHomeAudit(!viewport.contains(frame) || element.isHittable,
                 "Home leaf is geometrically visible but not hittable: \(leaf.key)")
-            let difference = frame.midY - viewport.midY
-            let travel = min(max(abs(difference), viewport.height * 0.15), viewport.height * 0.45)
-            let direction: CGFloat = difference > 0 ? 1 : -1
+            try requireHomeAudit(pose.shift.isFinite && pose.shift != 0,
+                "Recovery cannot make measurable progress for: \(leaf.key)")
+            // The interval and available range both come from actual geometry.
+            // First measure a substantial drag in the requested direction, within
+            // already reached content positions. Its purpose is calibration, not
+            // landing or audit credit. Subsequent commands compensate only the
+            // loss measured for this direction, then remeasure all actual frames.
+            let direction: CGFloat = pose.shift > 0 ? 1 : -1
+            let directionKey = direction > 0 ? "positive" : "negative"
+            let available = direction > 0 ? reachable.upper : -reachable.lower
+            let learnedLoss = ledger.actuationLoss[directionKey]
+            let travel: CGFloat
+            if let learnedLoss {
+                try requireHomeAudit(learnedLoss.isFinite && learnedLoss >= 0,
+                    "Invalid measured actuation loss")
+                travel = min(abs(pose.shift) + learnedLoss, viewport.height * 0.45)
+                try requireHomeAudit(travel > learnedLoss,
+                    "No positive content travel remains within the gesture cap")
+            } else {
+                travel = min(available, viewport.height * 0.45)
+                try requireHomeAudit(travel >= viewport.height * 0.25,
+                    "Observed scroll range cannot support a substantial calibration drag")
+            }
+            try requireHomeAudit(travel.isFinite && travel > 0,
+                "Invalid recovery finger travel")
             let origin = app.coordinate(withNormalizedOffset: CGVector(dx: 0, dy: 0))
-            let start = origin.withOffset(CGVector(dx: viewport.midX - app.frame.minX,
-                dy: viewport.midY - app.frame.minY + direction * travel / 2))
-            let end = origin.withOffset(CGVector(dx: viewport.midX - app.frame.minX,
-                dy: viewport.midY - app.frame.minY - direction * travel / 2))
-            ledger.movements.append(["target": leaf.key, "gesture": gesture,
+            let start = origin.withOffset(CGVector(dx: viewport.midX - window.minX,
+                dy: viewport.midY - window.minY - direction * travel / 2))
+            let end = origin.withOffset(CGVector(dx: viewport.midX - window.minX,
+                dy: viewport.midY - window.minY + direction * travel / 2))
+            var movement: [String: Any] = ["target": leaf.key, "gesture": gesture,
                 "viewport": homeAuditFrame(viewport), "element_before": homeAuditElement(element),
-                "vertical_travel": String(describing: -direction * travel)])
-            start.press(forDuration: 0.05, thenDragTo: end)
+                "all_frames_before": frames.mapValues(homeAuditFrame),
+                "boundary_crossings_before": crossing,
+                "planned_content_shift": String(describing: pose.shift),
+                "feasible_shift_lower": String(describing: pose.lower),
+                "feasible_shift_upper": String(describing: pose.upper),
+                "vertical_travel": String(describing: direction * travel),
+                "gesture_velocity": "slow", "hold_after_drag_seconds": 0.25,
+                "direction": directionKey,
+                "calibration_mode": learnedLoss == nil ? "MEASURED_LARGE_PROBE" : "OBSERVED_LOSS_COMPENSATION",
+                "observed_shift_lower": String(describing: reachable.lower),
+                "observed_shift_upper": String(describing: reachable.upper),
+                "previous_observed_loss": learnedLoss.map { String(describing: $0) } ?? "none",
+                "predicted_content_travel": String(describing: direction * (travel - (learnedLoss ?? 0)))]
+            defer { ledger.movements.append(movement) }
+            start.press(forDuration: 0.05, thenDragTo: end,
+                        withVelocity: .slow, thenHoldForDuration: 0.25)
+            let afterViewport = try homeAuditViewport(app)
+            let afterFrames = try homeAuditRecoveryFrames(leaves, in: app)
+            let afterElement = try resolveHomeAuditLeaf(leaf, in: app)
+            movement["all_frames_after"] = afterFrames.mapValues(homeAuditFrame)
+            movement["raw_target_shift"] = String(describing: afterElement.frame.minY - frame.minY)
+            let measured = try homeAuditCoherentTranslation(frames, after: afterFrames, target: leaf.key)
+            movement["measured_content_shift"] = String(describing: measured)
+            movement["boundary_crossings_after"] = homeAuditBoundaryCrossings(afterFrames,
+                                                                               viewport: afterViewport)
+            try requireHomeAudit(afterViewport == viewport && app.frame == window
+                && afterFrames[leaf.key] == afterElement.frame,
+                "Home viewport or target changed during recovery")
+            try requireHomeAudit(measured.isFinite && measured * pose.shift > 0,
+                "Recovery drag made no progress in the requested direction: \(leaf.key)")
+            let loss = travel - abs(measured)
+            movement["observed_actuation_loss"] = String(describing: loss)
+            try requireHomeAudit(loss.isFinite && loss >= 0,
+                "Recovery moved farther than its physical drag; do not calibrate an unexpected jump")
+            try requireHomeAudit(measured >= reachable.lower && measured <= reachable.upper,
+                "Recovery left its observed content range")
+            if learnedLoss == nil {
+                try requireHomeAudit(abs(measured) >= travel / 2,
+                    "Recovery probe did not establish a usable actuation response")
+                ledger.actuationLoss[directionKey] = loss
+                ledger.calibrationProvenance.append([
+                    "direction": directionKey, "target": leaf.key,
+                    "movement_index": ledger.movements.count,
+                    "gesture": gesture, "all20_frames_coherent": true,
+                    "finger_travel": String(describing: direction * travel),
+                    "measured_content_shift": String(describing: measured),
+                    "loss_points": String(describing: loss),
+                    "viewport": homeAuditFrame(viewport)])
+            }
+            ledger.observedFrames.append(afterFrames)
         }
         let finalViewport = try homeAuditViewport(app)
-        let finalElement = try resolveHomeAuditLeaf(leaf, in: app)
-        try requireHomeAudit(finalViewport.contains(finalElement.frame) && finalElement.isHittable,
-            "Bounded scrolling did not reveal Home leaf: \(leaf.key)")
+        let finalFrames = try homeAuditRecoveryFrames(leaves, in: app)
+        let reachable = try homeAuditReachableRange(finalFrames, target: anchor.key, ledger: ledger)
+        let pose = try homeAuditRecoveryPose(finalFrames, outstanding: outstandingKeys,
+            pending: ledger.pending, viewport: finalViewport, reachable: reachable,
+            auditedFrames: ledger.auditedFrames)
+        try requireHomeAudit(pose.shift == 0
+            && homeAuditBoundaryCrossings(finalFrames, viewport: finalViewport).isEmpty,
+            "Bounded scrolling did not reach the selected measured gap-aligned Home pose")
+        for target in outstanding where pose.visibleOutstanding.contains(target.key) {
+            let element = try resolveHomeAuditLeaf(target, in: app)
+            try requireHomeAudit(finalViewport.contains(element.frame) && element.isHittable,
+                "Bounded recovery target is not fully visible and hittable: \(target.key)")
+        }
+        return pose.visibleOutstanding.sorted()
     }
 
     private func attachHomeAuditJSON(_ name: String, _ value: [String: Any]) {
@@ -526,4 +820,811 @@ final class LuminaUITests: XCTestCase {
         habits.tap()
     }
 
+
+    @MainActor
+    func testFullJournalEditCancelAndRelaunch() throws {
+        let app = launchQAApplication()
+        try openRecordHomeLink("Journal", in: app)
+        try tapRecordControl(app.buttons["lumina.journal.add"], in: app)
+        let field = app.textViews["lumina.journal.new-content"]
+        XCTAssertTrue(field.waitForExistence(timeout: 5))
+        let original = "Fixture line one\nFixture line two\nFixture line three\nFixture line four\nExact final line"
+        field.tap();field.typeText(original)
+        try tapRecordControl(try recordLeafButton("lumina.journal.new-save", in: app), in: app)
+        let row = app.staticTexts[original]
+        try tapRecordControl(row, in: app)
+        let full = app.textViews["lumina.journal.full-content"]
+        XCTAssertEqual(full.value as? String, original)
+        full.tap();full.typeText(" CANCELED")
+        app.navigationBars["Journal entry"].buttons["Cancel"].tap()
+        try tapRecordControl(app.staticTexts[original], in: app)
+        XCTAssertEqual(full.value as? String, original)
+        full.tap();full.typeText(" SAVED-EDIT")
+        let edited = try XCTUnwrap(full.value as? String)
+        XCTAssertTrue(edited.contains("SAVED-EDIT"))
+        try tapRecordControl(try recordLeafButton("lumina.record.save", in: app), in: app)
+        app.terminate();app.launch()
+        XCTAssertTrue(app.staticTexts["lumina.qa-store"].waitForExistence(timeout: 15))
+        try openRecordHomeLink("Journal", in: app)
+        try tapRecordControl(app.staticTexts[edited], in: app)
+        XCTAssertEqual(app.textViews["lumina.journal.full-content"].value as? String, edited)
+        attachRecordScreenshot(app, "Full saved journal after relaunch")
+    }
+
+    @MainActor
+    func testGoalValuesEditRelaunchAndConfirmedDeletion() throws {
+        let app = launchQAApplication()
+        try openRecordHomeLink("Goals", in: app)
+        try tapRecordControl(app.buttons["lumina.goal.add"], in: app)
+        // Missing name must show an error without leaving the draft.
+        try tapRecordControl(try recordLeafButton("lumina.record.save", in: app), in: app)
+        XCTAssertTrue(app.alerts.staticTexts["Enter a goal name."].waitForExistence(timeout: 5))
+        app.alerts.buttons["OK"].tap()
+        let name = app.textFields["lumina.goal.name"]
+        name.tap();name.typeText("Fixture goal")
+        let current = app.textFields["lumina.goal.current"]
+        try replaceShortNumericRecordField(current, with: "2", in: app)
+        let target = app.textFields["lumina.goal.target"]
+        try replaceShortNumericRecordField(target, with: "5", in: app)
+        XCTAssertEqual(Double(current.value as? String ?? ""), 2)
+        XCTAssertEqual(Double(target.value as? String ?? ""), 5)
+        try tapRecordControl(try recordLeafButton("lumina.record.save", in: app), in: app)
+        try tapRecordControl(app.buttons["Edit goal Fixture goal"], in: app)
+        XCTAssertEqual(Double(app.textFields["lumina.goal.current"].value as? String ?? ""), 2)
+        XCTAssertEqual(Double(app.textFields["lumina.goal.target"].value as? String ?? ""), 5)
+        name.tap();name.typeText("-edited")
+        let editedName = try XCTUnwrap(name.value as? String)
+        XCTAssertTrue(editedName.contains("-edited"))
+        try tapRecordControl(try recordLeafButton("lumina.record.save", in: app), in: app)
+        app.terminate();app.launch()
+        XCTAssertTrue(app.staticTexts["lumina.qa-store"].waitForExistence(timeout: 15))
+        try openRecordHomeLink("Goals", in: app)
+        try tapRecordControl(app.buttons["Edit goal \(editedName)"], in: app)
+        XCTAssertEqual(Double(app.textFields["lumina.goal.current"].value as? String ?? ""), 2)
+        XCTAssertEqual(Double(app.textFields["lumina.goal.target"].value as? String ?? ""), 5)
+        try tapRecordControl(app.buttons["Delete this record"], in: app)
+        try tapRecordControl(try recordLeafButton("Delete record", in: app), in: app)
+        XCTAssertTrue(app.staticTexts["No goals yet. Add a goal to record what you want to work toward."].waitForExistence(timeout: 5))
+    }
+
+    @MainActor
+    func testAllSavedMealsRemainEditableBeyondTheRecentPreview() throws {
+        let app = launchQAApplication()
+        app.tabBars.buttons["Nutrition"].tap()
+        for index in 0..<4 {
+            let input = app.textFields["What did you eat?"]
+            try tapRecordControl(input, in: app, scrollDown: true)
+            input.typeText("Fixture meal \(index)")
+            try dismissRecordKeyboard(in: app)
+            try tapRecordControl(app.buttons["Save Meal"], in: app)
+            XCTAssertTrue(app.alerts.firstMatch.waitForExistence(timeout: 5))
+            app.alerts.buttons["OK"].tap()
+        }
+        try tapRecordControl(app.buttons["lumina.meal.history"], in: app, scrollDown: true)
+        for index in 0..<4 { XCTAssertTrue(app.staticTexts["Fixture meal \(index)"].exists) }
+        try tapRecordControl(app.staticTexts["Fixture meal 0"], in: app)
+        let notes = app.textViews["lumina.meal.record-notes"]
+        notes.tap();notes.typeText("Saved meal detail beyond preview")
+        try tapRecordControl(try recordLeafButton("lumina.record.save", in: app), in: app)
+        app.terminate();app.launch()
+        XCTAssertTrue(app.staticTexts["Meals logged today: 4"].waitForExistence(timeout: 15))
+        app.tabBars.buttons["Nutrition"].tap()
+        try tapRecordControl(app.buttons["lumina.meal.history"], in: app)
+        try tapRecordControl(app.staticTexts["Fixture meal 0"], in: app)
+        XCTAssertEqual(app.textViews["lumina.meal.record-notes"].value as? String, "Saved meal detail beyond preview")
+        attachRecordScreenshot(app, "Saved meal details after relaunch")
+        try tapRecordControl(app.buttons["Delete this record"], in: app)
+        try tapRecordControl(try recordLeafButton("Delete record", in: app), in: app)
+        XCTAssertFalse(app.staticTexts["Fixture meal 0"].exists)
+        for index in 1..<4 { XCTAssertTrue(app.staticTexts["Fixture meal \(index)"].exists) }
+    }
+
+    @MainActor
+    func testWorkoutExercisesSetsAndNotesRemainEditableAfterRelaunch() throws {
+        let app = launchQAApplication()
+        app.tabBars.buttons["Workouts"].tap()
+        let name = app.textFields["lumina.workout.new-name"]
+        try tapRecordControl(name, in: app);name.typeText("Fixture workout")
+        try dismissRecordKeyboard(in: app)
+        try tapRecordControl(app.buttons["Add exercise"], in: app)
+        let exercise = app.textFields["Exercise name"]
+        try tapRecordControl(exercise, in: app);exercise.typeText("Fixture squat")
+        try dismissRecordKeyboard(in: app)
+        try tapRecordControl(app.buttons["Add set"], in: app)
+        let weight = app.textFields["Weight in kilograms for Fixture squat"]
+        try tapRecordControl(weight, in: app);weight.typeText("25.5")
+        try dismissRecordKeyboard(in: app)
+        let notes = app.textFields["lumina.workout.new-notes"]
+        try tapRecordControl(notes, in: app);notes.typeText("Full workout fixture notes")
+        try dismissRecordKeyboard(in: app)
+        try tapRecordControl(app.buttons["lumina.workout.new-save"], in: app)
+        XCTAssertTrue(app.alerts.firstMatch.waitForExistence(timeout: 5));app.alerts.buttons["OK"].tap()
+        app.terminate();app.launch()
+        XCTAssertTrue(app.staticTexts["Workouts logged today: 1"].waitForExistence(timeout: 15))
+        app.tabBars.buttons["Workouts"].tap()
+        try tapRecordControl(app.buttons["lumina.workout.history"], in: app)
+        try tapRecordControl(app.collectionViews.staticTexts["Fixture workout"], in: app)
+        XCTAssertEqual(app.textViews["lumina.workout.record-notes"].value as? String, "Full workout fixture notes")
+        try tapRecordControl(app.textFields["Exercise name"], in: app)
+        XCTAssertEqual(app.textFields["Exercise name"].value as? String, "Fixture squat")
+        XCTAssertEqual(Double(app.textFields["Weight in kilograms for Fixture squat"].value as? String ?? ""), 25.5)
+        app.navigationBars["Saved workout"].buttons["Cancel"].tap()
+        try tapRecordControl(app.collectionViews.staticTexts["Fixture workout"], in: app)
+        let savedNotes = app.textViews["lumina.workout.record-notes"]
+        savedNotes.tap();savedNotes.typeText(" EDITED")
+        let edited = try XCTUnwrap(savedNotes.value as? String)
+        try tapRecordControl(try recordLeafButton("lumina.record.save", in: app), in: app)
+        try tapRecordControl(app.collectionViews.staticTexts["Fixture workout"], in: app)
+        XCTAssertEqual(app.textViews["lumina.workout.record-notes"].value as? String, edited)
+        attachRecordScreenshot(app, "Saved workout details and sets")
+    }
+
+    @MainActor
+    func testWorkoutEffortIsOptionalAndExplicitRatingSurvivesDraftLanguageAndRelaunch() throws {
+        let app = launchQAApplication()
+        app.tabBars.buttons["Workouts"].tap()
+        let name = app.textFields["lumina.workout.new-name"]
+        try tapRecordControl(name, in: app)
+        name.typeText("Unrecorded effort fixture")
+        try dismissRecordKeyboard(in: app)
+        let notes = app.textFields["lumina.workout.new-notes"]
+        try tapRecordControl(notes, in: app)
+        notes.typeText("No effort rating was chosen")
+        try dismissRecordKeyboard(in: app)
+        // Do not touch any effort control. Inspect the persisted record, not a
+        // label on the creation form: the old UI saved 7 and fails this check.
+        try tapRecordControl(app.buttons["lumina.workout.new-save"], in: app)
+        XCTAssertTrue(app.alerts["Workout saved!"].waitForExistence(timeout: 5))
+        app.alerts.buttons["OK"].tap()
+        app.terminate(); app.launch()
+        XCTAssertTrue(app.staticTexts["Workouts logged today: 1"].waitForExistence(timeout: 15))
+        app.tabBars.buttons["Workouts"].tap()
+        try tapRecordControl(app.buttons["lumina.workout.history"], in: app)
+        try tapRecordControl(app.collectionViews.staticTexts["Unrecorded effort fixture"], in: app)
+        let unrecorded = app.textFields.matching(
+            NSPredicate(format: "label == %@", "Exertion 1–10 (optional)")).firstMatch
+        XCTAssertTrue(unrecorded.waitForExistence(timeout: 5))
+        let unrecordedValue = try XCTUnwrap(unrecorded.value as? String)
+        XCTAssertTrue(unrecordedValue.isEmpty || unrecordedValue == unrecorded.placeholderValue,
+                      "An untouched effort field must stay empty after saving and relaunching, never become 7 or 0")
+        XCTAssertEqual(app.textViews["lumina.workout.record-notes"].value as? String,
+                       "No effort rating was chosen")
+        app.navigationBars["Saved workout"].buttons["Cancel"].tap()
+        app.navigationBars["Saved workouts"].buttons["Done"].tap()
+
+        // Validation failure must retain both an explicit rating and its notes.
+        try tapRecordControl(notes, in: app)
+        notes.typeText("Explicit effort draft notes")
+        try dismissRecordKeyboard(in: app)
+        let effort = try recordLeafButton("lumina.workout.new-effort", in: app)
+        try tapRecordControl(effort, in: app, scrollDown: true)
+        try tapRecordControl(app.buttons["6 of 10"], in: app)
+        XCTAssertEqual(effort.value as? String, "6 of 10")
+        let scale = app.staticTexts["lumina.workout.effort-scale"]
+        XCTAssertTrue(scale.exists)
+        let standardScaleHeight = scale.frame.height
+        try tapRecordControl(app.buttons["lumina.workout.new-save"], in: app)
+        XCTAssertTrue(app.alerts.staticTexts["Enter a workout name."].waitForExistence(timeout: 5))
+        app.alerts.buttons["OK"].tap()
+        XCTAssertEqual(effort.value as? String, "6 of 10")
+        XCTAssertEqual(notes.value as? String, "Explicit effort draft notes")
+        try tapRecordControl(name, in: app, scrollDown: true)
+        name.typeText("Explicit effort fixture")
+        try dismissRecordKeyboard(in: app)
+
+        app.tabBars.buttons["Home"].tap()
+        try tapRecordControl(app.buttons["lumina.settings"], in: app)
+        try selectAppLanguage("العربية", in: app)
+        app.tabBars.buttons["التمارين"].tap()
+        XCTAssertEqual(name.value as? String, "Explicit effort fixture")
+        XCTAssertEqual(notes.value as? String, "Explicit effort draft notes")
+        let arabicEffort = try recordLeafButton("lumina.workout.new-effort", in: app)
+        XCTAssertEqual(arabicEffort.label, "الجهد (اختياري)")
+        let arabicValue = try XCTUnwrap(arabicEffort.value as? String)
+        let normalizedArabicValue = arabicValue.map { character in
+            character.wholeNumberValue.map(String.init) ?? String(character)
+        }.joined()
+        XCTAssertEqual(normalizedArabicValue, "6 من 10",
+                       "The selected effort must remain six while its accessible value switches to Arabic")
+        attachRecordScreenshot(app, "Arabic optional effort and retained workout draft")
+        app.tabBars.buttons["الرئيسية"].tap()
+        XCTAssertTrue(app.navigationBars["الإعدادات"].waitForExistence(timeout: 5))
+        try selectAppLanguage("English", in: app)
+        app.tabBars.buttons["Workouts"].tap()
+        XCTAssertEqual(name.value as? String, "Explicit effort fixture")
+        XCTAssertEqual(effort.value as? String, "6 of 10")
+
+        // Clearing a draft rating must be possible without discarding other fields.
+        try tapRecordControl(effort, in: app)
+        try tapRecordControl(app.buttons["Not recorded"], in: app)
+        XCTAssertEqual(effort.value as? String, "Not recorded")
+        XCTAssertEqual(notes.value as? String, "Explicit effort draft notes")
+        try tapRecordControl(effort, in: app)
+        try tapRecordControl(app.buttons["6 of 10"], in: app)
+        try tapRecordControl(app.buttons["lumina.workout.new-save"], in: app)
+        XCTAssertTrue(app.alerts["Workout saved!"].waitForExistence(timeout: 5))
+        app.alerts.buttons["OK"].tap()
+        XCTAssertEqual(effort.value as? String, "Not recorded",
+                       "A successful save must start the next draft without the previous rating")
+        app.terminate(); app.launch()
+        XCTAssertTrue(app.staticTexts["Workouts logged today: 2"].waitForExistence(timeout: 15),
+                      "The failed validation attempt must not create a duplicate workout")
+        app.tabBars.buttons["Workouts"].tap()
+        try tapRecordControl(app.buttons["lumina.workout.history"], in: app)
+        try tapRecordControl(app.collectionViews.staticTexts["Explicit effort fixture"], in: app)
+        let recorded = app.textFields["lumina.workout.record-effort"]
+        XCTAssertTrue(recorded.waitForExistence(timeout: 5))
+        XCTAssertEqual(recorded.value as? String, "6",
+                       "An explicit effort rating must be retained in the persisted record")
+        XCTAssertEqual(app.textViews["lumina.workout.record-notes"].value as? String,
+                       "Explicit effort draft notes")
+        attachRecordScreenshot(app, "Explicit effort preserved after relaunch")
+
+        app.terminate()
+        app.launchArguments += ["-UIPreferredContentSizeCategoryName",
+                                UIContentSizeCategory.accessibilityExtraExtraExtraLarge.rawValue]
+        app.launch()
+        XCTAssertTrue(app.staticTexts["lumina.qa-store"].waitForExistence(timeout: 15))
+        app.tabBars.buttons["Workouts"].tap()
+        let largeEffort = try recordLeafButton("lumina.workout.new-effort", in: app)
+        try tapRecordControl(largeEffort, in: app)
+        try tapRecordControl(app.buttons["6 of 10"], in: app)
+        XCTAssertEqual(largeEffort.value as? String, "6 of 10",
+                       "An explicit rating must be selectable at the largest accessibility text size")
+        try tapRecordControl(largeEffort, in: app)
+        try tapRecordControl(app.buttons["Not recorded"], in: app)
+        XCTAssertTrue(largeEffort.exists && largeEffort.isHittable)
+        XCTAssertGreaterThanOrEqual(largeEffort.frame.width, 44)
+        XCTAssertGreaterThanOrEqual(largeEffort.frame.height, 44)
+        XCTAssertEqual(largeEffort.value as? String, "Not recorded")
+        XCTAssertTrue(scale.exists)
+        XCTAssertGreaterThan(scale.frame.height, standardScaleHeight,
+                             "The visible effort explanation must grow with accessibility text size")
+        attachRecordScreenshot(app, "Optional effort at largest accessibility text size")
+        try tapRecordControl(app.buttons["lumina.workout.new-save"], in: app)
+        XCTAssertTrue(app.alerts.staticTexts["Enter a workout name."].waitForExistence(timeout: 5),
+                      "The real Save action must remain reachable after the expanded effort section")
+        app.alerts.buttons["OK"].tap()
+    }
+
+    @MainActor
+    func testManualHabitDuplicateErrorAndManagementPreserveRecords() throws {
+        let app = launchQAApplication()
+        openHabits(in: app)
+        for attempt in 0..<2 {
+            try tapRecordControl(app.buttons["lumina.habit.add"], in: app)
+            XCTAssertTrue(app.navigationBars["New habit"].waitForExistence(timeout: 5))
+            let input = app.textFields["lumina.habit.new-name"]
+            input.tap();input.typeText(attempt == 0 ? "Manual fixture habit" : "MANUAL FIXTURE HABIT")
+            try tapRecordControl(try recordLeafButton("lumina.record.save", in: app), in: app)
+            if attempt == 1 {
+                XCTAssertTrue(app.alerts.staticTexts["This habit is already in your list."].waitForExistence(timeout: 5))
+                app.alerts.buttons["OK"].tap()
+                XCTAssertEqual(input.value as? String, "MANUAL FIXTURE HABIT")
+                app.navigationBars["New habit"].buttons["Cancel"].tap()
+            }
+        }
+        try tapRecordControl(app.buttons["lumina.habit.history"], in: app, scrollDown: true)
+        XCTAssertTrue(app.navigationBars["Manage habits"].waitForExistence(timeout: 5))
+        // The same habit remains visible behind a half-height management sheet.
+        // Count the saved management rows, not both presentation surfaces.
+        let managedNames = app.staticTexts.matching(identifier: "lumina.habit.history-name")
+            .matching(NSPredicate(format: "label == %@", "Manual fixture habit"))
+        XCTAssertTrue(managedNames.firstMatch.waitForExistence(timeout: 5))
+        XCTAssertEqual(managedNames.count, 1)
+        try tapRecordControl(managedNames.element(boundBy: 0), in: app)
+        XCTAssertTrue(app.staticTexts["Total recorded completions: 0"].exists)
+        let name=app.textFields["lumina.habit.record-name"]
+        name.tap();name.typeText("-edited")
+        let edited=try XCTUnwrap(name.value as? String)
+        try tapRecordControl(try recordLeafButton("lumina.record.save", in: app), in: app)
+        app.terminate();app.launch()
+        XCTAssertTrue(app.staticTexts["lumina.qa-store"].waitForExistence(timeout: 15))
+        openHabits(in: app)
+        XCTAssertTrue(app.staticTexts[edited].waitForExistence(timeout: 5))
+        XCTAssertEqual(app.buttons["Mark \(edited) complete for today"].value as? String, "Not completed today")
+    }
+
+    @MainActor
+    func testSavedCheckInNoteEditRelaunchAndDeletion() throws {
+        let app=launchQAApplication()
+        try openRecordHomeLink("Daily check-in", in: app)
+        let note=app.textViews["lumina.checkin.new-note"]
+        try tapRecordControl(note, in: app);note.typeText("Complete check-in fixture note")
+        try dismissRecordKeyboard(in: app)
+        try tapRecordControl(app.buttons["lumina.checkin.new-save"], in: app)
+        XCTAssertTrue(app.alerts.firstMatch.waitForExistence(timeout: 5));app.alerts.buttons["OK"].tap()
+        try tapRecordControl(app.buttons["lumina.checkin.history"], in: app, scrollDown: true)
+        try tapRecordControl(app.staticTexts["Complete check-in fixture note"], in: app)
+        let full=app.textViews["lumina.checkin.record-note"]
+        XCTAssertEqual(full.value as? String, "Complete check-in fixture note")
+        full.tap();full.typeText(" EDITED")
+        let edited=try XCTUnwrap(full.value as? String)
+        try tapRecordControl(try recordLeafButton("lumina.record.save", in: app), in: app)
+        app.terminate();app.launch()
+        XCTAssertTrue(app.staticTexts["lumina.qa-store"].waitForExistence(timeout: 15))
+        try openRecordHomeLink("Daily check-in", in: app)
+        try tapRecordControl(app.buttons["lumina.checkin.history"], in: app)
+        try tapRecordControl(app.staticTexts[edited], in: app)
+        XCTAssertEqual(app.textViews["lumina.checkin.record-note"].value as? String, edited)
+        try tapRecordControl(app.buttons["Delete this record"], in: app)
+        try tapRecordControl(try recordLeafButton("Delete record", in: app), in: app)
+        XCTAssertTrue(app.staticTexts["No saved check-ins."].waitForExistence(timeout: 5))
+    }
+
+    @MainActor
+    private func openRecordHomeLink(_ name: String, in app: XCUIApplication) throws {
+        XCTAssertTrue(app.navigationBars["Lumina"].waitForExistence(timeout: 15))
+        try tapRecordControl(app.buttons[name], in: app)
+    }
+
+    @MainActor
+    private func recordLeafButton(_ identifier: String, in app: XCUIApplication) throws -> XCUIElement {
+        XCTAssertTrue(app.buttons.matching(identifier: identifier).firstMatch.waitForExistence(timeout: 5))
+        let leaves=app.buttons.matching(identifier: identifier).allElementsBoundByIndex
+            .filter { $0.descendants(matching: .button).count == 0 }
+        XCTAssertEqual(leaves.count,1,"The requested record action must resolve uniquely")
+        return try XCTUnwrap(leaves.first)
+    }
+
+    @MainActor
+    private func dismissRecordKeyboard(in app: XCUIApplication) throws {
+        XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 5))
+        let done = try recordLeafButton("lumina.keyboard.done", in: app)
+        XCTAssertTrue(done.isHittable, "The real keyboard Done action must be reachable")
+        done.tap()
+        let dismissed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"),
+                                                  object: app.keyboards.firstMatch)
+        XCTAssertEqual(XCTWaiter.wait(for: [dismissed], timeout: 5), .completed,
+                       "Done must dismiss the keyboard before navigating to the next form control")
+    }
+
+    @MainActor
+    private func tapRecordControl(_ element: XCUIElement, in app: XCUIApplication,
+                                  scrollDown: Bool = false,
+                                  file: StaticString = #filePath, line: UInt = #line) throws {
+        // Form materializes offscreen sections only after scrolling. Preserve the
+        // bounded wait and eight real gestures, then require both existence and
+        // reachability before tapping; a missing control can never pass silently.
+        _ = element.waitForExistence(timeout: 5)
+        for _ in 0..<8 {
+            if element.exists && element.isHittable { break }
+            if scrollDown { app.swipeDown() } else { app.swipeUp() }
+        }
+        if !element.exists || !element.isHittable {
+            attachRecordScreenshot(app, "Record control could not be reached")
+            let evidence = XCTAttachment(string: app.debugDescription)
+            evidence.name = "Record control failure hierarchy"
+            evidence.lifetime = .keepAlways
+            add(evidence)
+        }
+        XCTAssertTrue(element.exists, "The requested record control must exist after bounded scrolling",
+                      file: file, line: line)
+        XCTAssertTrue(element.isHittable, "The requested record control must be reachable",
+                      file: file, line: line)
+        element.tap()
+    }
+
+    @MainActor
+    private func attachRecordScreenshot(_ app: XCUIApplication, _ name: String) {
+        let attachment=XCTAttachment(screenshot:app.screenshot())
+        attachment.name=name;attachment.lifetime = .keepAlways;add(attachment)
+    }
+
+    @MainActor
+    private func replaceShortNumericRecordField(_ field: XCUIElement, with value: String,
+                                                in app: XCUIApplication) throws {
+        try tapRecordControl(field, in: app)
+        let previous = try XCTUnwrap(field.value as? String)
+        XCTAssertLessThan(previous.count, 12, "This helper is only for the short English goal numeric fixtures")
+        // The right edge lies after the whole short LTR value. Do not assume a
+        // generic TextEditor tap places its caret at the end of multiline text.
+        field.coordinate(withNormalizedOffset: CGVector(dx: 0.95, dy: 0.5)).tap()
+        field.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: previous.count) + value)
+        XCTAssertEqual(field.value as? String, value, "Replacement must enter the exact intended numeric text")
+    }
+
+
+    @MainActor
+    func testDirectProgressAndSavedCheckInObservationRemainReachable() throws {
+        let app = launchQAApplication()
+        XCTAssertTrue(app.navigationBars["Lumina"].waitForExistence(timeout: 15))
+        let progress = app.tabBars.buttons["Progress"]
+        XCTAssertTrue(progress.waitForExistence(timeout: 5))
+        XCTAssertTrue(progress.isHittable)
+        XCTAssertFalse(app.tabBars.buttons["More"].exists)
+        progress.tap()
+        XCTAssertTrue(app.staticTexts["lumina.progress.empty"].waitForExistence(timeout: 5))
+        let addPhoto = try recordLeafButton("lumina.progress.add-photo", in: app)
+        XCTAssertTrue(addPhoto.isHittable)
+        app.tabBars.buttons["Home"].tap()
+        try openRecordHomeLink("Training suggestions", in: app)
+        XCTAssertTrue(app.navigationBars["Adaptive Plan"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["lumina.training.empty"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.staticTexts["lumina.training.records-error"].exists)
+        app.terminate(); app.launch()
+        XCTAssertTrue(app.staticTexts["lumina.qa-store"].waitForExistence(timeout: 15))
+        try openRecordHomeLink("Daily check-in", in: app)
+        let note = app.textViews["lumina.checkin.new-note"]
+        try tapRecordControl(note, in: app)
+        note.typeText("Training observation fixture")
+        try dismissRecordKeyboard(in: app)
+        try tapRecordControl(app.buttons["lumina.checkin.new-save"], in: app)
+        XCTAssertTrue(app.alerts.firstMatch.waitForExistence(timeout: 5))
+        app.alerts.buttons["OK"].tap()
+        app.terminate(); app.launch()
+        XCTAssertTrue(app.staticTexts["lumina.qa-store"].waitForExistence(timeout: 15))
+        try openRecordHomeLink("Training suggestions", in: app)
+        let scope = app.staticTexts["lumina.training.record-scope"]
+        XCTAssertTrue(scope.waitForExistence(timeout: 5))
+        XCTAssertTrue(scope.label.hasPrefix("Saved check-ins: 1. Health snapshots: 0."))
+        XCTAssertFalse(app.staticTexts["lumina.training.empty"].exists)
+        XCTAssertFalse(app.staticTexts["lumina.training.records-error"].exists)
+    }
+
+    @MainActor
+    func testOfflineCoachAcceptsMessageAndShowsLocalReply() throws {
+        let app = launchQAApplication()
+        XCTAssertTrue(app.navigationBars["Lumina"].waitForExistence(timeout: 15))
+        app.tabBars.buttons["Coach"].tap()
+        XCTAssertTrue(app.staticTexts["Offline coaching"].waitForExistence(timeout: 5))
+        let input = app.textFields["lumina.coach.message"]
+        let send = try recordLeafButton("lumina.coach.send", in: app)
+        XCTAssertTrue(input.waitForExistence(timeout: 5))
+        XCTAssertTrue(input.isHittable)
+        let initialEmptyValue = try XCTUnwrap(input.value as? String)
+        XCTAssertFalse(send.isEnabled)
+        input.tap()
+        input.typeText("How am I doing?")
+        XCTAssertEqual(input.value as? String, "How am I doing?")
+        XCTAssertTrue(send.isEnabled)
+        XCTAssertTrue(send.isHittable)
+        send.tap()
+        let reply = app.staticTexts["Your logs can help you reflect on your goals. Offline coaching cannot determine physical progress or a habit's effects."]
+        XCTAssertTrue(reply.waitForExistence(timeout: 5))
+        XCTAssertTrue(reply.isHittable)
+        XCTAssertTrue(app.staticTexts["How am I doing?"].exists)
+        XCTAssertEqual(input.value as? String, initialEmptyValue)
+        XCTAssertFalse(send.isEnabled)
+        attachRecordScreenshot(app, "Offline Coach local response")
+        try tapRecordControl(app.buttons["lumina.coach.insights"], in: app)
+        XCTAssertTrue(app.navigationBars["Insights"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Look for patterns"].exists)
+        XCTAssertTrue(app.staticTexts["Keep conclusions tentative"].exists)
+        let done = app.buttons["lumina.coach.insights.done"]
+        try tapRecordControl(done, in: app)
+        XCTAssertTrue(input.waitForExistence(timeout: 5))
+        XCTAssertTrue(input.isHittable)
+        XCTAssertTrue(reply.exists)
+        attachRecordScreenshot(app, "Local reflection sheet returns to Coach")
+        input.tap()
+        input.typeText("   ")
+        XCTAssertFalse(send.isEnabled, "Whitespace alone must not send another message")
+    }
+
+
+
+    @MainActor
+    func testLanguageChoiceUpdatesVisibleFlowsAndPersistsWithoutLosingDrafts() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["--lumina-ui-qa", "-AppleLanguages", "(ar)", "-AppleLocale", "ar_SA"]
+        app.launchEnvironment["LUMINA_QA_ID"] = UUID().uuidString
+        app.launch()
+        XCTAssertTrue(app.staticTexts["lumina.qa-store"].waitForExistence(timeout: 15))
+        XCTAssertTrue(app.staticTexts["يومياتك"].waitForExistence(timeout: 5),
+                      "First launch must use the supported Arabic app/device preference")
+        assertLanguageTabOrder(app, arabic: true)
+        attachRecordScreenshot(app, "First launch Arabic Home and RTL tabs")
+
+        try tapRecordControl(app.buttons["lumina.settings"], in: app)
+        XCTAssertTrue(app.navigationBars["الإعدادات"].waitForExistence(timeout: 5))
+        try selectAppLanguage("English", in: app)
+        XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 5),
+                      "The existing Settings screen must update without restart")
+        XCTAssertTrue(app.tabBars.buttons["Home"].exists)
+        let backToHome = app.navigationBars["Settings"].buttons["Lumina"]
+        XCTAssertTrue(backToHome.isHittable)
+        backToHome.tap()
+        XCTAssertTrue(app.staticTexts["Your journal"].waitForExistence(timeout: 5))
+        assertLanguageTabOrder(app, arabic: false)
+        attachRecordScreenshot(app, "Live English Home and LTR tabs")
+
+        app.tabBars.buttons["Workouts"].tap()
+        let draftName = app.textFields["lumina.workout.new-name"]
+        XCTAssertTrue(draftName.waitForExistence(timeout: 5))
+        draftName.tap()
+        draftName.typeText("Unsaved language-switch fixture")
+        try dismissRecordKeyboard(in: app)
+        app.tabBars.buttons["Home"].tap()
+        try tapRecordControl(app.buttons["lumina.settings"], in: app)
+        try selectAppLanguage("العربية", in: app)
+        XCTAssertTrue(app.navigationBars["الإعدادات"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.tabBars.buttons["الرئيسية"].exists)
+        assertLanguageTabOrder(app, arabic: true)
+        attachRecordScreenshot(app, "Live Arabic Settings language control")
+
+        app.tabBars.buttons["التمارين"].tap()
+        XCTAssertTrue(draftName.waitForExistence(timeout: 5))
+        XCTAssertEqual(draftName.value as? String, "Unsaved language-switch fixture",
+                       "Language changes must not recreate tabs and discard drafts")
+        app.tabBars.buttons["المدرب"].tap()
+        let availability = app.staticTexts["lumina.coach.availability"]
+        XCTAssertTrue(availability.waitForExistence(timeout: 5))
+        XCTAssertEqual(availability.label, "إرشاد دون اتصال")
+        let message = app.textFields["lumina.coach.message"]
+        XCTAssertTrue(message.isHittable)
+        XCTAssertEqual(message.label, "رسالة للمدرب")
+        XCTAssertEqual(app.buttons["lumina.coach.send"].label, "إرسال الرسالة")
+        message.tap()
+        message.typeText("How can I record my workout?")
+        let send = app.buttons["lumina.coach.send"]
+        XCTAssertTrue(send.isHittable && send.isEnabled)
+        send.tap()
+        let arabicReply = app.staticTexts["اختر تمريناً بسيطاً يناسب طاقتك اليوم، وركّز على الحركة المتحكم بها. يمكنك تسجيل ما فعلته وكيف شعرت لمراجعته لاحقاً."]
+        XCTAssertTrue(arabicReply.waitForExistence(timeout: 10),
+                      "The existing UI-QA fallback must use the selected Arabic language")
+        XCTAssertTrue(app.staticTexts["إرشاد دون اتصال · قواعد محلية"].exists)
+        let insights = app.buttons["lumina.coach.insights"]
+        try tapRecordControl(insights, in: app)
+        XCTAssertTrue(app.staticTexts["رؤى المدرب"].waitForExistence(timeout: 5))
+        try tapRecordControl(app.buttons["lumina.coach.insights.done"], in: app)
+        attachRecordScreenshot(app, "Arabic Coach labels and local-rule reply")
+
+        app.terminate()
+        // A saved app choice must win even when the next launch prefers English.
+        app.launchArguments = ["--lumina-ui-qa", "-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
+        app.launch()
+        XCTAssertTrue(app.staticTexts["lumina.qa-store"].waitForExistence(timeout: 15))
+        XCTAssertTrue(app.staticTexts["يومياتك"].waitForExistence(timeout: 5))
+        assertLanguageTabOrder(app, arabic: true)
+        try tapRecordControl(app.buttons["lumina.settings"], in: app)
+        try selectAppLanguage("English", in: app)
+        XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 5))
+        app.navigationBars["Settings"].buttons["Lumina"].tap()
+        XCTAssertTrue(app.staticTexts["Your journal"].waitForExistence(timeout: 5))
+        assertLanguageTabOrder(app, arabic: false)
+    }
+
+    @MainActor
+    private func selectAppLanguage(_ label: String, in app: XCUIApplication) throws {
+        let picker = app.segmentedControls["lumina.language-picker"]
+        let choice = picker.buttons[label]
+        try tapRecordControl(choice, in: app)
+        let arabic = label == "العربية"
+        let title = arabic ? "الإعدادات" : "Settings"
+        XCTAssertTrue(app.navigationBars[title].waitForExistence(timeout: 5),
+                      "The existing Settings screen must display the chosen language")
+        // Direction changes re-layout the Form, so its virtualized rows can
+        // move offscreen. Re-reveal the actual picker without tapping again.
+        // Retain the selected-state requirement after that real traversal.
+        for _ in 0..<8 {
+            if choice.exists && choice.isHittable { break }
+            app.swipeUp()
+        }
+        XCTAssertTrue(picker.exists && picker.isHittable)
+        XCTAssertTrue(choice.exists && choice.isHittable)
+        let selected = XCTNSPredicateExpectation(predicate: NSPredicate(format: "selected == true"), object: choice)
+        XCTAssertEqual(XCTWaiter.wait(for: [selected], timeout: 5), .completed,
+                       "The real language control must show the selected choice")
+        let other = picker.buttons[arabic ? "English" : "العربية"]
+        XCTAssertTrue(other.exists && other.isHittable)
+        XCTAssertFalse(other.isSelected, "The other native segment must be unselected")
+        XCTAssertEqual(picker.buttons.count, 2)
+        let english = picker.buttons["English"]
+        let arabicChoice = picker.buttons["العربية"]
+        XCTAssertEqual(english.label, "English")
+        XCTAssertEqual(arabicChoice.label, "العربية")
+        // Retain the real AX operands before geometry assertions can stop
+        // this case. No screenshot or frame is synthesized or transformed.
+        let bar = app.navigationBars[title]
+        let back = bar.buttons["Lumina"]
+        let containingCells = app.cells.containing(.segmentedControl, identifier: "lumina.language-picker")
+        let cell = containingCells.element(boundBy: 0)
+        func geometry(_ element: XCUIElement) -> [String: Any] {
+            let frame = element.frame
+            return ["identifier": element.identifier, "label": element.label,
+                    "elementType": element.elementType.rawValue,
+                    "exists": element.exists, "hittable": element.isHittable,
+                    "selected": element.isSelected,
+                    "x": Double(frame.origin.x), "y": Double(frame.origin.y),
+                    "width": Double(frame.size.width), "height": Double(frame.size.height),
+                    "minX": Double(frame.minX), "maxX": Double(frame.maxX),
+                    "minY": Double(frame.minY), "maxY": Double(frame.maxY)]
+        }
+        let operands: [String: Any] = ["schemaVersion": 1,
+            "purpose": "LIVE_LANGUAGE_SELECTION_GEOMETRY_AND_RETAINED_SCREEN",
+            "language": arabic ? "ar" : "en", "requestedChoice": label,
+            "picker": geometry(picker), "English": geometry(english),
+            "Arabic": geometry(arabicChoice), "chosen": geometry(choice),
+            "opposite": geometry(other), "app": geometry(app),
+            "navigationBar": geometry(bar), "Back": geometry(back),
+            "containingCellCount": containingCells.count,
+            "containingCell": containingCells.count == 1 ? geometry(cell) : [:]]
+        let numericData = try JSONSerialization.data(withJSONObject: operands, options: [.sortedKeys])
+        let numericEvidence = XCTAttachment(data: numericData, uniformTypeIdentifier: "public.json")
+        numericEvidence.name = "Exact observed pre-assertion language geometry operands"
+        numericEvidence.lifetime = .keepAlways
+        add(numericEvidence)
+        let hierarchy = XCTAttachment(string: app.debugDescription)
+        hierarchy.name = "Unmodified Settings AX before geometry assertions"
+        hierarchy.lifetime = .keepAlways
+        add(hierarchy)
+        let evidence = XCTAttachment(string: "language=\(arabic ? "ar" : "en") title=\(title) chosenSelected=\(choice.isSelected) otherSelected=\(other.isSelected) picker=\(picker.frame) English=\(english.frame) Arabic=\(arabicChoice.frame) Back=\(back.frame)")
+        evidence.name = "Observed Settings language selection and geometry"
+        evidence.lifetime = .keepAlways
+        add(evidence)
+        attachRecordScreenshot(app, "Settings after live language change - \(title)")
+        XCTAssertGreaterThan(english.frame.width, 0)
+        XCTAssertGreaterThan(arabicChoice.frame.width, 0)
+        // Original native v6.1 diagnostic: parent height 31pt, both native
+        // segment AX hit rectangles 32pt with the same top. The only observed
+        // overhang was 1pt below the parent; no top or horizontal tolerance
+        // is allowed. Require the real containing Form cell and screen too.
+        XCTAssertEqual(containingCells.count, 1)
+        XCTAssertTrue(cell.exists)
+        XCTAssertTrue(cell.frame.contains(picker.frame))
+        XCTAssertTrue(app.frame.contains(cell.frame))
+        let leadingInPixels = arabic ? arabicChoice : english
+        let trailingInPixels = arabic ? english : arabicChoice
+        XCTAssertEqual(leadingInPixels.frame.minX, picker.frame.minX)
+        XCTAssertEqual(leadingInPixels.frame.maxX, trailingInPixels.frame.minX)
+        XCTAssertEqual(trailingInPixels.frame.maxX, picker.frame.maxX)
+        for segment in [english, arabicChoice] {
+            XCTAssertEqual(segment.frame.minY, picker.frame.minY)
+            let bottomOverhang = segment.frame.maxY - picker.frame.maxY
+            XCTAssertGreaterThanOrEqual(bottomOverhang, 0)
+            XCTAssertLessThanOrEqual(bottomOverhang, 1,
+                                     "Only the observed one-point native bottom hit-rectangle extension is admitted")
+            XCTAssertTrue(cell.frame.contains(segment.frame))
+            XCTAssertTrue(app.frame.contains(segment.frame))
+        }
+        XCTAssertTrue(app.frame.contains(picker.frame))
+        XCTAssertTrue(back.exists && back.isHittable)
+        XCTAssertEqual(back.label, arabic ? "العودة إلى الرئيسية" : "Back to Home")
+        if arabic {
+            XCTAssertGreaterThan(english.frame.midX, arabicChoice.frame.midX,
+                                 "Arabic must mirror the actual language-segment order")
+            XCTAssertGreaterThan(back.frame.midX, bar.frame.midX,
+                                 "Arabic Settings must place Back on its leading edge")
+        } else {
+            XCTAssertLessThan(english.frame.midX, arabicChoice.frame.midX,
+                              "English must restore the actual language-segment order")
+            XCTAssertLessThan(back.frame.midX, bar.frame.midX,
+                              "English Settings must place Back on its leading edge")
+        }
+        try assertReadableEnglishSegment(english)
+    }
+
+    @MainActor
+    private func assertReadableEnglishSegment(_ english: XCUIElement) throws {
+        // AX labels and bounding boxes do not detect horizontally mirrored
+        // glyphs. Read the real button pixels with the built-in Vision API;
+        // no generated fixture, network, model installation or expected-text
+        // hint is supplied to recognition. Preserve the original screenshot.
+        let shot = english.screenshot()
+        let attachment = XCTAttachment(screenshot: shot)
+        attachment.name = "Unmodified English language-segment pixels"
+        attachment.lifetime = .keepAlways
+        add(attachment)
+        let image = try XCTUnwrap(shot.image.cgImage)
+        let request = VNRecognizeTextRequest()
+        request.recognitionLevel = .accurate
+        request.recognitionLanguages = ["en-US"]
+        request.usesLanguageCorrection = false
+        do {
+            try VNImageRequestHandler(cgImage: image, orientation: .up, options: [:]).perform([request])
+        } catch {
+            let evidence = XCTAttachment(string: "orientation=up revision=\(request.revision) error=\(error)")
+            evidence.name = "Native language-segment OCR error"
+            evidence.lifetime = .keepAlways
+            add(evidence)
+            throw error
+        }
+        let observations = request.results ?? []
+        let readings = observations.compactMap { $0.topCandidates(1).first?.string }
+        let rows = observations.map { observation in
+            "text=\(observation.topCandidates(1).first?.string ?? "") confidence=\(observation.topCandidates(1).first?.confidence ?? 0) normalizedBox=\(observation.boundingBox)"
+        }
+        let evidence = XCTAttachment(string: "orientation=up revision=\(request.revision) errors=none\n" + rows.joined(separator: "\n"))
+        evidence.name = "Native OCR of English segment, without text correction"
+        evidence.lifetime = .keepAlways
+        add(evidence)
+        XCTAssertTrue(readings.contains { $0.trimmingCharacters(in: .whitespacesAndNewlines) == "English" },
+                      "The actual control pixels must produce the exact English label")
+        // OCR may normalize an image, so it supplements the native geometry
+        // checks and retained full-screen visual review; it does not certify
+        // that every Form glyph is correctly oriented on its own.
+    }
+
+    @MainActor
+    private func assertLanguageTabOrder(_ app: XCUIApplication, arabic: Bool,
+                                       file: StaticString = #filePath, line: UInt = #line) {
+        let home = app.tabBars.buttons[arabic ? "الرئيسية" : "Home"]
+        let progress = app.tabBars.buttons[arabic ? "التقدم" : "Progress"]
+        XCTAssertTrue(home.waitForExistence(timeout: 5), file: file, line: line)
+        XCTAssertTrue(progress.exists && home.isHittable && progress.isHittable, file: file, line: line)
+        XCTAssertGreaterThan(home.frame.width, 0, file: file, line: line)
+        XCTAssertGreaterThan(progress.frame.width, 0, file: file, line: line)
+        if arabic {
+            XCTAssertGreaterThan(home.frame.midX, progress.frame.midX,
+                                 "Arabic must mirror the actual tab order", file: file, line: line)
+        } else {
+            XCTAssertLessThan(home.frame.midX, progress.frame.midX,
+                              "English must restore the actual tab order", file: file, line: line)
+        }
+        let evidence = XCTAttachment(string: "language=\(arabic ? "ar" : "en") home=\(home.frame) progress=\(progress.frame)")
+        evidence.name = "Observed language and tab frames"
+        evidence.lifetime = .keepAlways
+        add(evidence)
+    }
+
+
+    @MainActor
+    func testRecoveryPreviewFixtureConfirmationReopenAndPickerCancelPaths() throws {
+        let app = launchQAApplication(additionalArguments: ["--lumina-qa-recovery-fixture"])
+        XCTAssertTrue(app.staticTexts["Meals logged today: 0"].waitForExistence(timeout: 15))
+        try tapRecordControl(app.buttons["lumina.settings"], in: app)
+        try tapRecordControl(app.buttons["lumina.restore.choose"], in: app)
+        // This is the actual system picker, canceled without selecting a file.
+        let pickerCancel = app.buttons["Cancel"]
+        XCTAssertTrue(pickerCancel.waitForExistence(timeout: 10))
+        XCTAssertTrue(pickerCancel.isHittable)
+        attachRecordScreenshot(app, "Actual restore file picker before Cancel")
+        pickerCancel.tap()
+        XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.navigationBars["Restore journal"].exists)
+
+        // Only the file-selection boundary is substituted for this isolated
+        // fixture. Production export, copy, untrusted decode, preview and final
+        // transactional import run unchanged. No destination records are seeded.
+        try tapRecordControl(app.buttons["lumina.restore.qa-fixture"], in: app)
+        XCTAssertTrue(app.navigationBars["Restore journal"].waitForExistence(timeout: 30))
+        XCTAssertTrue(app.staticTexts["Records: 2"].exists)
+        let confirm = try recordLeafButton("lumina.restore.confirm", in: app)
+        XCTAssertTrue(confirm.isEnabled && confirm.isHittable)
+        attachRecordScreenshot(app, "Validated recovery preview before explicit confirmation")
+        try tapRecordControl(try recordLeafButton("lumina.restore.cancel", in: app), in: app)
+        XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 5))
+        app.navigationBars["Settings"].buttons["Lumina"].tap()
+        XCTAssertTrue(app.staticTexts["Meals logged today: 0"].waitForExistence(timeout: 5),
+                      "Canceling a validated preview must leave the journal empty")
+        try tapRecordControl(app.buttons["lumina.settings"], in: app)
+        try tapRecordControl(app.buttons["lumina.restore.qa-fixture"], in: app)
+        XCTAssertTrue(app.navigationBars["Restore journal"].waitForExistence(timeout: 30))
+        XCTAssertTrue(app.staticTexts["Records: 2"].exists)
+        try tapRecordControl(try recordLeafButton("lumina.restore.confirm", in: app), in: app)
+        XCTAssertTrue(app.staticTexts["Restored 2 records."].waitForExistence(timeout: 15))
+        XCTAssertFalse(app.navigationBars["Restore journal"].exists)
+        attachRecordScreenshot(app, "Explicit two-record restore completed")
+        try tapRecordControl(app.buttons["lumina.backup.export"], in: app)
+        let exportCancel = app.buttons["Cancel"]
+        XCTAssertTrue(exportCancel.waitForExistence(timeout: 30))
+        XCTAssertTrue(exportCancel.isHittable)
+        attachRecordScreenshot(app, "Actual prepared backup file exporter before Cancel")
+        exportCancel.tap()
+        XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["lumina.backup.export"].isEnabled)
+        XCTAssertEqual(app.descendants(matching: .any).matching(identifier: "lumina.backup.error").count, 0)
+        try tapRecordControl(app.buttons["lumina.restore.qa-fixture"], in: app)
+        XCTAssertTrue(app.navigationBars["Restore journal"].waitForExistence(timeout: 30))
+        XCTAssertTrue(app.staticTexts["Restore is available only when your local journal is empty. Existing records have not been changed."].waitForExistence(timeout: 5))
+        XCTAssertFalse(try recordLeafButton("lumina.restore.confirm", in: app).isEnabled,
+                       "A read-only preview must not offer to overwrite the existing journal")
+        XCTAssertTrue(app.staticTexts["Previewing this backup does not change your existing records. You do not need to delete anything to inspect it."].exists)
+        attachRecordScreenshot(app, "Populated journal can inspect a backup while Restore remains disabled")
+        try tapRecordControl(try recordLeafButton("lumina.restore.cancel", in: app), in: app)
+        XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.navigationBars["Restore journal"].exists)
+        XCTAssertTrue(app.navigationBars["Settings"].exists)
+        app.terminate(); app.launch()
+        XCTAssertTrue(app.staticTexts["Meals logged today: 1"].waitForExistence(timeout: 15))
+        app.tabBars.buttons["Nutrition"].tap()
+        try tapRecordControl(app.buttons["lumina.meal.history"], in: app)
+        try tapRecordControl(app.collectionViews.staticTexts["Recovery fixture meal"], in: app)
+        XCTAssertTrue(app.navigationBars["Saved meal"].waitForExistence(timeout: 5))
+        XCTAssertEqual(app.textViews["lumina.meal.record-notes"].value as? String,
+                       "Reviewable recovery fixture note")
+        XCTAssertEqual(Double(app.textFields["Protein in grams"].value as? String ?? ""), 42)
+        attachRecordScreenshot(app, "Restored meal fields after real app relaunch")
+    }
 }

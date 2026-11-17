@@ -76,7 +76,7 @@ struct LuminaTests {
         habit.toggleCompletion(now: now, calendar: calendar)
         #expect(habit.currentStreak == 1)
         habit.toggleCompletion(now: now, calendar: calendar)
-        #expect(habit.currentStreak == 0 && habit.lastCompletedDate == nil && habit.totalCompletions == 0)
+        #expect(habit.currentStreak == 7 && habit.lastCompletedDate == older && habit.totalCompletions == 0)
         habit.lastCompletedDate = yesterday
         habit.currentStreak = 3
         habit.toggleCompletion(now: now, calendar: calendar)
@@ -203,7 +203,6 @@ struct LuminaTests {
         try context.fetchCount(FetchDescriptor<T>())
     }
 
-    #if !DEBUG
     @MainActor
     @Test func offlineFollowUpSeparatesCheckInsFromHabitCompletions() async throws {
         for hasLegacyOutcomeClaim in [false, true] {
@@ -248,7 +247,13 @@ struct LuminaTests {
         let reply = try await service.getSmartEmotionalSupport(userMessage: "Am I making progress?", context: context)
         #expect(reply.contains("cannot determine physical progress"))
         #expect(!reply.contains("making real progress"))
+        let direct = try await SmartGrokCoach(apiKey: "ignored-free-local-fixture").respondToUser(
+            message: "Am I making progress?", context: context)
+        #expect(direct == reply)
+        let withoutGuessedMetrics = try await service.getWeeklyReflection(
+            context: context, workoutsCompleted: 99, avgEnergy: 6.8)
+        #expect(withoutGuessedMetrics == reflection)
+        #expect(!withoutGuessedMetrics.contains("99 workouts"))
     }
-    #endif
 
 }

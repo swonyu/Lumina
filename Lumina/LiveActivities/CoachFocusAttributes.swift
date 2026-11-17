@@ -1,8 +1,8 @@
 import ActivityKit
 import Foundation
 
-struct CoachFocusAttributes: ActivityAttributes {
-    public struct ContentState: Codable, Hashable {
+nonisolated struct CoachFocusAttributes: ActivityAttributes, Sendable {
+    nonisolated public struct ContentState: Codable, Hashable, Sendable {
         var title: String
         var subtitle: String
     }

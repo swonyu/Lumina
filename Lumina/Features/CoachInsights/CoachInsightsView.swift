@@ -1,23 +1,7 @@
 import SwiftUI
 
-/// Weekly reflection + insights now powered by the real Grok coach (when key is set).
+/// Reflection prompts; these do not claim a measured pattern or generated analysis.
 struct CoachInsightsView: View {
-    @Environment(LuminaViewModel.self) private var viewModel
-    
-    @State private var weeklyReflection: String?
-    @State private var isLoadingReflection = false
-    @State private var error: String?
-
-    private var displayedReflection: String? {
-        weeklyReflection ?? viewModel.lastWeeklyReflection
-    }
-    
-    private var grok: GrokService? {
-        if let key = GrokService.configuredAPIKey, !key.isEmpty {
-            return GrokService(apiKey: key)
-        }
-        return nil
-    }
     
     var body: some View {
         ScrollView {
@@ -26,54 +10,13 @@ struct CoachInsightsView: View {
                     .font(.largeTitle.bold())
                     .foregroundStyle(.white)
                 
-                #if DEBUG
-                // Cloud coaching is excluded from the first offline release.
-                GlassCard {
-                    VStack(alignment: .leading, spacing: 12) {
-                        HStack {
-                            Image(systemName: "calendar.badge.clock")
-                            Text("Weekly Reflection from Grok")
-                                .font(.headline)
-                        }
-                        .foregroundStyle(.white)
-                        
-                        if isLoadingReflection {
-                            HStack { ProgressView(); Text("Reflecting on your week...") }
-                                .foregroundStyle(.white.opacity(0.7))
-                        } else if let reflection = displayedReflection {
-                            Text(reflection)
-                                .font(.body)
-                                .foregroundStyle(.white.opacity(0.92))
-                        } else {
-                            Text("Get a thoughtful, data-driven weekly reflection written by Grok based on your actual training, energy, and patterns.")
-                                .foregroundStyle(.white.opacity(0.6))
-                        }
-                        
-                        if let e = error {
-                            Text(e).font(.caption).foregroundStyle(.red.opacity(0.8))
-                        }
-                        
-                        Button {
-                            Task { await loadReflection() }
-                        } label: {
-                            Text(grok != nil ? "Generate Reflection with Grok" : "Set XAI_API_KEY for AI reflections")
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 10)
-                                .background(grok != nil ? .indigo.opacity(0.3) : .gray.opacity(0.2))
-                                .clipShape(RoundedRectangle(cornerRadius: 10))
-                        }
-                        .buttonStyle(.plain)
-                        .disabled(isLoadingReflection || grok == nil)
-                    }
-                }
-                
-                #endif
+
                 // Local reflection prompts do not invent measured health trends.
                 GlassCard {
                     VStack(alignment: .leading, spacing: 8) {
                         Text(L("coach.insights_pattern_title"))
                             .font(.headline)
-                        Text("Review your check-ins alongside your sleep and energy logs to look for patterns over time.")
+                        Text(L("coach.insights_pattern_message"))
                     }
                 }
                 
@@ -81,7 +24,7 @@ struct CoachInsightsView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text(L("coach.insights_observation_title"))
                             .font(.headline)
-                        Text("Use your journal to reflect on your own observations. Offline coaching does not establish physical progress or causal habit effects.")
+                        Text(L("coach.insights_observation_message"))
                     }
                 }
             }
@@ -90,29 +33,5 @@ struct CoachInsightsView: View {
         .glassBackground()
         .navigationTitle(L("coach.insights_nav_title"))
         .withAppLanguage()
-        .drawingGroup() // Round 15 perf
-    }
-    
-    private func loadReflection() async {
-        guard let service = grok else { return }
-        isLoadingReflection = true
-        error = nil
-        
-        let ctx = viewModel.buildCoachContext()
-        let completed = max(viewModel.recentHealthSnapshots.count, 3) // rough proxy
-        
-        do {
-            let text = try await service.getWeeklyReflection(
-                context: ctx,
-                workoutsCompleted: completed,
-                avgEnergy: 6.8   // Could compute from real data
-            )
-            weeklyReflection = text
-            viewModel.lastWeeklyReflection = text   // persist across navigation
-        } catch {
-            self.error = "Couldn't get reflection: \(error.localizedDescription.prefix(100))"
-        }
-        
-        isLoadingReflection = false
     }
 }

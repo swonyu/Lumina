@@ -5,7 +5,7 @@ struct GoalsView: View {
     @Environment(LuminaViewModel.self) private var viewModel
     
     @State private var showingAddGoal = false
-    @State private var newGoalName = ""
+    @State private var editingGoal: Goal?
     
     var body: some View {
         ScrollView {
@@ -15,7 +15,7 @@ struct GoalsView: View {
                 
                 if viewModel.goals.isEmpty {
                     GlassCard {
-                        Text("No goals yet. Add a goal to record what you want to work toward.")
+                        Text(L("No goals yet. Add a goal to record what you want to work toward."))
                             .foregroundStyle(.white.opacity(0.7))
                     }
                 } else {
@@ -24,13 +24,16 @@ struct GoalsView: View {
                             VStack(alignment: .leading, spacing: 8) {
                                 Text(goal.name)
                                     .font(.headline)
+                                Button(L("Edit goal")) { editingGoal = goal }
+                                    .accessibilityLabel(L("Edit goal %@", goal.name))
                                 ProgressView(value: goal.progress)
+                                    .accessibilityLabel(L("Recorded goal ratio for %@", goal.name))
                                 Text("\(String(format: "%.1f", goal.currentValue))\(goal.unit) / \(String(format: "%.0f", goal.targetValue))\(goal.unit)")
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                                 
                                 if let notes = goal.adjustmentNotes {
-                                    Text("Saved adjustment note: \(notes)")
+                                    Text(L("Saved adjustment note: %@", notes))
                                         .font(.caption2)
                                         .foregroundStyle(.yellow.opacity(0.8))
                                 }
@@ -43,7 +46,7 @@ struct GoalsView: View {
                 if !viewModel.recentGoalAdjustments.isEmpty {
                     GlassCard {
                         VStack(alignment: .leading, spacing: 6) {
-                            Text("Saved adjustment notes")
+                            Text(L("Saved adjustment notes"))
                                 .font(.headline)
                             ForEach(viewModel.recentGoalAdjustments.prefix(3), id: \.self) { adj in
                                 Text("• \(adj)")
@@ -60,9 +63,9 @@ struct GoalsView: View {
                         HStack {
                             Image(systemName: "sparkles")
                                 .foregroundStyle(.yellow)
-                            Text(viewModel.currentCoachPhotoReflectionShowsLimitedImpact 
+                            Text(L(viewModel.currentCoachPhotoReflectionShowsLimitedImpact
                                 ? "Saved photo notes may mention habit effects. Those claims are unverified."
-                                : "Saved photo notes are available. Review the original records alongside your goals.")
+                                : "Saved photo notes are available. Review the original records alongside your goals."))
                                 .font(.caption)
                                 .foregroundStyle(.white.opacity(0.85))
                         }
@@ -80,11 +83,11 @@ struct GoalsView: View {
                                     .padding(.top, 2)
                                 VStack(alignment: .leading, spacing: 3) {
                                     HStack(spacing: 4) {
-                                        Text("Saved coaching notes")
+                                        Text(L("Saved coaching notes"))
                                             .font(.caption.weight(.semibold))
                                             .foregroundStyle(.yellow.opacity(0.9))
                                         if !(GrokService.configuredAPIKey ?? "").isEmpty {
-                                            Text("Grok")
+                                            Text(L("Grok"))
                                                 .font(.caption2.weight(.semibold))
                                                 .foregroundStyle(.yellow.opacity(0.6))
                                                 .padding(.horizontal, 3)
@@ -92,7 +95,7 @@ struct GoalsView: View {
                                                 .clipShape(Capsule())
                                         }
                                     }
-                                    Text("Review saved notes alongside your goals; notes do not establish progress.")
+                                    Text(L("Review saved notes alongside your goals; notes do not establish progress."))
                                         .font(.caption)
                                         .foregroundStyle(.white.opacity(0.8))
                                 }
@@ -104,31 +107,20 @@ struct GoalsView: View {
                 GlassButton(title: L("goals.add_button"), action: {
                     showingAddGoal = true
                 })
+                .accessibilityIdentifier("lumina.goal.add")
             }
             .padding()
         }
         .glassBackground()
         .navigationTitle(L("tab.goals"))
         .withAppLanguage()
-        .drawingGroup() // Round 9 perf
-        .alert(L("goals.new_alert_title"), isPresented: $showingAddGoal) {
-            TextField(L("goals.name_placeholder"), text: $newGoalName)
-            Button(L("general.add")) {
-                if !newGoalName.trimmingCharacters(in: .whitespaces).isEmpty {
-                    let newGoal = Goal(
-                        name: newGoalName,
-                        currentValue: 0,
-                        targetValue: 10,
-                        unit: "",
-                        category: "general"
-                    )
-                    guard viewModel.saveRecord(newGoal) else { return }
-                    viewModel.goals.insert(newGoal, at: 0)
-                    newGoalName = ""
-                }
-            }
-            Button(L("general.cancel"), role: .cancel) { newGoalName = "" }
+        .sheet(isPresented: $showingAddGoal) {
+            NavigationStack { GoalRecordEditor() }
         }
+        .sheet(item: $editingGoal) { goal in
+            NavigationStack { GoalRecordEditor(goal: goal) }
+        }
+        .onAppear { viewModel.loadGoals() }
     }
 }
 

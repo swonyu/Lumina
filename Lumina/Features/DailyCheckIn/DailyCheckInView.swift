@@ -10,9 +10,11 @@ struct DailyCheckInView: View {
     @State private var stress = 4
     @State private var mood: Mood = .good
     @State private var note = ""
+    @FocusState private var noteFocused: Bool
     @State private var didTrain = false
     
     @State private var showingSuccess = false
+    @State private var showingHistory = false
 
     var body: some View {
         ScrollView {
@@ -21,13 +23,16 @@ struct DailyCheckInView: View {
                     .font(.largeTitle.bold())
                     .padding(.top)
                 
+                Button(L("View saved check-ins")) { showingHistory = true }
+                    .accessibilityIdentifier("lumina.checkin.history")
+
                 // Round 85/86: Limited-impact awareness on the core daily check-in surface (now uses cheap VM computed)
                 if viewModel.hasLimitedCoachHabitImpact {
                     GlassCard {
                         HStack {
                             Image(systemName: "sparkles")
                                 .foregroundStyle(.yellow)
-                            Text("Record how you feel. A check-in does not prove that a habit caused a change.")
+                            Text(L("Record how you feel. A check-in does not prove that a habit caused a change."))
                                 .font(.caption)
                                 .foregroundStyle(.white.opacity(0.85))
                         }
@@ -49,7 +54,7 @@ struct DailyCheckInView: View {
                             .font(.headline)
                         Picker(L("checkin.mood"), selection: $mood) {
                             ForEach(Mood.allCases, id: \.self) { m in
-                                Text(m.rawValue).tag(m)
+                                Text(L(m.rawValue)).tag(m)
                             }
                         }
                         .pickerStyle(.segmented)
@@ -61,7 +66,10 @@ struct DailyCheckInView: View {
                         Text(L("checkin.note_question"))
                             .font(.headline)
                         TextEditor(text: $note)
+                            .focused($noteFocused)
                             .frame(height: 100)
+                            .accessibilityLabel(L("Check-in note"))
+                            .accessibilityIdentifier("lumina.checkin.new-note")
                             .scrollContentBackground(.hidden)
                             .background(.regularMaterial)
                             .clipShape(RoundedRectangle(cornerRadius: 12))
@@ -75,19 +83,26 @@ struct DailyCheckInView: View {
                 GlassButton(title: L("checkin.save_button"), isProminent: true, action: {
                     saveCheckIn()
                 })
+                .accessibilityIdentifier("lumina.checkin.new-save")
                 .padding(.horizontal)
             }
             .padding()
         }
         .glassBackground()
         .navigationTitle(L("tab.checkin"))
+        .scrollDismissesKeyboard(.interactively)
+        .keyboardDismissalBar(isFocused: noteFocused) {
+            noteFocused = false
+        }
         .withAppLanguage()
+        .sheet(isPresented: $showingHistory) {
+            NavigationStack { CheckInHistoryView() }
+        }
         .alert(L("checkin.saved_alert_title"), isPresented: $showingSuccess) {
             Button(L("general.ok")) { }
         } message: {
             Text(L("checkin.saved_alert_message"))
         }
-        .drawingGroup() // Round 14 perf
     }
     
     private func saveCheckIn() {
@@ -131,6 +146,8 @@ struct SliderRow: View {
                 get: { Double(value) },
                 set: { value = Int($0) }
             ), in: Double(range.lowerBound)...Double(range.upperBound), step: 1)
+            .accessibilityLabel(title)
+            .accessibilityValue(L("%d out of %d", value, range.upperBound))
         }
     }
 }
