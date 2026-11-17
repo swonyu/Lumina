@@ -1,0 +1,186 @@
+{
+  "schema": "lumina-r15-caption-repair/v1",
+  "created_utc": "2026-11-17T16:48:13.887553+00:00",
+  "parent_commit": "160fe000da4430f75d8ee81cf52fce06202221bd",
+  "revision": "R15",
+  "root_authorization": "Root explicitly authorized isolated narrow semantic caption repair and package preparation after original R14 failure artifacts were reviewed.",
+  "product_change": {
+    "path": "Lumina/Features/MealLogging/MealLogView.swift",
+    "before_sha256": "758f6641ec8db35c5b084c5af1ad099ac57b55f6e75383b5a75049f96c9578c9",
+    "after_sha256": "2df04f8a593226f2d2b77d626a632b26bfd43356d389bb64d4f3821f60c72c76",
+    "behavior": "The actual helper caption now uses dynamic UIColor.label over an opaque UIColor.systemBackground with 8pt inset and rounded backing. Original wording, caption font, natural multiline Dynamic Type and leading/RTL layout are retained.",
+    "scope": "Only the explanatory caption is changed. Disclosure semantics, fields, labels, save behavior, test helpers and every original assertion are unchanged."
+  },
+  "neighbor_review": {
+    "calorie_and_protein_labels": "Both are fully visible in the actual failing screenshot and already use dynamic UIColor.label. The observed audit names only the explanatory caption. No speculative neighbor repaint applied.",
+    "field_prompts": "Both fully visible empty fields use explicit label foreground and opaque secondarySystemBackground. No change.",
+    "disclosure_header": "Its explicit label/systemBackground repair is retained; earlier English audit poses now passed.",
+    "photo_picker_and_save": "Both visible in the actual pose; neither is named by this failure. No change."
+  },
+  "native_R14": {
+    "mac_root": "/Users/saleh/Library/Caches/Publishing-Continuation-20261117-d597fc87411f/Lumina/Successor-v7-R14-d57f4cd77813/FocusedNativeRuns/20261117T162448Z-15406-0cb618578b",
+    "scope": "FOCUSED_R13_REGRESSIONS_NOT_FULL_ACCEPTANCE",
+    "started_utc": "2026-11-17T16:24:48.860941Z",
+    "finished_utc": "2026-11-17T16:34:09.878407Z",
+    "unit_passed": 62,
+    "unit_total": 62,
+    "ui_passed": 4,
+    "ui_total": 5,
+    "total_passed": 66,
+    "total_executed": 67,
+    "xcodebuild_exit_code": 65,
+    "source_hashes_unchanged": true,
+    "cleanup_safe": true,
+    "archive_invoked": false,
+    "full_83_case_gate": false
+  },
+  "failure_evidence": {
+    "method": "LuminaUITests/testOptionalMealNutritionDistinguishesMissingValuesFromExplicitZero()",
+    "test_line": 1270,
+    "kind": "Contrast failed",
+    "pose": "Arabic empty nutrition prompts on English-region device",
+    "element_label": "اترك الحقل فارغًا إذا لم تُسجّل قيمته. هذه بياناتك المدخلة؛ ولا يقدّرها Lumina من الصورة.",
+    "ax_frame": {
+      "x": 43.3,
+      "y": 558,
+      "width": 326.7,
+      "height": 30.3
+    },
+    "viewport": {
+      "x": 0,
+      "y": 0,
+      "width": 402,
+      "height": 791
+    },
+    "test_elapsed_at_audit_seconds": 77.48,
+    "method_duration_seconds": 78.066,
+    "earlier_english_collapsed_and_populated_name_audits_passed": true,
+    "distinct_from_r13_disclosure_heading_failure": true
+  },
+  "original_artifacts": [
+    {
+      "local_file": "lumina-r14-arabic-nutrition-full.png",
+      "payload": "0~ilOSt-Y8G2ZA7sXbE3w1gHSHqTwZRetdOhNb1Bs-CDe99GQpdHrKXx6gaZa6xtXzFRk_ywqcXt7CBOYo0u2f3g==",
+      "bytes": 827308,
+      "sha256": "cff7f5f726e2bcc8383b19a108e104fc6343c3ad36093fe12f30f5e776ca6c56",
+      "native_names": [
+        "Arabic empty nutrition prompts on English-region device — before contrast audit_0_AB6F0C66-5E28-4459-A45F-FF1B9D959256.png",
+        "App Screenshot_0_9F597C69-B63A-4955-B505-2B111F50131C.png"
+      ],
+      "original_bytes_preserved": true
+    },
+    {
+      "local_file": "lumina-r14-arabic-nutrition-element.png",
+      "payload": "0~H0fYbBpHc4rA1v5tQeYfbbRXp-bynOcN5USjuseVc106T1OJkf_Jf42TgenkUJ1oAro1Y9k9BkgIXyjm5L6zUw==",
+      "bytes": 43063,
+      "sha256": "d3fc876a89ec640dd833568e9c9b021516cc8143d7df0e8286d0a4486d912c41",
+      "native_name": "Element Screenshot_1_99D1BD13-57BE-4EB1-9665-3C153E7FA3F6.png",
+      "original_bytes_preserved": true
+    },
+    {
+      "local_file": "lumina-r14-arabic-nutrition-ax.zstd",
+      "payload": "0~_mjmgTZ8dOr-s5z-iDFvHZbc7bkkwJ9joeksAfcSZd8lfxi7ksnyVeHtAVHaGfuVQGQ-rbSUfG9sSe51vsNJkg==",
+      "bytes": 2075,
+      "sha256": "c4156ac3263e25a1e2304847161e81928f4d1f48ca91e5f2848b3470d1216634",
+      "native_name": "Arabic empty nutrition prompts on English-region device — visible meal fields_0_474D639A-E4F8-49CE-AFF3-8A83FB456150.txt",
+      "original_bytes_preserved": true
+    },
+    {
+      "local_file": "lumina-r14-arabic-nutrition-ax.txt",
+      "bytes": 8612,
+      "sha256": "2f0d751220febc01de91931af546b9452caa01316bc174046284acc2beff5938",
+      "derivation": "Lossless zstd decompression of original native AX payload on cloud only"
+    }
+  ],
+  "original_artifact_directory": "/workspace/scratch/d57f4cd77813/lumina-r14-contrast-triage",
+  "test_retention": {
+    "all_test_source_and_test_plan_byte_identical_to_R14": true,
+    "unit_methods": 62,
+    "UI_methods": 21,
+    "UI_assertion_calls": 390,
+    "focused_execution_count": 67,
+    "full_execution_count": 83,
+    "files": [
+      {
+        "path": "Lumina AI personal trainer.xctestplan",
+        "sha256": "e3758fdd8f88272ca88222fa6a77be7215a8166a1e0df4c40f8deeab715ba7c5",
+        "byte_identical_to_R14": true
+      },
+      {
+        "path": "LuminaTests/CoachContextIntegrityTests.swift",
+        "sha256": "1578f4bbca11dd0e0b518c7f6159c61e47a904e0f0d38623276f94760e3a4524",
+        "byte_identical_to_R14": true
+      },
+      {
+        "path": "LuminaTests/HabitUndoIntegrityTests.swift",
+        "sha256": "63fed492e58fe4e84e6ea3e34f7afb77a8d54971562b6806f4993f3e9df4b643",
+        "byte_identical_to_R14": true
+      },
+      {
+        "path": "LuminaTests/JournalRecoveryIntegrityTests.swift",
+        "sha256": "9700bbd8e6d227ff140c3a81e8990d66064f4fbba57ef0e25282a32c56789b6d",
+        "byte_identical_to_R14": true
+      },
+      {
+        "path": "LuminaTests/LocalizationIntegrityTests.swift",
+        "sha256": "d1292f8b4bfa84918df9caf396b1b81d8260d57bb892644c55ffc990508f7ae1",
+        "byte_identical_to_R14": true
+      },
+      {
+        "path": "LuminaTests/LuminaTests.swift",
+        "sha256": "d63ae97f140294c8149ff939e6c8ad9c814ec52efaa17420c8cd6cb7fc71408d",
+        "byte_identical_to_R14": true
+      },
+      {
+        "path": "LuminaTests/OnDeviceCoachTests.swift",
+        "sha256": "e130c389327815e7e1027bc61108403ac48d4a1ad128aafb9a3f6868c9e4e94f",
+        "byte_identical_to_R14": true
+      },
+      {
+        "path": "LuminaTests/PhotoImportIntegrityTests.swift",
+        "sha256": "2b729ccf230999b79c6aeaf191fca2e8d74a1be6f701d0bf32494700d141e968",
+        "byte_identical_to_R14": true
+      },
+      {
+        "path": "LuminaTests/SavedRecordIntegrityTests.swift",
+        "sha256": "bec33d9c028378a17c109fccc2f6a789edf94b2d34717f6479df9bf7fffbf128",
+        "byte_identical_to_R14": true
+      },
+      {
+        "path": "LuminaTests/SettingsIntegrityTests.swift",
+        "sha256": "5628d684db368a378263ecb75c57d3918b1a9be026a63f06aeb58bed16cfa2d3",
+        "byte_identical_to_R14": true
+      },
+      {
+        "path": "LuminaUITests/LuminaUITests.swift",
+        "sha256": "a1b2a74f2d29d4929a4df6a604d4e2654cff5ee441e51007772e77db1e619f40",
+        "byte_identical_to_R14": true
+      },
+      {
+        "path": "LuminaUITests/LuminaUITestsLaunchTests.swift",
+        "sha256": "6b6e134155142ae9c08c5b6cea3ceabc3f73f963de9164c7faf3586038798f5c",
+        "byte_identical_to_R14": true
+      }
+    ]
+  },
+  "verification_scope": {
+    "git_diff_check": "PASS",
+    "source_inspection": "PASS; semantic pair scoped to actual failed caption",
+    "native_invoked": false,
+    "push_invoked": false,
+    "full_acceptance": false,
+    "required_next_gates": [
+      "Root-owned focused67 native regression batch",
+      "Root-owned complete83 native batch and updated-source unsigned production archive",
+      "Signed/store requirements remain separate release gates"
+    ]
+  },
+  "deadline_utc": "2026-11-18T22:26:12Z",
+  "deadline_reason": "User explicitly extended the original cutoff by 24 hours; start and prior effort remain retained.",
+  "independent_peer_review": {
+    "reviewer": "/root/github_recovery",
+    "source_sha256": "2df04f8a593226f2d2b77d626a632b26bfd43356d389bb64d4f3821f60c72c76",
+    "result": "No blocking source/layout concern found. Semantic foreground/background removes material dependence; padding and leading alignment remain adaptive to RTL/text growth. No fixed height, clipping, test or audit change. Native contrast and later-controls reachability remain pending.",
+    "native_invoked": false
+  }
+}

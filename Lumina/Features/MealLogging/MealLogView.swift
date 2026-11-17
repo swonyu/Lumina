@@ -66,7 +66,12 @@ struct MealLogView: View {
                             }
                             Text(L("Leave a field empty if it was not recorded. These are your entries; Lumina does not estimate them from the photo."))
                                 .font(.caption)
+                                .foregroundStyle(Color(uiColor: .label))
                                 .fixedSize(horizontal: false, vertical: true)
+                                .padding(8)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(Color(uiColor: .systemBackground),
+                                            in: RoundedRectangle(cornerRadius: 8))
                         }
                         .padding(.top, 8)
                     }
