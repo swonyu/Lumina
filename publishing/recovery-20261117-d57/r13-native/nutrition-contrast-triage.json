@@ -1,0 +1,62 @@
+{
+  "source_commit": "add412734658eef9aece0ec19618841f00ecc2c9",
+  "native_run": "20261117T151948Z-6086-5a1c44498e",
+  "test": "LuminaUITests/testOptionalMealNutritionDistinguishesMissingValuesFromExplicitZero",
+  "test_source_line": 1268,
+  "test_duration_seconds": 14.452,
+  "test_status": "FAILED",
+  "suite_status_at_inspection": "Historical inspection occurred during R13. R13 later completed with 16/21 UI passes and 60/62 unit passes; source failed acceptance.",
+  "actual_issue": "Contrast failed for SwiftUI.AccessibilityNode",
+  "actual_label": "Your nutrition entries (optional)",
+  "actual_element": "StaticText",
+  "actual_ax_identity": "4585896960.112",
+  "actual_frame_points": {
+    "x": 32.0,
+    "y": 325.3,
+    "width": 338.0,
+    "height": 44.0
+  },
+  "state": "English empty meal name, initial collapsed disclosure, before the first complete contrast audit",
+  "diagnosis": "The new failure names the nutrition disclosure label, not the previously repaired Save Meal gradient. The real screenshot shows white text on a dark material. This inspection did not recover numeric contrast operands; a visual appearance alone cannot negate the actual native audit failure.",
+  "source_scope": "Lumina/Features/MealLogging/MealLogView.swift: MealNutritionDisclosureStyle renders configuration.label with inherited foreground over GlassCard regularMaterial and adds a full-width 44-point button row. Unlike MealEntryFieldAppearance, the row has no explicit paired opaque system background/label color.",
+  "bounded_repair_proposal": "Give the real disclosure label/button content an explicit dynamic system label foreground and matching opaque system background, retaining actual visible text, expansion semantics, minimum target size, RTL wrapping, and all unchanged contrast assertions. This is a proposed real rendering repair requiring native retest, not a declaration that the framework finding is false.",
+  "payload_directory": "/Users/saleh/Library/Caches/Publishing-Continuation-20261117-d597fc87411f/Lumina/Successor-v7-R13-d57f4cd77813/NativeRuns/20261117T151948Z-6086-5a1c44498e/lumina/UIQATests.xcresult/Data",
+  "payloads": {
+    "metadata": {
+      "ref": "0~XIUjVhbiwPCyAI0AlKnaEgnVxf-J8TZhlxlP_2x9Qv-glEOHTfEaZpyM1k2xJ6jomMRYDz_Xfn6xfQQhYu-JZg==",
+      "stored_sha256": "38405e17a000cda0fcf5eec95be1616d615de09a67eda01c7c40559a7df67750"
+    },
+    "screen": {
+      "ref": "0~SHzlaIIh5BYrSFh0suEt86vQyVcjI_zukCk4OQd74vH2ubQUvU28brfz14TIvrP6TwjTi09F9-Ya6qBgY5njgw==",
+      "bytes": 726958,
+      "sha256": "32f6a43fdb8538b72e98627ee2d542f7a09524b634ad485b01719d565f46e789",
+      "format": "original PNG"
+    },
+    "element": {
+      "ref": "0~6OH6uSBsCnphLGQgPs73aH9XxG-PQlTdBj-uz5BMIdnvk36AW5QuHKHCbNcbEK6uUMldt6S2z1pL4ITM5JSuTg==",
+      "bytes": 50593,
+      "sha256": "65d72ec3bd4abe4697d02c47681a38f0c10d07c252e3e227e0cc1005d0a58204",
+      "format": "original PNG",
+      "width": 1014,
+      "height": 132,
+      "visually_reviewed": true,
+      "local_copy": "lumina-r13-nutrition-element.png"
+    },
+    "visible_fields": {
+      "ref": "0~FYmSsp8YGdU728lwNf3dqzXXvcLW-7AyJ5NFUjFLgPL_g7ebXcCHWTy93oN3fM119eJ1t_m-PJSQR_Ab1f5eWw==",
+      "stored_bytes": 1624,
+      "stored_sha256": "d0f193000838db988db14e4eae2fb64214847b28694e6d06bc6dd57a772e3508",
+      "decoded_bytes": 6952,
+      "decoded_sha256": "a5a4aa0f585b3ba7d6bc0037cd4241cefd4b7f62830cc4d7351cfcabd9b5a32e",
+      "compression": "Zstandard"
+    }
+  },
+  "evidence_handling": {
+    "mac_writes": false,
+    "native_execution": false,
+    "source_edits": false,
+    "original_images_edited": false,
+    "source_result_bundle_modified": false,
+    "method": "Read-only stdout, original compressed Data metadata, original PNG payload, and existing test/session text. Result bundle had no Info.plist at inspection."
+  }
+}

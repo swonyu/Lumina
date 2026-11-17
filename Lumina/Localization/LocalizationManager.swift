@@ -22,7 +22,9 @@ enum AppLanguage: String, CaseIterable, Identifiable {
     var numericLocale: Locale {
         // Numeric drafts need an explicit Arabic decimal mark independently
         // of the locale supplied to date pickers and other native controls.
-        Locale(identifier: self == .arabic ? "ar-u-nu-arab" : rawValue)
+        // ar_SA produced the correct mark in the retained native unit run;
+        // that runtime parsed ar-u-nu-arab as numbers=yes with no separator.
+        Locale(identifier: self == .arabic ? "ar_SA" : rawValue)
     }
 
     var layoutDirection: LayoutDirection {

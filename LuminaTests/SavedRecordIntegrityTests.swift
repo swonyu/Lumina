@@ -244,8 +244,8 @@ struct SavedRecordIntegrityTests {
         }
         #expect(LocalRecordDraft.numberText(0.25, locale: Locale(identifier: "en_US")) == "0.25")
         #expect(LocalRecordDraft.numberText(0.25, locale: Locale(identifier: "ar_SA")) == "0٫25")
-        // Use the app's actual numeric policy, not a regional surrogate or
-        // the UI locale supplied to date pickers and other native controls.
+        // Use the app's actual numeric policy, separately from the UI locale
+        // supplied to date pickers and other native controls.
         #expect(LocalRecordDraft.numberText(12.5, locale: AppLanguage.arabic.numericLocale) == "12٫5")
         #expect(LocalRecordDraft.numberText(12.5, locale: AppLanguage.english.numericLocale) == "12.5")
         #expect(LocalRecordDraft.numberText(0.25) == "0" +

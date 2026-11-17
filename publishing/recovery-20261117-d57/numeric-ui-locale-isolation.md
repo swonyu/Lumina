@@ -31,18 +31,29 @@ target. A native rerun must still establish that the repair works.
 
 `AppLanguage.locale` again supplies ordinary `en` or `ar` to the SwiftUI
 environment, date formatters, date pickers and coaching language selection.
-The new `numericLocale` retains the explicit Arabic numbering override only
+The new `numericLocale` selects an Arabic numeric format only
 for `LocalRecordDraft.numberText` and `LocalRecordDraft.number`. Those helpers
 continue to format `12.5` as `12٫5` for Arabic, accept both supported decimal
 marks and Arabic digits after a live language switch, and preserve the stored
 number's round-trip precision. No record, draft, picker or editor was removed.
 
+The same R13 run also recorded three unit issues in two methods: the
+`ar-u-nu-arab` identifier reported numbering system `yes`, a nil decimal
+separator, and formatted `12.5` as `12.5`. Simply moving that malformed locale
+out of the UI environment would not fix numeric formatting. The numeric
+policy therefore uses `ar_SA`, whose `0٫25` formatting assertion passed in
+that very native run. The helpers read only its decimal separator; no region
+or calendar is added to the UI locale. The numbering-system, separator and
+`12٫5` assertions all remain required for the next native run.
+
 ## Regression coverage and evidence limits
 
-All 62 unit method names and all 21 selected UI journeys are retained. The UI
-test source is byte-for-byte identical to R13, including its final `12٫5`
-assertion. All four production saved-record `DatePicker` declarations and the
-entire editor file are unchanged.
+All 62 unit method names and all 21 selected UI journeys are retained. The
+Arabic-decimal test body, including its final `12٫5` assertion, is unchanged.
+Separate evidence-backed interaction repairs address three other UI failures;
+they are documented in `r13-native/ui-failures-and-repairs.json`. All four
+production saved-record `DatePicker` declarations and the entire editor file
+are unchanged.
 
 The three numeric-locale expectations added in R12 now target `numericLocale`.
 Their expected numbering system and decimal marks are unchanged. New checks
@@ -52,8 +63,8 @@ helpers. Retaining R12's incorrect assumption that the *global UI locale*
 must carry the numeric override would reintroduce this crash.
 
 An independent read-only source review by `/root/github_recovery` found no
-blocking issue in the four-file change or its use sites. File checks show
-unchanged method inventory, unchanged UI assertions and unchanged date-picker
+blocking issue in the locale change or its use sites. File checks show
+unchanged method inventory, retained UI outcome assertions and unchanged date-picker
 source. Swift/native compilation and the repaired journey have not been run
 by this child agent. The original R13 run remains independent evidence and
 was not edited or stopped.

@@ -237,6 +237,9 @@ private struct MealNutritionDisclosureStyle: DisclosureGroupStyle {
                         .accessibilityHidden(true)
                 }
                 .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                .foregroundStyle(Color(uiColor: .label))
+                .background(Color(uiColor: .systemBackground),
+                            in: RoundedRectangle(cornerRadius: 8))
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)

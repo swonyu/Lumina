@@ -3,19 +3,57 @@
   "parent_commit": "add412734658eef9aece0ec19618841f00ecc2c9",
   "unit_methods": 62,
   "all_original_unit_methods_retained": true,
-  "UI_source_unchanged": true,
-  "UI_sha256": "7367e68fbacda4e7f38f88d0278250971b102c91e35e43a31e2b03d0acecccc7",
+  "UI_source_unchanged": false,
+  "UI_sha256": "a1b2a74f2d29d4929a4df6a604d4e2654cff5ee441e51007772e77db1e619f40",
   "production_saved_editors_unchanged": true,
   "date_pickers_retained": 4,
   "diff_check": "passed",
   "screened_text_files": 6,
   "secret_pattern_hits": [],
   "changed_product_test_sha256": {
+    "Lumina/Features/MealLogging/MealLogView.swift": "758f6641ec8db35c5b084c5af1ad099ac57b55f6e75383b5a75049f96c9578c9",
     "Lumina/LocalRecordEdits.swift": "c5f7a72e59e8c8a85087db118712332961148ab092826824b029407d3aaa03ef",
-    "Lumina/Localization/LocalizationManager.swift": "486ee1f587f1c7803a2b8c12f75c1dddcbd7ac2d927b4c8b44e9fe74298fdd1e",
+    "Lumina/Localization/LocalizationManager.swift": "783740d929cf142bdb2d0894e4a4ce21930b8baf577094d2844331a7eeff58a1",
     "LuminaTests/LocalizationIntegrityTests.swift": "d1292f8b4bfa84918df9caf396b1b81d8260d57bb892644c55ffc990508f7ae1",
-    "LuminaTests/SavedRecordIntegrityTests.swift": "175d4e888691aefaa4056714b4835a6c9904691b006371d5669890a4ef2662f4"
+    "LuminaTests/SavedRecordIntegrityTests.swift": "bec33d9c028378a17c109fccc2f6a789edf94b2d34717f6479df9bf7fffbf128",
+    "LuminaUITests/LuminaUITests.swift": "a1b2a74f2d29d4929a4df6a604d4e2654cff5ee441e51007772e77db1e619f40"
   },
   "independent_peer": "/root/github_recovery: no blocking source finding; native acceptance remains pending",
-  "test_change_explanation": "R12-only numeric expectations moved from global UI locale to dedicated numericLocale; expected Arabic numbering and separator retained. Added ordinary UI locale identifiers. Original native UI assertion is unchanged."
+  "test_change_explanation": "R12-only numeric expectations moved from global UI locale to dedicated numericLocale; expected Arabic numbering and separator retained. Added ordinary UI locale identifiers. Original native UI assertion is unchanged.",
+  "numeric_locale_followup": {
+    "preserved_checkpoint": "2b92985a23b0f87cd38ecd861e78d31a722fbcb3",
+    "observed_R13_unit_test_count": 62,
+    "observed_R13_unit_suite_count": 9,
+    "observed_failed_unit_methods": 2,
+    "observed_issues": 3,
+    "numeric_identifier_selected": "ar_SA",
+    "reason": "Existing explicit ar_SA numberText assertion passed in the R13 native run; malformed ar-u-nu-arab reported numberingSystem yes and nil separator. Only numeric helpers consume the regional locale.",
+    "assertions_retained": [
+      "Arabic numberingSystem == arab",
+      "Arabic decimalSeparator == U+066B",
+      "numberText(12.5) == 12٫5",
+      "ordinary ar/en UI locale identifiers"
+    ],
+    "native_retest": "PENDING"
+  },
+  "ui_methods": 21,
+  "all_original_UI_methods_retained": true,
+  "all_original_UI_outcome_assertions_retained": true,
+  "permitted_wait_changes": {
+    "navigation_export_Save_seconds": {
+      "old": 5,
+      "new": 30
+    },
+    "navigation_export_Cancel_seconds": {
+      "old": 5,
+      "new": 30
+    }
+  },
+  "original_UI_assertion_count": 387,
+  "current_UI_assertion_count": 390,
+  "Arabic_decimal_test_body_byte_identical": true,
+  "meal_contrast_audit_function_byte_identical": true,
+  "new_effort_menu_calls": 3,
+  "generic_leaf_helper_unchanged": true,
+  "native_retest": "NOT_RUN"
 }

@@ -1,0 +1,36 @@
+{
+  "source_commit": "add412734658eef9aece0ec19618841f00ecc2c9",
+  "run": "20261117T151948Z-6086-5a1c44498e",
+  "original_stdout_path": "/Users/saleh/Library/Caches/Publishing-Continuation-20261117-d597fc87411f/Lumina/Successor-v7-R13-d57f4cd77813/NativeRuns/20261117T151948Z-6086-5a1c44498e/steps/013-lumina-uiqa-unit-ui-tests/stdout.log",
+  "scope": "Completed R13 run: 62 unit methods executed; two failed methods and three issues. Successor native retest pending.",
+  "unit_count": 62,
+  "suite_count": 9,
+  "failed_unit_methods": 2,
+  "issue_count": 3,
+  "issues": [
+    {
+      "test": "LocalizationIntegrityTests/preferredLanguageAndSavedChoiceStayInTheirOwnPreferenceStore()",
+      "source_line": 46,
+      "expression": "AppLanguage.arabic.locale.numberingSystem.identifier",
+      "expected": "arab",
+      "actual": "yes"
+    },
+    {
+      "test": "LocalizationIntegrityTests/preferredLanguageAndSavedChoiceStayInTheirOwnPreferenceStore()",
+      "source_line": 47,
+      "expression": "AppLanguage.arabic.locale.decimalSeparator",
+      "expected": "٫",
+      "actual": null
+    },
+    {
+      "test": "SavedRecordIntegrityTests/numericDraftsRejectMalformedValuesAndPreserveSetIdentifiers()",
+      "source_line": 249,
+      "expression": "LocalRecordDraft.numberText(12.5, locale: AppLanguage.arabic.locale)",
+      "expected": "12٫5",
+      "actual": "12.5"
+    }
+  ],
+  "other_assertions_in_same_numeric_method": "No issue was recorded for the retained explicit Locale(ar_SA) 0٫25 assertion or any other numeric assertion.",
+  "repair": "Use the same native-observed ar_SA numeric locale only inside numeric helper policy; ordinary ar remains UI locale.",
+  "repaired_native_status": "NOT_RUN"
+}

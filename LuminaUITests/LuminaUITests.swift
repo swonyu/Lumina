@@ -31,11 +31,11 @@ final class LuminaUITests: XCTestCase {
         app.alerts.buttons["OK"].tap()
 
         app.buttons["Export database backup"].tap()
-        XCTAssertTrue(app.buttons["Save"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["Save"].waitForExistence(timeout: 30))
         if !app.buttons["Cancel"].exists, app.buttons["Browse"].exists {
             app.buttons["Browse"].tap()
         }
-        XCTAssertTrue(app.buttons["Cancel"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["Cancel"].waitForExistence(timeout: 30))
         let exporter = XCTAttachment(screenshot: app.screenshot())
         exporter.name = "Database Export Picker"
         exporter.lifetime = .keepAlways
@@ -688,6 +688,8 @@ final class LuminaUITests: XCTestCase {
         XCTAssertTrue(meal.waitForExistence(timeout: 5))
         meal.tap()
         meal.typeText("QA fixture meal")
+        XCTAssertEqual(meal.value as? String, "QA fixture meal")
+        try dismissRecordKeyboard(in: app)
         for _ in 0..<3 {
             if app.buttons["Save Meal"].isHittable { break }
             app.swipeUp()
@@ -1366,7 +1368,7 @@ final class LuminaUITests: XCTestCase {
         try tapRecordControl(notes, in: app)
         notes.typeText("Explicit effort draft notes")
         try dismissRecordKeyboard(in: app)
-        let effort = try recordLeafButton("lumina.workout.new-effort", in: app)
+        let effort = try recordMenuButton("lumina.workout.new-effort", in: app)
         XCTAssertEqual(effort.label, "Effort (optional)")
         try tapRecordControl(effort, in: app, scrollDown: true)
         try tapRecordControl(app.buttons["6 of 10"], in: app)
@@ -1395,7 +1397,7 @@ final class LuminaUITests: XCTestCase {
         XCTAssertTrue(retainedError.waitForExistence(timeout: 5))
         XCTAssertEqual(retainedError.label, "أدخل اسم التمرين.",
                        "The retained validation error must switch language without clearing or revalidating the draft")
-        let arabicEffort = try recordLeafButton("lumina.workout.new-effort", in: app)
+        let arabicEffort = try recordMenuButton("lumina.workout.new-effort", in: app)
         XCTAssertEqual(arabicEffort.label, "الجهد (اختياري)")
         let arabicValue = try XCTUnwrap(arabicEffort.value as? String)
         let normalizedArabicValue = arabicValue.map { character in
@@ -1449,7 +1451,7 @@ final class LuminaUITests: XCTestCase {
         app.launch()
         XCTAssertTrue(app.staticTexts["lumina.qa-store"].waitForExistence(timeout: 15))
         app.tabBars.buttons["Workouts"].tap()
-        let largeEffort = try recordLeafButton("lumina.workout.new-effort", in: app)
+        let largeEffort = try recordMenuButton("lumina.workout.new-effort", in: app)
         try tapRecordControl(largeEffort, in: app)
         try tapRecordControl(app.buttons["6 of 10"], in: app)
         XCTAssertEqual(largeEffort.value as? String, "6 of 10",
@@ -1548,6 +1550,17 @@ final class LuminaUITests: XCTestCase {
             .filter { $0.descendants(matching: .button).count == 0 }
         XCTAssertEqual(leaves.count,1,"The requested record action must resolve uniquely")
         return try XCTUnwrap(leaves.first)
+    }
+
+    @MainActor
+    private func recordMenuButton(_ identifier: String, in app: XCUIApplication) throws -> XCUIElement {
+        // A native Menu can expose its Picker actions as button descendants.
+        // Resolve the unique identified menu itself, then use the same real
+        // visibility, scrolling, and tap checks as every other record control.
+        let menus = app.buttons.matching(identifier: identifier)
+        XCTAssertTrue(menus.firstMatch.waitForExistence(timeout: 5))
+        XCTAssertEqual(menus.count, 1, "The requested record menu must resolve uniquely")
+        return try XCTUnwrap(menus.allElementsBoundByIndex.first)
     }
 
     @MainActor

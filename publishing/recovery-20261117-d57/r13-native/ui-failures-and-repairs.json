@@ -1,0 +1,155 @@
+{
+  "source_commit": "add412734658eef9aece0ec19618841f00ecc2c9",
+  "run": "20261117T151948Z-6086-5a1c44498e",
+  "terminal_status": {
+    "completed_all_selected_cases": true,
+    "unit_passed": 60,
+    "unit_total": 62,
+    "unit_failed_methods": 2,
+    "unit_issues": 3,
+    "ui_passed": 16,
+    "ui_total": 21,
+    "ui_failed": 5,
+    "total_passed": 76,
+    "total_cases": 83,
+    "accepted": false,
+    "unsigned_archive": "PASSED_REPORTED_BY_ROOT",
+    "cleanup_safe": true,
+    "finished_at": "2026-11-17T15:51:31Z",
+    "terminal_report_confirmation": "Root inspected final report; child independently inspected original UI stdout and payload evidence."
+  },
+  "original_report": "/Users/saleh/Library/Caches/Publishing-Continuation-20261117-d597fc87411f/Lumina/Successor-v7-R13-d57f4cd77813/NativeRuns/20261117T151948Z-6086-5a1c44498e/report.json",
+  "failures": [
+    {
+      "test": "testArabicDecimalDraftPersistsAcrossAppLanguagesOnEnglishDevice",
+      "actual": "SIGABRT inside UIDatePicker.setLocale while opening the saved workout",
+      "duration_seconds": 134.907,
+      "evidence": "crash-summary.json",
+      "repair": "Ordinary ar/en for UI and native date controls; numeric-only ar_SA for decimal formatting. Preserve every Arabic-decimal test assertion and all saved editors.",
+      "successor_native_result": "NOT_RUN"
+    },
+    {
+      "test": "testNavigationAndDataControlCancelPaths",
+      "actual": "Save failed to appear within five seconds; actual remote system picker host was present but blank.",
+      "source_line": 34,
+      "duration_seconds": 33.293,
+      "ax": {
+        "payload_ref": "0~wQ_g2PkIGvjDoRoUV2GPsRqOgq3GnbnDFyG9HHTZkqMOqwcRtzz0PMzC8mCmLrBUEfLiwUEao6-xzxU_IZxzJA==",
+        "decoded_bytes": 26066,
+        "sha256": "407ed9581784ffaeccc041cbcf1f10c6fded9c1dbe9f4c3744b7d2cf32a7a9d2"
+      },
+      "frame": {
+        "original_payload_ref": "0~MfYU5xjvNbjxw8lBGb0-eNvD9JqQGwbQoRz4sdJ1DYRfLhxv5upW1VoubqMqHJkMB5hBOzsVg7ijO9K3A4TRHg==",
+        "original_bytes": 18814258,
+        "original_sha256": "a6b3f5cd3a8144c0140f89ef351d00a993280134bca8a6372d3a5203d41797c0",
+        "video_duration": {
+          "format": {
+            "duration": "31.050000"
+          }
+        },
+        "frame_seek": "0.3 seconds before end",
+        "png_bytes": 37973,
+        "png_sha256": "c5407a62f9e64f07c417d1c13be9aef49ed1ddf3a569e97f0517eb97a7a91935",
+        "pixel_transforms": "none; decoded original frame PNG",
+        "preserved_private_path": "/workspace/scratch/d57f4cd77813/lumina-r14-crash-recovery/r13-ui/navigation-blank-picker.png"
+      },
+      "repair": "Use the same bounded 30-second Save/Cancel startup waits as the existing passing recovery/export journey. Keep actual Save presence, Browse traversal if needed, Cancel action, dismissal, and delete-cancel assertions.",
+      "successor_native_result": "NOT_RUN"
+    },
+    {
+      "test": "testOptionalMealNutritionDistinguishesMissingValuesFromExplicitZero",
+      "actual": "Native contrast audit named the visible nutrition disclosure heading, not Save Meal.",
+      "source_line": 1268,
+      "duration_seconds": 14.452,
+      "evidence": "nutrition-contrast-triage.json",
+      "repair": "Pair dynamic system label foreground with opaque systemBackground on the same real 44-point disclosure row. Keep visibility, text, expansion, RTL, sizing, all audit poses, and the entire audit helper unchanged.",
+      "successor_native_result": "NOT_RUN"
+    },
+    {
+      "test": "testSaveRelaunchAndDeleteOnlyIsolatedFixtureRecords",
+      "actual": "Save Meal was behind the keyboard Done bar although the button reported isHittable; no success alert followed the obscured tap.",
+      "source_line": 696,
+      "duration_seconds": 21.936,
+      "ax": {
+        "payload_ref": "0~kcSj6HaDaa16AcIGQnUQOTEhFQAPvuqYBxMS9b9zILGIbBefuw_w_HTOgcTynA7EADeh0TSbY4xQ7kHJ-s9xDQ==",
+        "decoded_bytes": 21667,
+        "sha256": "1f4c2591f29a6d9e3f38f747520456d22f080967dc3257f29b61e5fde4e1f659",
+        "save_meal_frame_points": {
+          "x": 15.8,
+          "y": 501.4,
+          "width": 370.5,
+          "height": 54.8
+        },
+        "done_button_frame_points": {
+          "x": 343.3,
+          "y": 513,
+          "width": 41.7,
+          "height": 22.3
+        }
+      },
+      "frame": {
+        "original_payload_ref": "0~YsnbBJua84XS9shu2fxkILWnC3sdd2YtdGiKiQVYXp4l8WhWgyCjCyWBpz1ogZZZzUBXyLggjg7Ms1A5RWcHDg==",
+        "original_bytes": 10021405,
+        "original_sha256": "d31976491300dd5e554f5c41ce34f4225ba4f17a0d071ddec65e22d6df1e743b",
+        "video_duration": {
+          "format": {
+            "duration": "21.458333"
+          }
+        },
+        "frame_seek": "0.3 seconds before end",
+        "png_bytes": 443758,
+        "png_sha256": "3d00aed2fae249c4ebe286872c40ca2d159da8bd0b4ca56725897d86361ee63d",
+        "pixel_transforms": "none; decoded original frame PNG",
+        "preserved_private_path": "/workspace/scratch/d57f4cd77813/lumina-r14-crash-recovery/r13-ui/save-meal-keyboard-occlusion.png"
+      },
+      "repair": "Assert the actual typed meal name, use the existing real Done action and its keyboard-dismissal assertion, then retain the original Save, success alert, relaunch count, and confirmed fixture deletion checks.",
+      "successor_native_result": "NOT_RUN"
+    },
+    {
+      "test": "testWorkoutEffortIsOptionalAndExplicitRatingSurvivesDraftLanguageAndRelaunch",
+      "actual": "The requested Menu existed, but generic leaf-button filtering excluded it because it exposed descendant actions. Assertion found zero leaves before tapping effort.",
+      "source_line": 1549,
+      "caller_line": 1369,
+      "duration_seconds": 63.439,
+      "peer": "/root/github_recovery independently read final test log and original video",
+      "video": {
+        "payload_ref": "0~UV-Iae0akA75CFGLloFOHgFDQ6_UFOLna8AUfBV0ynXWKcbeA1-3We5j0kdu9QY07ld7fhZHWN2xdJdwa4ASHA==",
+        "bytes": 49390974,
+        "duration_seconds": 59.665,
+        "frame_review_seconds": 59.3,
+        "observation": "Effort (optional) and Not recorded were visible above notes. The final frame preceded failure and is not proof of final keyboard state.",
+        "no_failure_AX_attachment": true
+      },
+      "repair": "Resolve the actual Menu uniquely by its stable identifier at all three English, Arabic, and largest-text call sites. Preserve real visibility/scroll/tap checks, actual 6-of-10 and Not-recorded actions, validation, draft language, saved values, relaunch, and accessibility-size assertions.",
+      "successor_native_result": "NOT_RUN"
+    }
+  ],
+  "test_retention": {
+    "unit_methods": 62,
+    "ui_methods": 21,
+    "original_UI_assertions": 387,
+    "current_UI_assertions": 390,
+    "all_original_outcome_assertions_retained": true,
+    "only_existing_assertion_parameter_changes": "Navigation Save/Cancel startup waits 5→30 seconds; outcome predicates unchanged",
+    "Arabic_decimal_test_body_byte_identical": true,
+    "meal_contrast_audit_function_byte_identical": true,
+    "no_model_injection": true,
+    "no_audit_filters_added": true,
+    "no_test_skips_added": true
+  },
+  "next_native_checks": {
+    "focused": {
+      "unit_cases": 62,
+      "ui_cases": 5,
+      "total": 67,
+      "scope": "FOCUSED_R13_REGRESSIONS_NOT_FULL_ACCEPTANCE"
+    },
+    "full": {
+      "unit_cases": 62,
+      "ui_cases": 21,
+      "total": 83,
+      "required_for_full_test_gate": true
+    },
+    "unsigned_production_archive": "Separate updated-source gate; historical R13 archive is not proof of successor."
+  }
+}
