@@ -15,7 +15,11 @@ enum AppLanguage: String, CaseIterable, Identifiable {
         }
     }
 
-    var locale: Locale { Locale(identifier: rawValue) }
+    var locale: Locale {
+        // A language-only Arabic locale can default to Latin numeric symbols.
+        // Select Arabic numbering explicitly without forcing a region/calendar.
+        Locale(identifier: self == .arabic ? "ar-u-nu-arab" : rawValue)
+    }
 
     var layoutDirection: LayoutDirection {
         self == .arabic ? .rightToLeft : .leftToRight

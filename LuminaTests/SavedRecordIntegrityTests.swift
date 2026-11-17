@@ -244,6 +244,10 @@ struct SavedRecordIntegrityTests {
         }
         #expect(LocalRecordDraft.numberText(0.25, locale: Locale(identifier: "en_US")) == "0.25")
         #expect(LocalRecordDraft.numberText(0.25, locale: Locale(identifier: "ar_SA")) == "0٫25")
+        // Use the actual in-app locale, not a regional surrogate. The native
+        // English-device/Arabic-app journey exposed that distinction.
+        #expect(LocalRecordDraft.numberText(12.5, locale: AppLanguage.arabic.locale) == "12٫5")
+        #expect(LocalRecordDraft.numberText(12.5, locale: AppLanguage.english.locale) == "12.5")
         #expect(LocalRecordDraft.numberText(0.25) == "0" +
             (LocalizationManager.shared.currentLanguage.locale.decimalSeparator ?? ".") + "25")
 

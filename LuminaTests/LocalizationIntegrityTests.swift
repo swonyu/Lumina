@@ -43,5 +43,8 @@ struct LocalizationIntegrityTests {
         #expect(AppLanguage.resolve(saved: "ar", preferredLanguages: ["en-US"]) == .arabic)
         #expect(AppLanguage.resolve(saved: nil, preferredLanguages: ["fr-FR", "AR_sa"]) == .arabic)
         #expect(AppLanguage.resolve(saved: "unsupported", preferredLanguages: ["fr-FR"]) == .english)
+        #expect(AppLanguage.arabic.locale.numberingSystem.identifier == "arab")
+        #expect(AppLanguage.arabic.locale.decimalSeparator == "٫")
+        #expect(AppLanguage.english.locale.decimalSeparator == ".")
     }
 }
