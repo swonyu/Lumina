@@ -1186,7 +1186,8 @@ final class LuminaUITests: XCTestCase {
     }
 
     @MainActor
-    private func mealAuditViewport(_ app: XCUIApplication) throws -> CGRect {
+    private func mealAuditViewport(_ app: XCUIApplication,
+                                   requireScrollTrack: Bool = false) throws -> CGRect {
         let scrolls = app.scrollViews.allElementsBoundByIndex
         XCTAssertEqual(scrolls.count, 1, "Meal audit requires the real form's single scroll view")
         let scroll = try XCTUnwrap(scrolls.first)
@@ -1203,6 +1204,23 @@ final class LuminaUITests: XCTestCase {
                 bottom = min(bottom, bar.frame.minY)
             }
         }
+        // This journey deliberately uses an English-region device. Its native
+        // indicator track exposes the actual scrollable safe region even when
+        // the status bar is not returned in the app's accessibility subtree.
+        let tracks = scroll.otherElements.matching(NSPredicate(format: "label BEGINSWITH %@",
+            "Vertical scroll bar")).allElementsBoundByIndex.map(\.frame).filter {
+                !$0.isEmpty && $0.height > $0.width && $0.intersects(frame)
+            }
+        if requireScrollTrack {
+            XCTAssertFalse(tracks.isEmpty, "A covered-heading reveal needs measured native scroll-track bounds")
+        }
+        if let track = tracks.first {
+            XCTAssertTrue(tracks.allSatisfy {
+                abs($0.minY - track.minY) <= 1 && abs($0.maxY - track.maxY) <= 1
+            }, "Native scroll indicators must agree on the usable vertical viewport")
+            top = max(top, track.minY)
+            bottom = min(bottom, track.maxY)
+        }
         let viewport = CGRect(x: frame.minX, y: top, width: frame.width, height: bottom - top)
         XCTAssertTrue(!viewport.isNull && !viewport.isInfinite && viewport.width > 0 && viewport.height > 0,
                       "Meal audit needs an unobscured visible viewport")
@@ -1214,9 +1232,111 @@ final class LuminaUITests: XCTestCase {
                                    viewport: CGRect) -> Bool {
         let label = app.staticTexts[expected.labelID]
         let field = app.textFields[expected.fieldID]
-        return label.exists && field.exists && field.isHittable
+        return label.exists && field.exists && label.isHittable && field.isHittable
             && !label.frame.isEmpty && !field.frame.isEmpty
             && viewport.contains(label.frame) && viewport.contains(field.frame)
+    }
+
+    @MainActor
+    private func revealMealRecentSummaryForAudit(_ app: XCUIApplication,
+                                                 preserving fields: [MealFieldExpectation],
+                                                 state: String) throws -> [XCUIElement] {
+        let scroll = try XCTUnwrap(app.scrollViews.allElementsBoundByIndex.first)
+        let headings = scroll.staticTexts.matching(NSPredicate(format: "label == %@ OR label == %@",
+            "Recent Meals", "الوجبات الأخيرة")).allElementsBoundByIndex
+        guard !headings.isEmpty else { return [] } // The initial journal has no recent meals.
+        XCTAssertEqual(headings.count, 1, "The actual recent-meals heading must be unique")
+        let heading = try XCTUnwrap(headings.first)
+        let bars = app.tabBars.allElementsBoundByIndex.filter { !$0.frame.isEmpty }
+        guard bars.contains(where: { $0.frame.intersects(heading.frame) }) else { return [] }
+
+        // R15's native crop was the floating tab bar covering this heading.
+        // Reveal the real summary, including its rows, so moving the heading
+        // cannot merely replace it with a covered row. Keep every field pair
+        // already eligible for this audit in the same measured visible region.
+        let summary = scroll.staticTexts.allElementsBoundByIndex.filter {
+            !$0.frame.isEmpty && $0.frame.minY >= heading.frame.minY
+        }
+        let targets = fields.flatMap { [app.staticTexts[$0.labelID], app.textFields[$0.fieldID]] } + summary
+        let labels = summary.map(\.label)
+        let initialViewport = try mealAuditViewport(app, requireScrollTrack: true)
+        let interior = initialViewport.insetBy(dx: 0, dy: 2)
+        func unionFrame() -> CGRect { targets.reduce(CGRect.null) { $0.union($1.frame) } }
+        func overflow(_ frame: CGRect) -> CGFloat {
+            max(0, interior.minY - frame.minY) + max(0, frame.maxY - interior.maxY)
+        }
+        let initialUnion = unionFrame()
+        var evidence = ["State: \(state)", "Summary labels: \(labels)",
+                        "Initial viewport: \(initialViewport)", "Initial union: \(initialUnion)"]
+        defer {
+            let attachment = XCTAttachment(string: evidence.joined(separator: "\n") + "\n" + app.debugDescription)
+            attachment.name = state + " — measured recent-summary reveal"
+            attachment.lifetime = .keepAlways
+            add(attachment)
+        }
+        attachRecordScreenshot(app, state + " — recent summary covered by tab bar")
+        XCTAssertFalse(app.keyboards.firstMatch.exists)
+        XCTAssertFalse(summary.isEmpty)
+        XCTAssertTrue(targets.allSatisfy { $0.exists && !$0.frame.isEmpty })
+        XCTAssertTrue(!initialUnion.isNull && !initialUnion.isInfinite && initialUnion.height > 0)
+        XCTAssertLessThanOrEqual(initialUnion.height, interior.height,
+            "The recent summary and all current field pairs must fit together; never drop audit coverage to make a pose fit")
+        XCTAssertTrue(initialUnion.minX >= interior.minX && initialUnion.maxX <= interior.maxX)
+        let step = interior.height * 0.25
+        XCTAssertGreaterThan(step, 20)
+        let budget = Int(ceil(overflow(initialUnion) / step)) + 2
+        XCTAssertTrue((1...8).contains(budget), "A reveal must have a finite geometry-derived gesture budget")
+        evidence.append("Gesture step: \(step); budget: \(budget)")
+        for gesture in 0..<budget {
+            let before = unionFrame()
+            if interior.contains(before) { break }
+            let beforeError = overflow(before)
+            let direction: CGFloat = before.maxY > interior.maxY ? -1 : 1
+            let distance = min(step, beforeError + 10)
+            let window = app.frame
+            let origin = app.coordinate(withNormalizedOffset: CGVector(dx: 0, dy: 0))
+            let startY = initialViewport.midY - direction * distance / 2
+            let endY = initialViewport.midY + direction * distance / 2
+            let controlFrames = (scroll.buttons.allElementsBoundByIndex
+                + scroll.textFields.allElementsBoundByIndex + scroll.textViews.allElementsBoundByIndex).map(\.frame)
+            let trackFrames = scroll.otherElements.matching(NSPredicate(format: "label BEGINSWITH %@",
+                "Vertical scroll bar")).allElementsBoundByIndex.map(\.frame)
+            let obstacles = (controlFrames + trackFrames).filter { !$0.isEmpty }
+            // Choose a real empty gutter from current frames, avoiding editable
+            // fields, action buttons and the native indicator on either side.
+            let x = try XCTUnwrap([initialViewport.maxX - 10, initialViewport.minX + 10].first { x in
+                let route = CGRect(x: x - 1, y: min(startY, endY), width: 2, height: distance)
+                return initialViewport.contains(route) && !obstacles.contains { $0.intersects(route) }
+            }, "The measured scroll route must avoid every actual control and indicator")
+            XCTAssertTrue(initialViewport.contains(CGPoint(x: x, y: startY))
+                && initialViewport.contains(CGPoint(x: x, y: endY)))
+            let start = origin.withOffset(CGVector(dx: x - app.frame.minX, dy: startY - app.frame.minY))
+            let end = origin.withOffset(CGVector(dx: x - app.frame.minX, dy: endY - app.frame.minY))
+            start.press(forDuration: 0.05, thenDragTo: end,
+                        withVelocity: .slow, thenHoldForDuration: 0.25)
+            let after = unionFrame()
+            let afterError = overflow(after)
+            evidence.append("Gesture \(gesture): direction=\(direction), travel=\(distance), routeX=\(x), startY=\(startY), endY=\(endY), obstacles=\(obstacles), before=\(before), after=\(after), remaining=\(afterError)")
+            XCTAssertEqual(app.frame, window)
+            XCTAssertEqual(try mealAuditViewport(app, requireScrollTrack: true), initialViewport)
+            XCTAssertEqual(summary.map(\.label), labels, "A reveal must not replace the actual summary content")
+            XCTAssertEqual(after.height, before.height, accuracy: 1, "Scrolling must not collapse or resize the form")
+            XCTAssertGreaterThan((after.minY - before.minY) * direction, 0.5,
+                                 "Every gesture must move the real content in the requested direction")
+            XCTAssertLessThan(afterError, beforeError, "Every gesture must reduce the measured occlusion")
+            XCTAssertFalse(app.keyboards.firstMatch.exists)
+        }
+        let finalViewport = try mealAuditViewport(app, requireScrollTrack: true)
+        XCTAssertTrue(interior.contains(unionFrame()), "The complete measured region must be exposed within the finite budget")
+        XCTAssertTrue(targets.allSatisfy { $0.exists && $0.isHittable && finalViewport.contains($0.frame) },
+                      "Every preserved label, field and summary row must be visible and hittable")
+        XCTAssertTrue(fields.allSatisfy { mealPairIsVisible($0, in: app, viewport: finalViewport) },
+                      "Revealing the summary cannot push an already visible field pair out of this audit")
+        for element in summary {
+            XCTAssertTrue(element.exists && element.isHittable && finalViewport.contains(element.frame),
+                          "Every recent-summary label must be fully visible above the tab bar")
+        }
+        return summary
     }
 
     @MainActor
@@ -1243,6 +1363,9 @@ final class LuminaUITests: XCTestCase {
             }
             XCTAssertTrue(mealPairIsVisible(target, in: app, viewport: viewport),
                           "Both the persistent label and actual input must be fully visible after bounded scrolling")
+            let visibleBeforeReveal = expected.filter { mealPairIsVisible($0, in: app, viewport: viewport) }
+            let revealedSummary = try revealMealRecentSummaryForAudit(app, preserving: visibleBeforeReveal, state: state)
+            viewport = try mealAuditViewport(app, requireScrollTrack: !revealedSummary.isEmpty)
             let visible = expected.filter { mealPairIsVisible($0, in: app, viewport: viewport) }
             XCTAssertTrue(visible.contains { $0.fieldID == target.fieldID })
             for item in visible {
@@ -1268,10 +1391,14 @@ final class LuminaUITests: XCTestCase {
             add(evidence)
             // Run the real complete audit. No issue handler, exclusions or synthetic result.
             try app.performAccessibilityAudit(for: .contrast)
-            let after = try mealAuditViewport(app)
+            let after = try mealAuditViewport(app, requireScrollTrack: !revealedSummary.isEmpty)
             for item in visible {
                 XCTAssertTrue(mealPairIsVisible(item, in: app, viewport: after),
                               "A field cannot receive contrast credit after leaving the visible viewport")
+            }
+            for element in revealedSummary {
+                XCTAssertTrue(element.exists && element.isHittable && after.contains(element.frame),
+                              "A summary cannot receive contrast credit after leaving the visible viewport")
             }
             attachRecordScreenshot(app, state + " — after contrast audit")
             covered.formUnion(visible.map(\.fieldID))

@@ -1,0 +1,49 @@
+{
+  "status": "SOURCE_RETENTION_AND_ORIGINAL_NATIVE_GEOMETRY_VERIFIED_NOT_NATIVE_EXECUTION",
+  "created_utc": "2026-11-17T17:23:12.907904+00:00",
+  "parent_commit": "ab8ef9533b3b0ce38960cdea790d00fd712b20cd",
+  "ui_source_sha256": "c7d5b42bde61e84d74791e3910719ddc6d4f564fa6d1198369492fdd7b4969e6",
+  "native_input_count": 120,
+  "changed_native_inputs": [
+    "LuminaUITests/LuminaUITests.swift"
+  ],
+  "all_shipping_source_bytes_unchanged": true,
+  "original_test_methods": 21,
+  "current_test_methods": 21,
+  "all_21_method_bodies_byte_identical": true,
+  "original_assertion_calls_retained": 390,
+  "current_assertion_calls": 414,
+  "assertions_removed_or_weakened": 0,
+  "other_test_and_plan_files_byte_identical": [
+    "Lumina AI personal trainer.xctestplan",
+    "LuminaTests/CoachContextIntegrityTests.swift",
+    "LuminaTests/HabitUndoIntegrityTests.swift",
+    "LuminaTests/JournalRecoveryIntegrityTests.swift",
+    "LuminaTests/LocalizationIntegrityTests.swift",
+    "LuminaTests/LuminaTests.swift",
+    "LuminaTests/OnDeviceCoachTests.swift",
+    "LuminaTests/PhotoImportIntegrityTests.swift",
+    "LuminaTests/SavedRecordIntegrityTests.swift",
+    "LuminaTests/SettingsIntegrityTests.swift",
+    "LuminaUITests/LuminaUITestsLaunchTests.swift"
+  ],
+  "unfiltered_uncaught_contrast_call_retained": true,
+  "original_AX_sha256": "7a4c5ce0cf14376bb82516a3d2985c5c71b6b734cff5112e87c7c22c692e895a",
+  "actual_geometry": {
+    "native_viewport_top": 62.0,
+    "native_viewport_bottom": 791.0,
+    "required_field_and_summary_union_top": 195.0,
+    "required_field_and_summary_union_bottom": 907.3,
+    "required_union_height": 712.3,
+    "interior_top": 64.0,
+    "interior_bottom": 789.0,
+    "permitted_upward_content_shift_min": 118.29999999999995,
+    "permitted_upward_content_shift_max": 131.0,
+    "gesture_step_cap": 181.25,
+    "finite_gesture_budget": 3,
+    "heading_initially_fully_covered_by_tab_bar": true,
+    "known_union_fits_without_dropping_fields": true
+  },
+  "native_invoked": false,
+  "scope_limit": "No compile/runtime/contrast pass inferred. Root must run the unchanged full journey; the helper fails rather than dropping fields if measured union, route or progress is invalid."
+}

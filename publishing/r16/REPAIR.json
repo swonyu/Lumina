@@ -1,0 +1,201 @@
+{
+  "schema": "lumina-r16-native-audit-pose-repair/v1",
+  "created_utc": "2026-11-17T17:23:48.538Z",
+  "parent_commit": "ab8ef9533b3b0ce38960cdea790d00fd712b20cd",
+  "revision": "R16",
+  "authorization": "Root explicitly authorized a narrow measured native-audit pose repair after the original R15 pixels and accessibility frames established tab-bar occlusion; preserve every original assertion and unfiltered audit.",
+  "change": {
+    "path": "LuminaUITests/LuminaUITests.swift",
+    "before_sha256": "a1b2a74f2d29d4929a4df6a604d4e2654cff5ee441e51007772e77db1e619f40",
+    "after_sha256": "c7d5b42bde61e84d74791e3910719ddc6d4f564fa6d1198369492fdd7b4969e6",
+    "kind": "UI-test viewport and measured pose correction only",
+    "production_files_changed": [],
+    "behavior": "When the actual recent-meals heading intersects the native tab bar, measure the union of its real summary rows and every field/label pair already visible for this audit. Require that union to fit in the real safe scroll viewport. Use bounded slow native drags along a route verified clear of controls and indicators; require unchanged viewport/content dimensions, directional progress and decreasing occlusion. Require the full region to be contained and hittable before and after the original complete contrast audit. Do not collapse nutrition, catch/retry a failed audit, filter an issue, drop a field, change a saved value or inject app state.",
+    "safe_viewport": "The native English-device vertical scroll-indicator tracks expose y62..791 in the actual R15 frame; validate agreement and intersect them with scroll/window/bar bounds. Require these native track bounds for the covered-heading reveal and its audit credit.",
+    "bounds": "Geometry-derived ceil(initialOverflow / (0.25 * interiorHeight)) + 2 gestures, with a hard maximum of8. A too-large union, blocked route, absent track, non-progress or missing target fails explicitly with attached actual geometry.",
+    "known_geometry": {
+      "union_top": 195,
+      "union_bottom": 907.3,
+      "union_height": 712.3,
+      "native_top": 62,
+      "native_bottom": 791,
+      "interior_top": 64,
+      "interior_bottom": 789,
+      "permitted_upward_content_shift": [
+        118.3,
+        131
+      ],
+      "gesture_step_cap": 181.25,
+      "gesture_budget": 3
+    }
+  },
+  "native_R15": {
+    "started": "2026-11-17T16:57:29.538644+00:00",
+    "finished": "2026-11-17T17:06:28.162111+00:00",
+    "run_id": "1fb5748549fb4874838f964fc1c0a44d",
+    "total": 67,
+    "passed": 66,
+    "failed": 1,
+    "skipped": 0,
+    "unit_passed": 62,
+    "unit_total": 62,
+    "ui_passed": 4,
+    "ui_total": 5,
+    "selection": {
+      "UI_cases": 5,
+      "scope": "FOCUSED_R13_REGRESSIONS_NOT_FULL_ACCEPTANCE",
+      "source_plan_and_all_test_methods_retained": true,
+      "unit_cases": 62
+    },
+    "source_hashes_unchanged": true,
+    "cleanup_safe": true,
+    "lock": "released",
+    "simulator_cleanup": {
+      "deleted": false,
+      "other_devices_touched": false,
+      "shutdown_verified": true,
+      "udid": "B215012E-27CD-42C1-9AE3-FCA41B37A840"
+    },
+    "production_included": false,
+    "full_83_gate": false
+  },
+  "native_R15_root": "/Users/saleh/Library/Caches/Publishing-Continuation-20261117-d597fc87411f/Lumina/Successor-v7-R15-d57f4cd77813/FocusedNativeRuns/20261117T165729Z-33951-1fb5748549",
+  "failure": {
+    "method": "LuminaUITests/testOptionalMealNutritionDistinguishesMissingValuesFromExplicitZero()",
+    "kind": "Contrast failed",
+    "line": 1270,
+    "pose": "Arabic empty nutrition prompts on English-region device",
+    "element_label": "الوجبات الأخيرة",
+    "element_meaning": "Recent meals",
+    "element_frame": {
+      "x": 147.2,
+      "y": 817,
+      "width": 107.7,
+      "height": 20.3
+    },
+    "native_tab_bar_frame": {
+      "x": 0,
+      "y": 791,
+      "width": 402,
+      "height": 83
+    },
+    "test_reported_viewport": {
+      "x": 0,
+      "y": 0,
+      "width": 402,
+      "height": 791
+    },
+    "vertical_scroll_indicator_viewport": {
+      "top": 62,
+      "bottom": 791
+    },
+    "fully_covered_by_tab_bar": true,
+    "method_duration_seconds": 76.869,
+    "audit_elapsed_seconds": 76.32
+  },
+  "evidence": {
+    "triage_path": "/workspace/scratch/d57f4cd77813/lumina-r15-contrast-triage/TRIAGE.json",
+    "triage_bytes": 7067,
+    "triage_sha256": "60b77469e66883ae1cc3cb2ea54e027e90e632721d323db9c78d01393d2aef15",
+    "artifacts": [
+      {
+        "local_file": "r15-full-original.png",
+        "native_attachment": {
+          "kind": "full",
+          "lifetime": "keepAlways",
+          "name": "App Screenshot_0_A0367011-8756-4612-9388-75B89C961215.png",
+          "payloadId": "0~oHDeF6EnHc8GkAB7UxKXP3EmHI-oPMec6dtNN3ZhMMXwZpDTtPkbUUqs1z84rtj6AyG2TbZG1CP9AdEUCbSRUw==",
+          "timestamp": 1794934972.922,
+          "userInfos": [
+            {
+              "key": "Scale",
+              "value": "3"
+            }
+          ],
+          "uuid": "CF3E15C9-D53B-4466-84C7-0F19FDEE3F5E"
+        },
+        "bytes": 812845,
+        "sha256": "f4a2aa5371a196593f6e98b6a2f54ecb315d656e788a036d8ba1c2e0d742b4cc",
+        "original_bytes_preserved": true
+      },
+      {
+        "local_file": "r15-element-original.png",
+        "native_attachment": {
+          "kind": "crop",
+          "lifetime": "keepAlways",
+          "name": "Element Screenshot_1_3B97DB49-6B8C-4913-AC7C-26B9959B2EA0.png",
+          "payloadId": "0~-I7gnebXcXoaSJkvRbNyfFwzGAw4VpPoQQtsbe-K8eeKgJ93LUMuGYyJ1zN4p88jKSZ9Fo-Sxf1lDCz6xzPEkg==",
+          "timestamp": 1794934972.922,
+          "userInfos": [
+            {
+              "key": "Scale",
+              "value": "3"
+            }
+          ],
+          "uuid": "2259449F-D2C8-4E76-981A-48D826BFA3C2"
+        },
+        "bytes": 10837,
+        "sha256": "dace12e7871c61e7f2fd4a483967ac32d0ce23b8070fda7bdb6e4975cd3e2eb2",
+        "original_bytes_preserved": true
+      },
+      {
+        "local_file": "r15-ax-original.zst",
+        "native_attachment": {
+          "kind": "ax",
+          "lifetime": "keepAlways",
+          "name": "Arabic empty nutrition prompts on English-region device — visible meal fields_0_34A3BC44-4923-4D57-9F0E-90A137A94F6F.txt",
+          "payloadId": "0~oQX3l-UikIHK5XXq8uljOAAblwwajX7CTdShb5-9lAmYo4MAr8uokm0BKWBt1i7bQvu5Dt56Meu50hf7_51CwA==",
+          "timestamp": 1794934972.512,
+          "uuid": "98C8C7A1-B25C-4196-9F3B-80C51A09B2E3"
+        },
+        "bytes": 2077,
+        "sha256": "299bf010b23b454bd9bd92c7ac552fe5216d22c4333fe44eaf6e2c5f71bf93b7",
+        "original_bytes_preserved": true
+      },
+      {
+        "local_file": "r15-ax-decoded.txt",
+        "bytes": 8612,
+        "sha256": "7a4c5ce0cf14376bb82516a3d2985c5c71b6b734cff5112e87c7c22c692e895a",
+        "derivation": "Lossless zstd decompression of original payload on cloud only"
+      }
+    ],
+    "original_full_and_crop_visually_reviewed": true,
+    "contrast_limit": "The current pixels show a heading obscured by the system tab bar, not its own readable foreground/background. No color change is justified by this failure.",
+    "root_native_only": true
+  },
+  "retention": {
+    "unit_methods": 62,
+    "ui_methods": 21,
+    "all_21_ui_journey_bodies_byte_identical_to_R15": true,
+    "original_ui_assertion_calls": 390,
+    "current_ui_assertion_calls": 414,
+    "assertions_removed_or_weakened": 0,
+    "other_11_test_or_plan_files_byte_identical": true,
+    "unfiltered_uncaught_contrast_calls_unchanged": true,
+    "production_native_inputs_byte_identical_to_R15": true,
+    "source_retention_and_geometry_receipt": "publishing/r16/SOURCE-RETENTION-AND-GEOMETRY.json",
+    "source_retention_and_geometry_sha256": "eaa3ace0530ceac2a5776f92257c7969fe3bcf696b1af526460e3faa9cedc2f2",
+    "focused_cases": 67,
+    "full_cases": 83
+  },
+  "peer_review": {
+    "reviewer": "/root/halaltag_recovery",
+    "reviewed_ui_sha256": "c7d5b42bde61e84d74791e3910719ddc6d4f564fa6d1198369492fdd7b4969e6",
+    "result": "No remaining concrete source or Swift API issue found. Both identified gaps were fixed: native track-derived safe viewport plus label hittability, and a full measured route excluding controls/indicator frames. Actual scroll kinetics and larger Dynamic Type union fit remain native acceptance, with explicit failure instead of hidden coverage.",
+    "tests_or_native_executed_by_peer": false
+  },
+  "verification": {
+    "git_diff_check": "PASS",
+    "source_retention_and_original_geometry": "PASS; file-only analysis, no runtime claim",
+    "native_invoked": false,
+    "push_invoked": false,
+    "full_native_gate": false,
+    "required_next": [
+      "Root-owned focused67 regression run with the entire existing meal journey",
+      "Root-owned full83 gate and current-source unsigned production archive",
+      "Separate signing/store/release gates"
+    ]
+  },
+  "deadline_utc": "2026-11-18T22:26:12Z",
+  "deadline_reason": "User explicitly extended the original cutoff by24hours; original start and prior effort are retained."
+}
