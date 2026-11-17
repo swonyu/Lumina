@@ -842,6 +842,56 @@ final class LuminaUITests: XCTestCase {
     }
 
     @MainActor
+    func testHomeShortcutsReuseTabsAndRetainUnsavedRecords() throws {
+        let app = launchQAApplication()
+        app.tabBars.buttons["Workouts"].tap()
+        let workout = app.textFields["lumina.workout.new-name"]
+        try tapRecordControl(workout, in: app)
+        workout.typeText("Shared workout draft")
+        try dismissRecordKeyboard(in: app)
+        app.tabBars.buttons["Home"].tap()
+        try openRecordHomeLink("Log workout", in: app)
+        XCTAssertTrue(app.tabBars.buttons["Workouts"].isSelected,
+                      "The Home shortcut must select the existing tab rather than push a second form")
+        XCTAssertEqual(workout.value as? String, "Shared workout draft")
+
+        app.tabBars.buttons["Home"].tap()
+        try openRecordHomeLink("Log meal", in: app)
+        XCTAssertTrue(app.tabBars.buttons["Nutrition"].isSelected)
+        let meal = app.textFields["lumina.meal.new-name"]
+        try tapRecordControl(meal, in: app)
+        meal.typeText("Shared meal draft")
+        try dismissRecordKeyboard(in: app)
+        app.tabBars.buttons["Home"].tap()
+        try openRecordHomeLink("Log meal", in: app)
+        XCTAssertTrue(app.tabBars.buttons["Nutrition"].isSelected)
+        XCTAssertEqual(meal.value as? String, "Shared meal draft")
+
+        app.tabBars.buttons["Home"].tap()
+        try openRecordHomeLink("Offline coach", in: app)
+        XCTAssertTrue(app.tabBars.buttons["Coach"].isSelected)
+        XCTAssertTrue(app.textFields["lumina.coach.message"].waitForExistence(timeout: 5))
+        app.tabBars.buttons["Home"].tap()
+        try openRecordHomeLink("Progress photos", in: app)
+        XCTAssertTrue(app.tabBars.buttons["Progress"].isSelected)
+        XCTAssertTrue(app.staticTexts["lumina.progress.empty"].waitForExistence(timeout: 5))
+
+        app.tabBars.buttons["Home"].tap()
+        try tapRecordControl(app.buttons["lumina.settings"], in: app)
+        try selectAppLanguage("العربية", in: app)
+        app.navigationBars["الإعدادات"].buttons["Lumina"].tap()
+        XCTAssertTrue(app.navigationBars["Lumina"].waitForExistence(timeout: 5))
+        try tapRecordControl(app.buttons["تسجيل تمرين"], in: app, scrollDown: true)
+        XCTAssertTrue(app.tabBars.buttons["التمارين"].isSelected)
+        XCTAssertEqual(workout.value as? String, "Shared workout draft")
+        app.tabBars.buttons["الرئيسية"].tap()
+        try openRecordHomeLink("تسجيل وجبة", in: app)
+        XCTAssertTrue(app.tabBars.buttons["التغذية"].isSelected)
+        XCTAssertEqual(meal.value as? String, "Shared meal draft")
+        attachRecordScreenshot(app, "Arabic Home shortcut retains the existing meal draft")
+    }
+
+    @MainActor
     private func openHabits(in app: XCUIApplication) {
         let habits = app.buttons["Habits"]
         XCTAssertTrue(habits.waitForExistence(timeout: 5))

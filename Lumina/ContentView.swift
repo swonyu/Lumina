@@ -10,7 +10,7 @@ struct ContentView: View {
         // Show the main UI as early as possible for fast perceived launch.
         // The old full black loading state has been removed so it no longer feels "stuck".
         TabView(selection: $selectedTab) {
-            ModernHomeView()
+            ModernHomeView(selectedTab: $selectedTab)
                 .tabItem { Label(L("tab.home"), systemImage: "house.fill") }
                 .tag(0)
             WorkoutLogView()

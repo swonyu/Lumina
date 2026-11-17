@@ -1,0 +1,40 @@
+{
+  "base": "After numeric/photo and optional-records source slice; exact before pins supplied",
+  "source_files": [
+    {
+      "path": "Lumina/ContentView.swift",
+      "before_sha256": "33979ccdffce9a594d55c67231a9b9c5c8664ce2c0bbb18cbb5298c7ddf45462",
+      "after_sha256": "4c3417b6ac1baa31b19009452fa55fee0b1ed1812f097eede8f112122a95a0fd"
+    },
+    {
+      "path": "Lumina/ModernHomeView.swift",
+      "before_sha256": "65556300c372c896aafd0a3b0029653d261205ff1cfb7f1eaf7e84d601dfd5da",
+      "after_sha256": "6c13eba2a3480739576fa6940b38a20eb1fc8285a856584df1a9812f99fe1edf"
+    },
+    {
+      "path": "Lumina AI personal trainer.xctestplan",
+      "before_sha256": "f2af7c7059c2ac1b34e681865dae90f3ed0dcd509b44e2034f79349ba0f17946",
+      "after_sha256": "e3758fdd8f88272ca88222fa6a77be7215a8166a1e0df4c40f8deeab715ba7c5"
+    },
+    {
+      "path": "LuminaUITests/LuminaUITests.swift",
+      "before_sha256": "ac2edd3f656c3e566f6485f81f0c38c8ae8bb02c273bfea21f7575424c66311a",
+      "after_sha256": "b440ae429b42fd7b74b8685ba1e11bc617e372b5bd1e08e9d9ed7ba4f99b4f7f"
+    }
+  ],
+  "patch_sha256": "6e4640563a68ab79be9dfe318fc73ae86eb7a12b81f77b4d848313e9e0c23c8b",
+  "prior20_ui_methods_byte_identical": true,
+  "old_ui_assertions": 337,
+  "new_ui_assertions": 351,
+  "test_inventory": {
+    "unit": 61,
+    "ui": 21,
+    "total": 82
+  },
+  "scope": "Four Home shortcuts bind to the existing TabView selection. Existing navigation destinations, Home20-leaf audit, tab count and stored data unchanged.",
+  "native_run": false,
+  "pending": [
+    "Actual English/Arabic Home routing and retained-draft UI case",
+    "Full original contrast audit and native accessibility"
+  ]
+}

@@ -38,7 +38,8 @@
         "LuminaUITests/testRecoveryPreviewFixtureConfirmationReopenAndPickerCancelPaths()",
         "LuminaUITests/testWorkoutEffortIsOptionalAndExplicitRatingSurvivesDraftLanguageAndRelaunch()",
         "LuminaUITests/testArabicDecimalDraftPersistsAcrossAppLanguagesOnEnglishDevice()",
-        "LuminaUITests/testOptionalMealNutritionDistinguishesMissingValuesFromExplicitZero()"
+        "LuminaUITests/testOptionalMealNutritionDistinguishesMissingValuesFromExplicitZero()",
+        "LuminaUITests/testHomeShortcutsReuseTabsAndRetainUnsavedRecords()"
       ],
       "target": {
         "containerPath": "container:Lumina.xcodeproj",

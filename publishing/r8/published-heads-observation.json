@@ -1,0 +1,11 @@
+{
+  "recorded_at_utc": "2026-11-17T11:43:56.910486+00:00",
+  "source": "Fresh completed git ls-remote --heads origin in this turn",
+  "heads": {
+    "refs/heads/app-store/lumina-release-fixes-20261116": "6335146222ec167e3dd0850ca7c6054121e516ec",
+    "refs/heads/docs/lumina-support-20261117": "e6e3a84eaa277e04fb6a71c921bbb07cacdbc118",
+    "refs/heads/main": "d7d48ddca09fb2676202665c86d55a9678e3f33f"
+  },
+  "all_ancestors": true,
+  "changes_since_r7": false
+}

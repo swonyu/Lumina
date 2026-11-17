@@ -2,6 +2,7 @@ import SwiftUI
 import SwiftData
 
 struct ModernHomeView: View {
+    @Binding var selectedTab: Int
     @Environment(LuminaViewModel.self) private var viewModel
     @Query(sort: \DailyCheckIn.date, order: .reverse) private var checkIns: [DailyCheckIn]
     @Query(sort: \WorkoutLog.date, order: .reverse) private var workouts: [WorkoutLog]
@@ -37,11 +38,11 @@ struct ModernHomeView: View {
                     }
                     GroupBox(L("Log and review")) {
                         VStack(alignment: .leading, spacing: 8) {
-                            NavigationLink(L("Log workout")) { WorkoutLogView() }
-                            NavigationLink(L("Log meal")) { MealLogView() }
+                            Button(L("Log workout")) { selectedTab = 1 }
+                            Button(L("Log meal")) { selectedTab = 2 }
                             NavigationLink(L("Daily check-in")) { DailyCheckInView() }
-                            NavigationLink(L("Offline coach")) { RealAIChatView() }
-                            NavigationLink(L("Progress photos")) { ProgressPhotosView() }
+                            Button(L("Offline coach")) { selectedTab = 3 }
+                            Button(L("Progress photos")) { selectedTab = 4 }
                             NavigationLink(L("Habits")) { HabitTrackerView() }
                             NavigationLink(L("Goals")) { GoalsView() }
                             NavigationLink(L("Journal")) { JournalView() }
