@@ -203,12 +203,14 @@ struct OnDeviceCoachTests {
                 let generator = SafetyBoundaryGenerator(); generator.state = state
                 let response = try await OnDeviceCoach(generator: generator).reply(to: question,
                     context: context(), locale: Locale(identifier: language))
-                #expect(response.source == .appNotice)
-                #expect(response.text.contains(conditional))
+                #expect(response.source == .appNotice,
+                        "Safety fixture: language=\(language), availability=\(String(describing: state)), question=\(question)")
+                #expect(response.text.contains(conditional),
+                        "Safety fixture: language=\(language), availability=\(String(describing: state)), question=\(question)")
                 #expect(!response.text.contains("7/10") && !response.text.contains("aim for clean reps"))
                 #expect(!response.text.contains("اختر تمريناً بسيطاً"))
                 #expect(generator.availabilityReads == 0 && generator.requests.isEmpty,
-                        "Recognized medical requests must be handled before model selection or inference")
+                        "Recognized medical requests must be handled before model selection or inference; language=\(language), availability=\(String(describing: state)), question=\(question)")
             }
         }
     }

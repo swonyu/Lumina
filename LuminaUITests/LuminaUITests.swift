@@ -1303,6 +1303,10 @@ final class LuminaUITests: XCTestCase {
         let viewport = CGRect(x: frame.minX, y: top, width: frame.width, height: bottom - top)
         XCTAssertTrue(!viewport.isNull && !viewport.isInfinite && viewport.width > 0 && viewport.height > 0,
                       "Meal audit needs an unobscured visible viewport")
+        XCTAssertGreaterThanOrEqual(scroll.frame.minY, viewport.minY - 0.000001,
+            "The actual meal scroll container must begin inside the measured safe viewport")
+        XCTAssertLessThanOrEqual(scroll.frame.maxY, viewport.maxY + 0.000001,
+            "The actual meal scroll container must end above the native tab bar")
         return viewport
     }
 
@@ -2045,7 +2049,7 @@ final class LuminaUITests: XCTestCase {
         let send = app.buttons["lumina.coach.send"]
         XCTAssertTrue(send.isHittable && send.isEnabled)
         send.tap()
-        let arabicReply = app.staticTexts["اختر تمريناً بسيطاً يناسب طاقتك اليوم، وركّز على الحركة المتحكم بها. يمكنك تسجيل ما فعلته وكيف شعرت لمراجعته لاحقاً."]
+        let arabicReply = app.staticTexts["يمكنك مراجعة سجلاتك في التمارين وتسجيل تمرين أكملته بالفعل. أدخل المجموعات والتكرارات والأوزان التي تعرفها، واترك القيم غير المعروفة فارغة. لا يحدد هذا الرد المحلي ما إذا كان عليك التمرين أو شدة تدريبك."]
         XCTAssertTrue(arabicReply.waitForExistence(timeout: 10),
                       "The existing UI-QA fallback must use the selected Arabic language")
         XCTAssertTrue(app.staticTexts["إرشاد دون اتصال · قواعد محلية"].exists)

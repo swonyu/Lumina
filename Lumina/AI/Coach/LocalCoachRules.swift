@@ -69,7 +69,7 @@ enum LocalCoachRules {
     /// admitted model question (<=1600 UTF-8 bytes). A longer unmatched question
     /// receives only neutral journal help; no exercise/diet advice is a fallback.
     private static func routingText(_ message: String) -> String {
-        CoachModelRequest.prefix(message, maximumUTF8Bytes: 16_384)
+        let folded = CoachModelRequest.prefix(message, maximumUTF8Bytes: 16_384)
             .folding(options: [.caseInsensitive, .diacriticInsensitive], locale: Locale(identifier: "en_US_POSIX"))
             .replacingOccurrences(of: "أ", with: "ا")
             .replacingOccurrences(of: "إ", with: "ا")
@@ -77,6 +77,14 @@ enum LocalCoachRules {
             .replacingOccurrences(of: "ى", with: "ي")
             .replacingOccurrences(of: "ة", with: "ه")
             .replacingOccurrences(of: "ـ", with: "")
+
+        // Foundation folding preserves Arabic harakat on the supported Apple
+        // runtime. Remove only these vowel/gemination marks from this bounded
+        // routing copy; keep the original question and token boundaries intact.
+        let routingScalars = folded.unicodeScalars.filter {
+            !(0x064B...0x0652).contains($0.value)
+        }
+        return String(String.UnicodeScalarView(routingScalars))
     }
 
     private static func arabicReply(to message: String, context: CoachContext) -> String {

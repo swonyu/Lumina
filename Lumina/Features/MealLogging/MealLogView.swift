@@ -23,143 +23,147 @@ struct MealLogView: View {
         // Capture display state, without relaxing photoImport isolation.
         let hasSelectedPhoto = photoImport.data != nil
         let photoPickerTitle = L(hasSelectedPhoto ? "Photo selected (tap to change)" : "Add meal photo (optional)")
-        ScrollView {
-            VStack(spacing: 20) {
-                Text(L("meal.log_title"))
-                    .font(.largeTitle.bold())
-                Button(L("View all saved meals")) { showingHistory = true }
-                    .accessibilityIdentifier("lumina.meal.history")
-                
-                GlassCard {
-                    VStack(alignment: .leading, spacing: 6) {
-                        mealFieldLabel("meal.what_did_you_eat", identifier: "lumina.meal.new-name-label")
-                        TextField(L("meal.what_did_you_eat"), text: $mealName,
-                                  prompt: Text(L("Meal name")).foregroundColor(Color(uiColor: .label)))
-                            .focused($focusedField, equals: .name)
-                            .submitLabel(.done)
-                            .onSubmit { focusedField = nil }
-                            .modifier(MealEntryFieldAppearance())
-                            .accessibilityLabel(L("meal.what_did_you_eat"))
-                            .accessibilityIdentifier("lumina.meal.new-name")
-                    }
-                    DisclosureGroup(L("Your nutrition entries (optional)"), isExpanded: $showingNutrition) {
-                        VStack(alignment: .leading, spacing: 12) {
-                            VStack(alignment: .leading, spacing: 6) {
-                                mealFieldLabel("Calories", identifier: "lumina.meal.new-calories-label")
-                                TextField(L("Calories"), text: $calories,
-                                          prompt: Text(L("Not recorded")).foregroundColor(Color(uiColor: .label)))
-                                    .keyboardType(.decimalPad)
-                                    .focused($focusedField, equals: .calories)
-                                    .modifier(MealEntryFieldAppearance())
-                                    .accessibilityLabel(L("Calories"))
-                                    .accessibilityIdentifier("lumina.meal.new-calories")
+        GeometryReader { geometry in
+            ScrollView {
+                VStack(spacing: 20) {
+                    Text(L("meal.log_title"))
+                        .font(.largeTitle.bold())
+                    Button(L("View all saved meals")) { showingHistory = true }
+                        .accessibilityIdentifier("lumina.meal.history")
+
+                    GlassCard {
+                        VStack(alignment: .leading, spacing: 6) {
+                            mealFieldLabel("meal.what_did_you_eat", identifier: "lumina.meal.new-name-label")
+                            TextField(L("meal.what_did_you_eat"), text: $mealName,
+                                      prompt: Text(L("Meal name")).foregroundColor(Color(uiColor: .label)))
+                                .focused($focusedField, equals: .name)
+                                .submitLabel(.done)
+                                .onSubmit { focusedField = nil }
+                                .modifier(MealEntryFieldAppearance())
+                                .accessibilityLabel(L("meal.what_did_you_eat"))
+                                .accessibilityIdentifier("lumina.meal.new-name")
+                        }
+                        DisclosureGroup(L("Your nutrition entries (optional)"), isExpanded: $showingNutrition) {
+                            VStack(alignment: .leading, spacing: 12) {
+                                VStack(alignment: .leading, spacing: 6) {
+                                    mealFieldLabel("Calories", identifier: "lumina.meal.new-calories-label")
+                                    TextField(L("Calories"), text: $calories,
+                                              prompt: Text(L("Not recorded")).foregroundColor(Color(uiColor: .label)))
+                                        .keyboardType(.decimalPad)
+                                        .focused($focusedField, equals: .calories)
+                                        .modifier(MealEntryFieldAppearance())
+                                        .accessibilityLabel(L("Calories"))
+                                        .accessibilityIdentifier("lumina.meal.new-calories")
+                                }
+                                VStack(alignment: .leading, spacing: 6) {
+                                    mealFieldLabel("Protein in grams", identifier: "lumina.meal.new-protein-label")
+                                    TextField(L("Protein in grams"), text: $protein,
+                                              prompt: Text(L("Not recorded")).foregroundColor(Color(uiColor: .label)))
+                                        .keyboardType(.decimalPad)
+                                        .focused($focusedField, equals: .protein)
+                                        .modifier(MealEntryFieldAppearance())
+                                        .accessibilityLabel(L("Protein in grams"))
+                                        .accessibilityIdentifier("lumina.meal.new-protein")
+                                }
+                                Text(L("Leave a field empty if it was not recorded. These are your entries; Lumina does not estimate them from the photo."))
+                                    .font(.caption)
+                                    .foregroundStyle(Color(uiColor: .label))
+                                    .fixedSize(horizontal: false, vertical: true)
+                                    .padding(8)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .background(Color(uiColor: .systemBackground),
+                                                in: RoundedRectangle(cornerRadius: 8))
                             }
-                            VStack(alignment: .leading, spacing: 6) {
-                                mealFieldLabel("Protein in grams", identifier: "lumina.meal.new-protein-label")
-                                TextField(L("Protein in grams"), text: $protein,
-                                          prompt: Text(L("Not recorded")).foregroundColor(Color(uiColor: .label)))
-                                    .keyboardType(.decimalPad)
-                                    .focused($focusedField, equals: .protein)
-                                    .modifier(MealEntryFieldAppearance())
-                                    .accessibilityLabel(L("Protein in grams"))
-                                    .accessibilityIdentifier("lumina.meal.new-protein")
+                            .padding(.top, 8)
+                        }
+                        .disclosureGroupStyle(MealNutritionDisclosureStyle())
+
+                        // Round 37: Meal photo logging with AI coach feedback
+                        PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
+                            HStack {
+                                Image(systemName: hasSelectedPhoto ? "photo.fill" : "photo")
+                                Text(photoPickerTitle)
                             }
-                            Text(L("Leave a field empty if it was not recorded. These are your entries; Lumina does not estimate them from the photo."))
-                                .font(.caption)
-                                .foregroundStyle(Color(uiColor: .label))
-                                .fixedSize(horizontal: false, vertical: true)
-                                .padding(8)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .background(Color(uiColor: .systemBackground),
-                                            in: RoundedRectangle(cornerRadius: 8))
+                            .frame(maxWidth: .infinity)
+                            .padding(8)
+                            .background(.white.opacity(0.1))
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
                         }
-                        .padding(.top, 8)
-                    }
-                    .disclosureGroupStyle(MealNutritionDisclosureStyle())
-                    
-                    // Round 37: Meal photo logging with AI coach feedback
-                    PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
-                        HStack {
-                            Image(systemName: hasSelectedPhoto ? "photo.fill" : "photo")
-                            Text(photoPickerTitle)
+                        .onChange(of: selectedPhotoItem) { _, newItem in
+                            guard let newItem else {
+                                photoImport.clear()
+                                return
+                            }
+                            let generation = viewModel.dataRevision
+                            photoImport.load(using: { try await newItem.loadTransferable(type: Data.self) },
+                                isCurrentSession: { generation == 0 && viewModel.dataRevision == generation })
                         }
-                        .frame(maxWidth: .infinity)
-                        .padding(8)
-                        .background(.white.opacity(0.1))
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                    }
-                    .onChange(of: selectedPhotoItem) { _, newItem in
-                        guard let newItem else {
-                            photoImport.clear()
-                            return
+
+                        if photoImport.isLoading {
+                            ProgressView(L("Loading selected photo…"))
                         }
-                        let generation = viewModel.dataRevision
-                        photoImport.load(using: { try await newItem.loadTransferable(type: Data.self) },
-                            isCurrentSession: { generation == 0 && viewModel.dataRevision == generation })
+                        if let error = photoImport.errorMessage {
+                            Text(L(error)).foregroundStyle(.primary)
+                                .accessibilityIdentifier("lumina.meal.photo-error")
+                        }
+                        if selectedPhotoItem != nil {
+                            Button(L("Remove selected photo")) {
+                                selectedPhotoItem = nil
+                                photoImport.clear()
+                            }
+                        }
+
+                        if let data = photoImport.data, let uiImage = UIImage(data: data) {
+                            Image(uiImage: uiImage)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(height: 120)
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                        }
                     }
 
-                    if photoImport.isLoading {
-                        ProgressView(L("Loading selected photo…"))
-                    }
-                    if let error = photoImport.errorMessage {
-                        Text(L(error)).foregroundStyle(.primary)
-                            .accessibilityIdentifier("lumina.meal.photo-error")
-                    }
-                    if selectedPhotoItem != nil {
-                        Button(L("Remove selected photo")) {
-                            selectedPhotoItem = nil
-                            photoImport.clear()
-                        }
-                    }
-                    
-                    if let data = photoImport.data, let uiImage = UIImage(data: data) {
-                        Image(uiImage: uiImage)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(height: 120)
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
-                    }
-                }
-                
-                GlassButton(title: L("meal.save_button"), isProminent: true, action: {
-                    saveMeal()
-                })
-                .accessibilityIdentifier("lumina.meal.new-save")
-                .disabled(photoImport.isLoading || (selectedPhotoItem != nil && photoImport.data == nil))
-                
-                if recentMeals.isEmpty {
-                    Text(L("meal.empty_state"))
-                        .font(.caption)
-                        .foregroundStyle(.white.opacity(0.6))
-                        .padding(.top, 4)
-                } else {
-                    GlassCard {
-                        Text(L("meal.recent_label"))
-                            .font(.headline)
-                        ForEach(recentMeals.prefix(3)) { meal in
-                            HStack {
-                                Text(meal.mealName)
-                                Spacer()
-                                if let cals = meal.calories {
-                                    Text(L("%@ cal", LocalRecordDraft.numberText(cals)))
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
+                    GlassButton(title: L("meal.save_button"), isProminent: true, action: {
+                        saveMeal()
+                    })
+                    .accessibilityIdentifier("lumina.meal.new-save")
+                    .disabled(photoImport.isLoading || (selectedPhotoItem != nil && photoImport.data == nil))
+
+                    if recentMeals.isEmpty {
+                        Text(L("meal.empty_state"))
+                            .font(.caption)
+                            .foregroundStyle(.white.opacity(0.6))
+                            .padding(.top, 4)
+                    } else {
+                        GlassCard {
+                            Text(L("meal.recent_label"))
+                                .font(.headline)
+                            ForEach(recentMeals.prefix(3)) { meal in
+                                HStack {
+                                    Text(meal.mealName)
+                                    Spacer()
+                                    if let cals = meal.calories {
+                                        Text(L("%@ cal", LocalRecordDraft.numberText(cals)))
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                    }
+                                    if meal.photoData != nil {
+                                        Image(systemName: "photo")
+                                            .font(.caption)
+                                    }
                                 }
-                                if meal.photoData != nil {
-                                    Image(systemName: "photo")
-                                        .font(.caption)
-                                }
+                                .font(.subheadline)
                             }
-                            .font(.subheadline)
                         }
                     }
                 }
+                .padding()
             }
-            .padding()
+            .scrollDismissesKeyboard(.interactively)
+            .frame(width: geometry.size.width, height: geometry.size.height)
+            .clipped()
         }
         .glassBackground()
         .navigationTitle(L("tab.nutrition"))
-        .scrollDismissesKeyboard(.interactively)
         .keyboardDismissalBar(isFocused: focusedField != nil) {
             focusedField = nil
         }
