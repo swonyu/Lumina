@@ -1261,13 +1261,33 @@ final class LuminaUITests: XCTestCase {
         let labels = summary.map(\.label)
         let initialViewport = try mealAuditViewport(app, requireScrollTrack: true)
         let interior = initialViewport.insetBy(dx: 0, dy: 2)
+        let physicalWindow = app.frame
+        let titles = scroll.staticTexts.matching(NSPredicate(format: "label == %@ OR label == %@",
+            "Log Meal", "تسجيل وجبة")).allElementsBoundByIndex
+        XCTAssertEqual(titles.count, 1, "The real meal heading must remain present and unique")
+        let title = try XCTUnwrap(titles.first)
+        let originalTitle = title.label
+        let originalTitleSize = title.frame.size
         func unionFrame() -> CGRect { targets.reduce(CGRect.null) { $0.union($1.frame) } }
         func overflow(_ frame: CGRect) -> CGFloat {
             max(0, interior.minY - frame.minY) + max(0, frame.maxY - interior.maxY)
         }
+        func titleClearance() -> CGFloat {
+            let frame = title.frame
+            XCTAssertTrue(title.exists && !frame.isEmpty && !frame.isNull && !frame.isInfinite,
+                          "Scrolling must retain the actual heading and its measured frame")
+            // R17 left only 0.4pt of this heading inside the physical screen.
+            // Audit a real readable heading or a scroll position where it is
+            // fully offscreen, never its clipped pixels. No AX element is hidden.
+            if interior.contains(frame) || frame.maxY <= physicalWindow.minY - 2 + 0.000001 { return 0 }
+            XCTAssertLessThanOrEqual(frame.maxY, interior.minY,
+                "A title clearance must concern the heading already above the audited safe viewport")
+            return max(0, frame.maxY - physicalWindow.minY + 2)
+        }
         let initialUnion = unionFrame()
         var evidence = ["State: \(state)", "Summary labels: \(labels)",
-                        "Initial viewport: \(initialViewport)", "Initial union: \(initialUnion)"]
+                        "Initial viewport: \(initialViewport)", "Initial union: \(initialUnion)",
+                        "Physical window: \(physicalWindow)", "Initial heading: \(title.frame)"]
         defer {
             let attachment = XCTAttachment(string: evidence.joined(separator: "\n") + "\n" + app.debugDescription)
             attachment.name = state + " — measured recent-summary reveal"
@@ -1284,14 +1304,19 @@ final class LuminaUITests: XCTestCase {
         XCTAssertTrue(initialUnion.minX >= interior.minX && initialUnion.maxX <= interior.maxX)
         let step = interior.height * 0.25
         XCTAssertGreaterThan(step, 20)
-        let budget = Int(ceil(overflow(initialUnion) / step)) + 2
+        let budget = Int(ceil((overflow(initialUnion) + titleClearance()) / step)) + 2
         XCTAssertTrue((1...8).contains(budget), "A reveal must have a finite geometry-derived gesture budget")
         evidence.append("Gesture step: \(step); budget: \(budget)")
         for gesture in 0..<budget {
             let before = unionFrame()
-            if interior.contains(before) { break }
-            let beforeError = overflow(before)
-            let direction: CGFloat = before.maxY > interior.maxY ? -1 : 1
+            let beforeClearance = titleClearance()
+            if interior.contains(before) && beforeClearance == 0 { break }
+            if beforeClearance > 0 {
+                XCTAssertGreaterThanOrEqual(before.minY - beforeClearance, interior.minY,
+                    "Clearing a clipped heading cannot push any preserved field or summary out of this audit")
+            }
+            let beforeError = overflow(before) + beforeClearance
+            let direction: CGFloat = before.maxY > interior.maxY || beforeClearance > 0 ? -1 : 1
             let distance = min(step, beforeError + 10)
             let window = app.frame
             let origin = app.coordinate(withNormalizedOffset: CGVector(dx: 0, dy: 0))
@@ -1315,8 +1340,9 @@ final class LuminaUITests: XCTestCase {
             start.press(forDuration: 0.05, thenDragTo: end,
                         withVelocity: .slow, thenHoldForDuration: 0.25)
             let after = unionFrame()
-            let afterError = overflow(after)
-            evidence.append("Gesture \(gesture): direction=\(direction), travel=\(distance), routeX=\(x), startY=\(startY), endY=\(endY), obstacles=\(obstacles), before=\(before), after=\(after), remaining=\(afterError)")
+            let afterClearance = titleClearance()
+            let afterError = overflow(after) + afterClearance
+            evidence.append("Gesture \(gesture): direction=\(direction), travel=\(distance), routeX=\(x), startY=\(startY), endY=\(endY), obstacles=\(obstacles), before=\(before), after=\(after), heading=\(title.frame), headingClearance=\(afterClearance), remaining=\(afterError)")
             XCTAssertEqual(app.frame, window)
             let currentViewport = try mealAuditViewport(app, requireScrollTrack: true)
             // AX reports can differ by floating-point roundoff after a gesture.
@@ -1334,6 +1360,9 @@ final class LuminaUITests: XCTestCase {
                                "Scrolling must preserve the measured viewport \(name)")
             }
             XCTAssertEqual(summary.map(\.label), labels, "A reveal must not replace the actual summary content")
+            XCTAssertEqual(title.label, originalTitle, "A pose must not replace the actual heading text")
+            XCTAssertEqual(title.frame.width, originalTitleSize.width, accuracy: 1)
+            XCTAssertEqual(title.frame.height, originalTitleSize.height, accuracy: 1)
             XCTAssertEqual(after.height, before.height, accuracy: 1, "Scrolling must not collapse or resize the form")
             XCTAssertGreaterThan((after.minY - before.minY) * direction, 0.5,
                                  "Every gesture must move the real content in the requested direction")
@@ -1342,6 +1371,7 @@ final class LuminaUITests: XCTestCase {
         }
         let finalViewport = try mealAuditViewport(app, requireScrollTrack: true)
         XCTAssertTrue(interior.contains(unionFrame()), "The complete measured region must be exposed within the finite budget")
+        XCTAssertEqual(titleClearance(), 0, "The real heading must be fully readable or fully outside the physical screen")
         XCTAssertTrue(targets.allSatisfy { $0.exists && $0.isHittable && finalViewport.contains($0.frame) },
                       "Every preserved label, field and summary row must be visible and hittable")
         XCTAssertTrue(fields.allSatisfy { mealPairIsVisible($0, in: app, viewport: finalViewport) },

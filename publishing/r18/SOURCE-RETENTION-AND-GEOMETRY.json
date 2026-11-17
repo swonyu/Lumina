@@ -1,0 +1,64 @@
+{
+  "status": "SOURCE_RETENTION_AND_ORIGINAL_R17_GEOMETRY_VERIFIED_NOT_NATIVE_EXECUTION",
+  "created_utc": "2026-11-17T18:55:24.061324+00:00",
+  "parent_commit": "fd381f3d2e09cc3a2ec324c40671deeb23abb5c9",
+  "ui_source_sha256": "23a62aa147bb41c61a66613bc161972e5f4b4f775caaa61eeb136829ef10dc34",
+  "native_input_count": 120,
+  "changed_native_inputs": [
+    "LuminaUITests/LuminaUITests.swift"
+  ],
+  "all_shipping_source_bytes_unchanged": true,
+  "original_test_methods": 21,
+  "current_test_methods": 21,
+  "all_21_method_bodies_byte_identical": true,
+  "original_assertion_calls_retained": 415,
+  "original_R15_assertion_calls_retained": 390,
+  "current_assertion_calls": 423,
+  "assertions_removed_or_weakened": 0,
+  "other_test_and_plan_files_byte_identical": [
+    "Lumina AI personal trainer.xctestplan",
+    "LuminaTests/CoachContextIntegrityTests.swift",
+    "LuminaTests/HabitUndoIntegrityTests.swift",
+    "LuminaTests/JournalRecoveryIntegrityTests.swift",
+    "LuminaTests/LocalizationIntegrityTests.swift",
+    "LuminaTests/LuminaTests.swift",
+    "LuminaTests/OnDeviceCoachTests.swift",
+    "LuminaTests/PhotoImportIntegrityTests.swift",
+    "LuminaTests/SavedRecordIntegrityTests.swift",
+    "LuminaTests/SettingsIntegrityTests.swift",
+    "LuminaUITests/LuminaUITestsLaunchTests.swift"
+  ],
+  "all_62_unit_methods_and_full_83_selection_retained": true,
+  "complete_meal_audit_helper_byte_identical": true,
+  "unfiltered_uncaught_contrast_calls_retained": 2,
+  "actual_AX_sha256": "afcd752d18312253d7a4f9f7fd013c58a864a8a0c564154a356da45c14ee2f71",
+  "actual_geometry": {
+    "AX_frames_rounded_to_tenths": true,
+    "heading_frame": [
+      111.5,
+      -40.3,
+      179.0,
+      40.7
+    ],
+    "physical_window": [
+      0.0,
+      0.0,
+      402.0,
+      874.0
+    ],
+    "heading_screen_intersection_height_approx": 0.4000000000000057,
+    "safe_viewport_top": 62,
+    "safe_viewport_bottom": 791,
+    "interior_top": 64.0,
+    "interior_bottom": 789.0,
+    "preserved_field_and_summary_union_top_rounded": 76.7,
+    "preserved_union_bottom_rounded": 789.0,
+    "old_R17_break_accepts_actual_failing_pose": true,
+    "required_extra_upward_travel_for_2pt_clearance_approx": 2.4000000000000057,
+    "available_extra_travel_rounded": 12.700000000000003,
+    "actual_known_pose_has_room_without_dropping_any_field_or_summary": true,
+    "desired_title_state": "Fully inside audited viewport, or at least2pt above physical screen; element/text/size remain present."
+  },
+  "native_invoked": false,
+  "scope_limit": "Source and actual recorded geometry only. Extra gesture kinetics and the remaining real journey need native verification. No color defect or contrast pass inferred."
+}

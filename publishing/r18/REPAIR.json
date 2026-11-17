@@ -1,0 +1,147 @@
+{
+  "schema": "lumina-r18-measured-title-clearance/v1",
+  "prepared_utc": "2026-11-17T18:58:09.179187+00:00",
+  "parent_checkpoint": "fd381f3d2e09cc3a2ec324c40671deeb23abb5c9",
+  "status": "SOURCE_PEER_REVIEWED_NATIVE_PENDING",
+  "native_R17": {
+    "total": 83,
+    "passed": 82,
+    "failed": 1,
+    "skipped": 0,
+    "units_passed": 62,
+    "units_total": 62,
+    "UI_passed": 20,
+    "UI_total": 21,
+    "finished_at": "2026-11-17T18:34:03.183958+00:00",
+    "exit_code": 1,
+    "unsigned_production_archive": "passed",
+    "unsigned_archive_verifier": "passed",
+    "source_unchanged": true,
+    "cleanup_safe": true,
+    "lock": "released",
+    "owned_simulator_shutdown_verified": true,
+    "release_gate_passed": false
+  },
+  "native_R17_root": "/Users/saleh/Library/Caches/Publishing-Continuation-20261117-d597fc87411f/Lumina/Successor-v7-R17-d57f4cd77813/NativeRuns/20261117T180546Z-74656-797f7bde5a",
+  "failure": {
+    "method": "LuminaUITests/testOptionalMealNutritionDistinguishesMissingValuesFromExplicitZero()",
+    "message": "Contrast failed",
+    "source_line": 1407,
+    "duration_seconds": 89.823,
+    "pose": "Arabic empty nutrition prompts on English-region device",
+    "native_target": "تسجيل وجبة",
+    "target_English_key_value": "Log Meal",
+    "localized_key": "meal.log_title",
+    "AX_frame": [
+      111.5,
+      -40.3,
+      179,
+      40.7
+    ],
+    "physical_screen_intersection_height_approx": 0.4,
+    "previous_R17_measured_viewport_and_field_assertions": "passed before unchanged full contrast audit",
+    "before_audit_and_failure_full_PNG_payload_identical": true
+  },
+  "original_evidence": {
+    "triage_sha256": "108a0a3004e10c72e60847a0c58269d5778eae2b1b34ae971e86f17aee5663e9",
+    "artifacts": [
+      {
+        "file": "report-original.json",
+        "bytes": 40529,
+        "sha256": "8914ebe95e3edaa3b504e4e2b64f68a0bc8030cf9de9dcc7661e54b8cd9b32fc"
+      },
+      {
+        "file": "test-summary-original.json",
+        "bytes": 1690,
+        "sha256": "d2763f91c129d8d9b909d5457e8d9afc141c751dbfe8a02c3508dafb23ed3583"
+      },
+      {
+        "file": "failure-log-excerpt.txt",
+        "bytes": 4172,
+        "sha256": "d8fdecf117ceaa3074f902a327cc1eadf65b631afad7bab1985170d70a198c38"
+      },
+      {
+        "file": "r17-full-original.png",
+        "bytes": 903335,
+        "sha256": "dd9472bd9c652343a352f0e8c691873ebb2ea634aac17a753c3e366bd9e0f5a5"
+      },
+      {
+        "file": "r17-crop-original.png",
+        "bytes": 1888,
+        "sha256": "9bfdae0125eb0a85e0a727650af4c33b5841e4d55194b0d17437308ec079b70d"
+      },
+      {
+        "file": "r17-ax-original.zst",
+        "bytes": 2098,
+        "sha256": "d54edd59501ff67128b353a139be4695d8be9d4b35151c61fb34c617e5170868"
+      },
+      {
+        "file": "r17-ax-decoded.txt",
+        "bytes": 8707,
+        "sha256": "afcd752d18312253d7a4f9f7fd013c58a864a8a0c564154a356da45c14ee2f71"
+      },
+      {
+        "file": "r17-geometry-original.zst",
+        "bytes": 2430,
+        "sha256": "f0cc886603767d377f1396ac6fc130fc44e012daf8b63e9df90fded9e73030b8"
+      },
+      {
+        "file": "r17-geometry-decoded.txt",
+        "bytes": 9467,
+        "sha256": "b93ae0eb4b1c615acd548e778a2bb5c98536df6e302633f5e27cfc88ed3a8c38"
+      }
+    ],
+    "source_version_and_failed_result_preserved": true,
+    "full_and_crop_originals_actually_viewed": true,
+    "foreground_color_defect_established": false,
+    "tracked_triage_receipt": "publishing/r18/R17-TRIAGE.json"
+  },
+  "change": {
+    "only_native_file": "LuminaUITests/LuminaUITests.swift",
+    "ui_sha256": "23a62aa147bb41c61a66613bc161972e5f4b4f775caaa61eeb136829ef10dc34",
+    "shipping_product_changes": false,
+    "description": "Preserve the existing measured field/summary region and detect a meal-title sliver above that audited safe region. Require measured spare room before a small real upward gesture clears the title by2pt beyond the physical window; retain title text/size/AX existence, every existing route/progress/viewport/containment assertion and finite budget. No heading is hidden, text changed, issue filtered or failed audit retried.",
+    "actual_R17_remaining_clearance_approx_points": 2.4,
+    "actual_R17_available_target_slack_approx_points": 12.7,
+    "native_kinetics_unverified": true
+  },
+  "retention": {
+    "all_21_UI_method_bodies_byte_identical": true,
+    "all_62_units_and_test_plan_byte_identical": true,
+    "native_source_inventory": 120,
+    "all_shipping_bytes_unchanged": true,
+    "current_assertion_calls": 423,
+    "all_415_parent_assertion_calls_retained": true,
+    "original_390_assertion_calls_retained": true,
+    "complete_meal_audit_helper_byte_identical": true,
+    "unfiltered_uncaught_contrast_calls": 2
+  },
+  "peer_review": {
+    "reviewer": "halaltag_recovery",
+    "candidate_ui_sha256": "23a62aa147bb41c61a66613bc161972e5f4b4f775caaa61eeb136829ef10dc34",
+    "receipt_sha256": "c78e0d74525739a4283d7f9b166e5a214ad2c21fdb68c641c65c83fb0ce08a2a",
+    "findings": [],
+    "decision": "No blocking source issue found in this narrow proposal.",
+    "remaining_acceptance": [
+      "The small real gesture may make no progress or overshoot under UIKit; existing progress/containment guards correctly fail in that event. Native execution is required.",
+      "Source inspection cannot prove the system accessibility audit will report the same geometry or pass; no audit issue is filtered or retried."
+    ],
+    "receipt_path": "publishing/r18/PEER-REVIEW-HALAL.json"
+  },
+  "remaining_native_gate": "The full real nutrition journey must complete, followed by an exact-source full83 and unsigned archive gate before any release claim. Root chooses and owns actual serial execution; no native action performed by this child.",
+  "native_invoked": false,
+  "push_invoked": false,
+  "store_actions": false,
+  "original_deadline_utc": "2026-11-17T22:26:12Z",
+  "explicit_user_extension_hours": 24,
+  "extended_deadline_utc": "2026-11-18T22:26:12Z",
+  "budget_restarted": false,
+  "additional_independent_peer_review": {
+    "reviewer": "github_recovery",
+    "receipt_path": "publishing/r18/PEER-REVIEW-GITHUB.json",
+    "receipt_sha256": "7eaef7aaa299f2cb07493cfaaa738a5982180880500e9370821292a2e9fd0350",
+    "candidate_UI_sha256": "23a62aa147bb41c61a66613bc161972e5f4b4f775caaa61eeb136829ef10dc34",
+    "decision": "No new blocking source issue found; full requested gesture travel remains subject to retained post/final visibility gates. Actual tiny-drag kinetics need native evidence."
+  },
+  "root_source_review": "Root independently viewed original fullPNG and reviewed exact37+/7− helper delta plus geometry; authorized source seal and same-runner full83 package with actual native acceptance pending."
+}

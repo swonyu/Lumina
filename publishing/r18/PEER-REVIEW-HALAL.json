@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "reviewer": "halaltag_recovery",
+  "reviewed_at_utc": "2026-11-17T18:56:04.756865+00:00",
+  "scope": "File-only peer review of Lumina R18 measured title clearance; no native/test execution, no source edits",
+  "parent": "fd381f3d2e09cc3a2ec324c40671deeb23abb5c9",
+  "candidate_ui_sha256": "23a62aa147bb41c61a66613bc161972e5f4b4f775caaa61eeb136829ef10dc34",
+  "diff_sha256": "98097028a33b24c7878289558793144d789a4ed41239e7bebacfa849f28b3093",
+  "changed_paths": [
+    "LuminaUITests/LuminaUITests.swift"
+  ],
+  "original_pixels_actually_viewed": [
+    {
+      "path": "/workspace/scratch/d57f4cd77813/lumina-r17-contrast-triage/r17-full-original.png",
+      "bytes": 903335,
+      "sha256": "dd9472bd9c652343a352f0e8c691873ebb2ea634aac17a753c3e366bd9e0f5a5"
+    },
+    {
+      "path": "/workspace/scratch/d57f4cd77813/lumina-r17-contrast-triage/r17-crop-original.png",
+      "bytes": 1888,
+      "sha256": "9bfdae0125eb0a85e0a727650af4c33b5841e4d55194b0d17437308ec079b70d"
+    }
+  ],
+  "findings": [],
+  "verified": [
+    "All 21 existing test method bodies remain byte-identical to parent in a read-only body comparison.",
+    "Existing audit call lines and prior assertion calls remain present; eight assertion calls added.",
+    "No production source delta. Existing measured viewport, all current field pairs, recent-summary content/height, safe gutter, progress, finite bound and uncaught full contrast audit remain.",
+    "Original R17 geometry records title y=-40.3,h=40.7 at the physical window edge; original element crop is black. No foreground-color defect is established.",
+    "New title condition measures the real retained title and requires either full safe-viewport containment or maxY at least2pt above physical window with1e-6pt roundoff allowance.",
+    "It fails when required title clearance would push the retained field/summary union above its measured interior. The actual R17 union has approximately12.67pt top slack versus2.33pt required clearance."
+  ],
+  "remaining_acceptance": [
+    "The small real gesture may make no progress or overshoot under UIKit; existing progress/containment guards correctly fail in that event. Native execution is required.",
+    "Source inspection cannot prove the system accessibility audit will report the same geometry or pass; no audit issue is filtered or retried."
+  ],
+  "decision": "No blocking source issue found in this narrow proposal."
+}

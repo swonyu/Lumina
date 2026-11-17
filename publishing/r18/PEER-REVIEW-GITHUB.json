@@ -1,0 +1,27 @@
+{
+  "reviewed_at_utc": "2026-11-17T18:59:22.399748+00:00",
+  "reviewer": "/root/github_recovery",
+  "source_sha256": "23a62aa147bb41c61a66613bc161972e5f4b4f775caaa61eeb136829ef10dc34",
+  "scope": "Read-only R18 reveal-helper arithmetic/control flow and Swift source review; no native run or tests",
+  "result": "No blocking new source issue found",
+  "measured_case_arithmetic": {
+    "heading_maxY": 0.4,
+    "physical_window_minY": 0,
+    "required_clearance": 2.4,
+    "existing_travel_margin": 10,
+    "requested_travel_if_no_union_overflow": 12.4,
+    "reported_top_slack": 12.7
+  },
+  "observations": [
+    "Actual unique heading is retained with original label and dimensions.",
+    "Clearance is zero only for a fully safe heading or one at least2pt above the physical screen, subject to declared floating-point epsilon.",
+    "Direction, geometry-derived budget, real gutter gesture, positive measured movement and decreasing error remain enforced.",
+    "Final union, every original field pair and every summary row must remain visible/hittable; full uncaught contrast audit remains outside this helper."
+  ],
+  "qualification": "The pre-gesture assertion checks minimum required clearance, not required clearance plus the existing10pt travel margin. In the reported pose12.4pt fits12.7pt. If actual motion overshoots or the geometry differs, existing post/final checks fail rather than drop coverage.",
+  "native_limits": [
+    "A tiny real drag may behave differently on the target OS; source arithmetic is not acceptance.",
+    "No compilation, synthetic/native tests, screenshot re-review, code edits or build action by this reviewer."
+  ],
+  "source_changed_by_reviewer": false
+}

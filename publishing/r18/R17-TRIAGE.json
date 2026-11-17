@@ -1,0 +1,163 @@
+{
+  "schema": "lumina-r17-native-triage/v1",
+  "created_utc": "2026-11-17T18:56:04.944710+00:00",
+  "source_commit": "fd381f3d2e09cc3a2ec324c40671deeb23abb5c9",
+  "source_tree": "c15a681b0bb5c3e57a472071296609fe9e9508c3",
+  "native_root": "/Users/saleh/Library/Caches/Publishing-Continuation-20261117-d597fc87411f/Lumina/Successor-v7-R17-d57f4cd77813/NativeRuns/20261117T180546Z-74656-797f7bde5a",
+  "actual_result": {
+    "total": 83,
+    "passed": 82,
+    "failed": 1,
+    "skipped": 0,
+    "units_passed": 62,
+    "units_total": 62,
+    "UI_passed": 20,
+    "UI_total": 21,
+    "finished_at": "2026-11-17T18:34:03.183958+00:00",
+    "exit_code": 1,
+    "unsigned_production_archive": "passed",
+    "unsigned_archive_verifier": "passed",
+    "source_unchanged": true,
+    "cleanup_safe": true,
+    "lock": "released",
+    "owned_simulator_shutdown_verified": true,
+    "release_gate_passed": false
+  },
+  "failure": {
+    "method": "LuminaUITests/testOptionalMealNutritionDistinguishesMissingValuesFromExplicitZero()",
+    "message": "Contrast failed",
+    "source_line": 1407,
+    "duration_seconds": 89.823,
+    "pose": "Arabic empty nutrition prompts on English-region device",
+    "native_target": "تسجيل وجبة",
+    "target_English_key_value": "Log Meal",
+    "localized_key": "meal.log_title",
+    "AX_frame": [
+      111.5,
+      -40.3,
+      179,
+      40.7
+    ],
+    "physical_screen_intersection_height_approx": 0.4,
+    "previous_R17_measured_viewport_and_field_assertions": "passed before unchanged full contrast audit",
+    "before_audit_and_failure_full_PNG_payload_identical": true
+  },
+  "original_visual_review": {
+    "full_and_crop_viewed": true,
+    "full_pixels": [
+      1206,
+      2622
+    ],
+    "crop_pixels": [
+      536,
+      122
+    ],
+    "crop_RGB_extrema": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1
+      ]
+    ],
+    "finding": "Full screenshot shows the name/calories/protein field-label pairs, semantic caption, save action and Recent meals heading/row. The main meal title is offscreen; the historical-meals action is blurred behind the status area. Native title crop contains no readable heading.",
+    "color_bug_established": false,
+    "not_a_store_capture": "Actual isolated QA fixture; retain historical provenance."
+  },
+  "geometry": {
+    "AX_frames_rounded_to_tenths": true,
+    "heading_frame": [
+      111.5,
+      -40.3,
+      179.0,
+      40.7
+    ],
+    "physical_window": [
+      0.0,
+      0.0,
+      402.0,
+      874.0
+    ],
+    "heading_screen_intersection_height_approx": 0.4000000000000057,
+    "safe_viewport_top": 62,
+    "safe_viewport_bottom": 791,
+    "interior_top": 64.0,
+    "interior_bottom": 789.0,
+    "preserved_field_and_summary_union_top_rounded": 76.7,
+    "preserved_union_bottom_rounded": 789.0,
+    "old_R17_break_accepts_actual_failing_pose": true,
+    "required_extra_upward_travel_for_2pt_clearance_approx": 2.4000000000000057,
+    "available_extra_travel_rounded": 12.700000000000003,
+    "actual_known_pose_has_room_without_dropping_any_field_or_summary": true,
+    "desired_title_state": "Fully inside audited viewport, or at least2pt above physical screen; element/text/size remain present."
+  },
+  "narrow_candidate": {
+    "shipping_changes": false,
+    "description": "Add a measured heading-clearance condition to the same finite reveal. If title is already above the audited safe viewport but still clips the physical screen, preserve every current field and summary and require enough measured slack before a real small upward gesture. Require unchanged heading text/size/AX presence, existing progress/route/viewport checks and a fully exposed or fully offscreen heading before the unchanged uncaught unfiltered contrast audit.",
+    "candidate_native_tested": false,
+    "scope_limit": "Pixel and frame evidence establishes clipped-title sampling, not the title intrinsic color contrast. The full remaining nutrition journey and full83 final gate still require actual execution."
+  },
+  "artifacts": [
+    {
+      "file": "report-original.json",
+      "bytes": 40529,
+      "sha256": "8914ebe95e3edaa3b504e4e2b64f68a0bc8030cf9de9dcc7661e54b8cd9b32fc"
+    },
+    {
+      "file": "test-summary-original.json",
+      "bytes": 1690,
+      "sha256": "d2763f91c129d8d9b909d5457e8d9afc141c751dbfe8a02c3508dafb23ed3583"
+    },
+    {
+      "file": "failure-log-excerpt.txt",
+      "bytes": 4172,
+      "sha256": "d8fdecf117ceaa3074f902a327cc1eadf65b631afad7bab1985170d70a198c38"
+    },
+    {
+      "file": "r17-full-original.png",
+      "bytes": 903335,
+      "sha256": "dd9472bd9c652343a352f0e8c691873ebb2ea634aac17a753c3e366bd9e0f5a5"
+    },
+    {
+      "file": "r17-crop-original.png",
+      "bytes": 1888,
+      "sha256": "9bfdae0125eb0a85e0a727650af4c33b5841e4d55194b0d17437308ec079b70d"
+    },
+    {
+      "file": "r17-ax-original.zst",
+      "bytes": 2098,
+      "sha256": "d54edd59501ff67128b353a139be4695d8be9d4b35151c61fb34c617e5170868"
+    },
+    {
+      "file": "r17-ax-decoded.txt",
+      "bytes": 8707,
+      "sha256": "afcd752d18312253d7a4f9f7fd013c58a864a8a0c564154a356da45c14ee2f71"
+    },
+    {
+      "file": "r17-geometry-original.zst",
+      "bytes": 2430,
+      "sha256": "f0cc886603767d377f1396ac6fc130fc44e012daf8b63e9df90fded9e73030b8"
+    },
+    {
+      "file": "r17-geometry-decoded.txt",
+      "bytes": 9467,
+      "sha256": "b93ae0eb4b1c615acd548e778a2bb5c98536df6e302633f5e27cfc88ed3a8c38"
+    }
+  ],
+  "evidence_handling": {
+    "root_exported_completed_method_only": true,
+    "export_directory": "/Users/saleh/Library/Caches/Publishing-Continuation-20261117-d597fc87411f/Recovery-d57f4cd77813/R17-Failed-Method-Originals",
+    "export_manifest_sha256_root_verified": "561f37cdd03c4ec942ad20650abc1c166f86cc9a512b5fe7d2fb81eb2b849534",
+    "child_Mac_writes": false,
+    "child_native_invoked": false,
+    "cloud_fullPNG_bytes_match_original": true,
+    "cloud_crop_and_AX_originals_sha_verified": true
+  },
+  "deadline_utc": "2026-11-18T22:26:12Z"
+}
