@@ -1,14 +1,20 @@
 import Foundation
 import SwiftData
 import Testing
+import ImageIO
+import CoreGraphics
+import UniformTypeIdentifiers
+import CryptoKit
 @testable import Lumina
 
 @MainActor
 struct PhotoImportIntegrityTests {
-    @Test func laterSelectionWinsWhenEarlierLoaderFinishesLast() async {
+    @Test func laterSelectionWinsWhenEarlierLoaderFinishesLast() async throws {
         let importer = LocalPhotoImport()
         let earlier = ControlledPhotoLoader()
         let later = ControlledPhotoLoader()
+        let earlierImage = try photo(1), laterImage = try photo(2)
+        #expect(earlierImage != laterImage)
         var saved: [Data] = []
         let first = importer.load(using: { try await earlier.load() },
             isCurrentSession: { true }, onLoaded: { saved.append($0) })
@@ -16,45 +22,47 @@ struct PhotoImportIntegrityTests {
         let second = importer.load(using: { try await later.load() },
             isCurrentSession: { true }, onLoaded: { saved.append($0) })
         await later.waitUntilStarted()
-        later.finish(with: .success(Data([2, 2])))
+        later.finish(with: .success(laterImage))
         await second.value
-        earlier.finish(with: .success(Data([1, 1])))
+        earlier.finish(with: .success(earlierImage))
         await first.value
-        #expect(importer.data == Data([2, 2]))
-        #expect(saved == [Data([2, 2])])
+        #expect(importer.data == laterImage)
+        #expect(saved == [laterImage])
         #expect(!importer.isLoading && importer.errorMessage == nil)
     }
 
-    @Test func canceledLoaderCannotRefillClearedMealDraft() async {
+    @Test func canceledLoaderCannotRefillClearedMealDraft() async throws {
         let importer = LocalPhotoImport()
         let delayed = ControlledPhotoLoader()
+        let image = try photo(3)
         var saved: [Data] = []
         let pending = importer.load(using: { try await delayed.load() },
             isCurrentSession: { true }, onLoaded: { saved.append($0) })
         await delayed.waitUntilStarted()
         importer.clear()
-        delayed.finish(with: .success(Data([3])))
+        delayed.finish(with: .success(image))
         await pending.value
         #expect(importer.data == nil && saved.isEmpty)
         #expect(!importer.isLoading && importer.errorMessage == nil)
     }
 
-    @Test func leavingScreenCancelsPendingPhotoWithoutDiscardingCompletedPhoto() async {
+    @Test func leavingScreenCancelsPendingPhotoWithoutDiscardingCompletedPhoto() async throws {
         let importer = LocalPhotoImport()
         let delayed = ControlledPhotoLoader()
+        let lateImage = try photo(4), completedImage = try photo(5)
         var saved: [Data] = []
         let pending = importer.load(using: { try await delayed.load() },
             isCurrentSession: { true }, onLoaded: { saved.append($0) })
         await delayed.waitUntilStarted()
         importer.cancelPending()
-        delayed.finish(with: .success(Data([4])))
+        delayed.finish(with: .success(lateImage))
         await pending.value
         #expect(importer.data == nil && saved.isEmpty && !importer.isLoading)
         #expect(importer.errorMessage != nil)
-        let completed = importer.load(using: { Data([5]) }, isCurrentSession: { true })
+        let completed = importer.load(using: { completedImage }, isCurrentSession: { true })
         await completed.value
         importer.cancelPending()
-        #expect(importer.data == Data([5]) && importer.errorMessage == nil)
+        #expect(importer.data == completedImage && importer.errorMessage == nil)
     }
 
     @Test func deletionInvalidatesImportAndStaleModelWrites() async throws {
@@ -64,6 +72,7 @@ struct PhotoImportIntegrityTests {
         let model = LuminaViewModel(modelContext: container.mainContext)
         let importer = LocalPhotoImport()
         let delayed = ControlledPhotoLoader()
+        let image = try photo(6)
         let generation = model.dataRevision
         var callbackInvoked = false
         let pending = importer.load(using: { try await delayed.load() },
@@ -74,7 +83,7 @@ struct PhotoImportIntegrityTests {
             })
         await delayed.waitUntilStarted()
         try model.deleteAllLocalRecords()
-        delayed.finish(with: .success(Data([6])))
+        delayed.finish(with: .success(image))
         await pending.value
         #expect(!callbackInvoked && importer.data == nil && !importer.isLoading)
         #expect(try container.mainContext.fetchCount(FetchDescriptor<ProgressPhoto>()) == 0)
@@ -85,7 +94,7 @@ struct PhotoImportIntegrityTests {
         #expect(try container.mainContext.fetchCount(FetchDescriptor<MealLog>()) == 1)
     }
 
-    @Test func emptyOrFailedImportNeverBecomesASavablePhoto() async {
+    @Test func emptyOrFailedImportNeverBecomesASavablePhoto() async throws {
         let importer = LocalPhotoImport()
         var saved: [Data] = []
         let empty = importer.load(using: { Data() }, isCurrentSession: { true },
@@ -97,6 +106,51 @@ struct PhotoImportIntegrityTests {
         await failed.value
         #expect(importer.data == nil && importer.errorMessage != nil && !importer.isLoading)
         #expect(saved.isEmpty)
+        let validPNG = try photo(7)
+        let invalidSelections = [Data("Nonempty unreadable provider data".utf8),
+            Data(validPNG.dropLast()),
+            try photo(8, width: JournalTransferLimits.standard.maximumPhotoDimension + 1, height: 1),
+            Data(repeating: 0, count: JournalTransferLimits.standard.maximumPhotoBytes + 1)]
+        for bytes in invalidSelections {
+            let invalid = importer.load(using: { bytes }, isCurrentSession: { true },
+                onLoaded: { saved.append($0) })
+            await invalid.value
+            #expect(importer.data == nil && importer.errorMessage != nil && !importer.isLoading)
+            #expect(saved.isEmpty, "Rejected provider bytes must never reach a save callback")
+        }
+        for type in [UTType.png, .jpeg, .heic] {
+            let original = try photo(9, type: type)
+            let originalHash = SHA256.hash(data: original)
+            let completed = importer.load(using: { original }, isCurrentSession: { true },
+                onLoaded: { saved.append($0) })
+            await completed.value
+            #expect(!importer.isLoading && importer.errorMessage == nil)
+            #expect(importer.data == original && saved.last == original)
+            #expect(SHA256.hash(data: try #require(importer.data)) == originalHash,
+                    "Validation must preserve the original selected image bytes")
+        }
+        #expect(saved.count == 3)
+    }
+
+    /// Real image fixtures keep the cancellation cases meaningful after the
+    /// production import boundary starts rejecting arbitrary non-image bytes.
+    private func photo(_ seed: UInt8, width: Int = 32, height: Int = 32,
+                       type: UTType = .png) throws -> Data {
+        var pixels = Data(count: width * height * 3)
+        pixels.withUnsafeMutableBytes { raw in
+            let bytes = raw.bindMemory(to: UInt8.self)
+            for index in bytes.indices { bytes[index] = seed &+ UInt8(truncatingIfNeeded: index) }
+        }
+        let provider = try #require(CGDataProvider(data: pixels as CFData))
+        let image = try #require(CGImage(width: width, height: height, bitsPerComponent: 8,
+            bitsPerPixel: 24, bytesPerRow: width * 3, space: CGColorSpaceCreateDeviceRGB(),
+            bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.none.rawValue), provider: provider,
+            decode: nil, shouldInterpolate: false, intent: .defaultIntent))
+        let data = NSMutableData()
+        let destination = try #require(CGImageDestinationCreateWithData(data, type.identifier as CFString, 1, nil))
+        CGImageDestinationAddImage(destination, image, nil)
+        #expect(CGImageDestinationFinalize(destination))
+        return data as Data
     }
 }
 

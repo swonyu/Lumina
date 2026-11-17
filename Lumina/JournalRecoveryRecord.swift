@@ -228,8 +228,10 @@ nonisolated struct JournalRecoveryRecord: Codable, Equatable, Sendable {
         guard let id = UUID(uuidString: value), id.uuidString == value else { throw JournalTransferError.invalid }
     }
 
-    private static func validatePhoto(_ photo: Data, limits: JournalTransferLimits,
-                                      budget: JournalTransferBudget?) throws {
+    static func validatePhoto(_ photo: Data, limits: JournalTransferLimits,
+                              budget: JournalTransferBudget?) throws {
+        try budget?.check()
+        guard photo.count <= limits.maximumPhotoBytes else { throw JournalTransferError.tooLarge }
         // Compressed byte limits do not bound declared image dimensions. Check
         // metadata bounds before the small background thumbnail decode below.
         // The original bytes are retained; validation never recompresses photos.

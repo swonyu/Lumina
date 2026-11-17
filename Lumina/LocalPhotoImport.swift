@@ -34,6 +34,28 @@ final class LocalPhotoImport {
                     self.clear()
                     return
                 }
+                // A Photos provider returning nonempty bytes does not establish
+                // a usable image. Validate before publishing or saving, using
+                // the same bounded, original-byte-preserving recovery policy.
+                // Image decoding stays off the main actor; navigation remains
+                // responsive and cancellation reaches the validation worker.
+                let budget = JournalTransferBudget(seconds: 15)
+                let validation = Task.detached(priority: .userInitiated) {
+                    try JournalRecoveryRecord.validatePhoto(bytes, limits: .standard, budget: budget)
+                }
+                try await withTaskCancellationHandler {
+                    try await validation.value
+                } onCancel: {
+                    budget.cancel()
+                    validation.cancel()
+                }
+                // Another selection, deletion or navigation can occur during
+                // the background validation; repeat the actual publication gate.
+                guard self.requestID == id, !Task.isCancelled else { return }
+                guard isCurrentSession() else {
+                    self.clear()
+                    return
+                }
                 self.data = bytes
                 self.isLoading = false
                 self.pendingTask = nil

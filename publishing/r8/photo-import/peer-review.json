@@ -1,0 +1,25 @@
+{
+  "parent": "028c37295821c826fcba3e7752eaba25ffaf5d77",
+  "patch_sha256": "9d4153a672389eb1e23b34734727c33f85f482da0d0aa639bd3b044e2e9cf84e",
+  "reviewer": "lumina_review",
+  "result": "No blocking source defect found; native validation pending",
+  "reviewed_paths": [
+    "Lumina/JournalRecoveryRecord.swift",
+    "Lumina/LocalPhotoImport.swift",
+    "LuminaTests/PhotoImportIntegrityTests.swift"
+  ],
+  "verified": [
+    "All3 baseline bytes match frozen R7 and candidate hashes match author receipt",
+    "Detached worker captures immutable Data and Sendable task/budget; validator type is nonisolated",
+    "MainActor publication repeats requestID, cancellation and session checks after validation",
+    "Existing5 cancellation/order methods retained using distinct valid32x32 PNG bytes; no skip or catch-success introduced",
+    "16MiB direct byte guard precedes ImageIO; dimension/frame/pixel/container checks preserved",
+    "Exact-byte equality and SHA256 assertions cover PNG/JPEG/HEIC and invalid inputs never invoke save callback"
+  ],
+  "limitations": [
+    "32x32 ImageIO HEIC encoding requires native iOS-simulator verification; macOS probe does not prove simulator encoder availability",
+    "Deadline is cooperative around parser/decoder stages, not forcible preemption of an individual ImageIO call",
+    "New image rejection does not modify historical records; framing checks are not a proof of every compressed pixel",
+    "No Swift compilation, native tests, real-device import or archive executed by reviewer"
+  ]
+}

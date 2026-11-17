@@ -1,0 +1,56 @@
+{
+  "prepared_at_utc": "2026-11-17T11:29:33.297729+00:00",
+  "parent": "028c37295821c826fcba3e7752eaba25ffaf5d77",
+  "scope": "Three-file isolated source slice; sole integration clone not edited",
+  "files": [
+    {
+      "path": "Lumina/JournalRecoveryRecord.swift",
+      "before_sha256": "59821cc0c1d5bef7b0347cbad9d0368db6124709ecbcd643c24462e5766bf9a1",
+      "after_sha256": "8e6551e2173496628175e246db91a1fc5343ea2cf03d0de69f03740b53800c24",
+      "old_test_methods": [],
+      "new_test_methods": [],
+      "old_expect_count": 0,
+      "new_expect_count": 0
+    },
+    {
+      "path": "Lumina/LocalPhotoImport.swift",
+      "before_sha256": "354ee6266c86105cd2eb8db35540ce994cbec695af49a11ff21b24f5bd823429",
+      "after_sha256": "e6d043a67b90b075d18d3bcb5049cf88b9d8a688aad80edc09f37ac23be4e701",
+      "old_test_methods": [],
+      "new_test_methods": [],
+      "old_expect_count": 0,
+      "new_expect_count": 0
+    },
+    {
+      "path": "LuminaTests/PhotoImportIntegrityTests.swift",
+      "before_sha256": "2125a3f37c87c9a9a835d7c8892ec9f87a529f79bfe3ebce2a8c46ea4afade5a",
+      "after_sha256": "5b95dd7fe962982f6d1d6da280609fdd707b7a5864db8d15dcd2ecba990eda3c",
+      "old_test_methods": [
+        "laterSelectionWinsWhenEarlierLoaderFinishesLast",
+        "canceledLoaderCannotRefillClearedMealDraft",
+        "leavingScreenCancelsPendingPhotoWithoutDiscardingCompletedPhoto",
+        "deletionInvalidatesImportAndStaleModelWrites",
+        "emptyOrFailedImportNeverBecomesASavablePhoto"
+      ],
+      "new_test_methods": [
+        "laterSelectionWinsWhenEarlierLoaderFinishesLast",
+        "canceledLoaderCannotRefillClearedMealDraft",
+        "leavingScreenCancelsPendingPhotoWithoutDiscardingCompletedPhoto",
+        "deletionInvalidatesImportAndStaleModelWrites",
+        "emptyOrFailedImportNeverBecomesASavablePhoto"
+      ],
+      "old_expect_count": 17,
+      "new_expect_count": 25
+    }
+  ],
+  "patch_sha256": "9d4153a672389eb1e23b34734727c33f85f482da0d0aa639bd3b044e2e9cf84e",
+  "production_change": "Before any import is published or saved, validate original bytes using shared bounded recovery validation off main actor;15second worker budget; cancellation forwards and publication/session checks repeat after await",
+  "data_preservation": "No existing data migration, downsampling or rewriting; new imports over existing recovery per-photo limits fail visibly using existing localized error",
+  "test_change_scope": "Five old methods retained. Arbitrary positive/race byte buffers replaced with real distinct PNG fixtures so content rejection cannot mask a cancellation regression. All old ordering, callback and model-count assertions preserved semantically. Existing negative test extended with unreadable/truncated/oversized-image rejection and PNG/JPEG/HEIC exact-byte hashes.",
+  "native_validation": "NOT RUN; no Swift compiler available in cloud and Mac connection unresolved",
+  "open": [
+    "Independent source peer review",
+    "Actual full native suite, original export/crash flows and unsigned archive",
+    "Actual Photos/file-provider physical device behavior"
+  ]
+}
