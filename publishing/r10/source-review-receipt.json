@@ -1,0 +1,127 @@
+{
+  "prepared_at_utc": "2026-11-17T13:27:25.198785+00:00",
+  "status": "PEER_REVIEWED_NATIVE_RETEST_PENDING",
+  "base_commit": "8d22c6072a84afbf0c3fa2ebc74c5472eabbadb3",
+  "base_tree": "34744681d8f6c3cd4b5c15dcd3e1ec00198992c7",
+  "prospective_candidate_tree": "02f0738f3ebc27d1250a609f50301a63c8eb1dc4",
+  "patch_sha256": "78d6b35e195cc5e4d55bcb3f8b4d56aa6f81431ddab55d7fda62620c958da355",
+  "files": {
+    "Lumina/Features/MealLogging/MealLogView.swift": {
+      "base_sha256": "d7038c1ba5358b90fb6efff8b686f065c3fcda356eeacfbd572b720480a15026",
+      "candidate_sha256": "a2804b51c879f4c29ad2b88e9d249d022c88defe57d89676c0b6b90531d5143f"
+    },
+    "Lumina/Features/WorkoutLogging/WorkoutLogView.swift": {
+      "base_sha256": "e70f531a3b46b97211a34acfed058203314f10a48d2dcec2f730ac4fd204c8eb",
+      "candidate_sha256": "380d1c1e3d6f213929dc0961e21773e767fdae2bd9e07d83641cd49bcb780b82"
+    },
+    "Lumina/SavedRecordEditors.swift": {
+      "base_sha256": "3e5d100e7fa8e881c0e8a7e6a58f83a08b422287efa1b04dc614e16acfcee823",
+      "candidate_sha256": "62d2d6d3c9c8088304090c1b56c0135ebcd1ccf7a1f2545b7424c07cf9afa15a"
+    },
+    "Lumina/ar.lproj/Localizable.strings": {
+      "base_sha256": "168ce1888dc2326936e090c830a130c400972ce107e90ca47519e4ec3a652faf",
+      "candidate_sha256": "cb83b10e46fda7ce5a1be510450d39c42650b9d80040c5733af2c52fb841deed"
+    },
+    "Lumina/en.lproj/Localizable.strings": {
+      "base_sha256": "5dcc08da39231f212782577cb5311de7e0a88ea4e4d7bae5f9f131a1d342ec1b",
+      "candidate_sha256": "ad5e0cf0ace2c1f80d92819a3f3cf58b353cc62f3934fc60201669cf96c5b47b"
+    }
+  },
+  "test_files_byte_identical_to_R9": {
+    "LuminaTests/CoachContextIntegrityTests.swift": "1578f4bbca11dd0e0b518c7f6159c61e47a904e0f0d38623276f94760e3a4524",
+    "LuminaTests/HabitUndoIntegrityTests.swift": "63fed492e58fe4e84e6ea3e34f7afb77a8d54971562b6806f4993f3e9df4b643",
+    "LuminaTests/JournalRecoveryIntegrityTests.swift": "9700bbd8e6d227ff140c3a81e8990d66064f4fbba57ef0e25282a32c56789b6d",
+    "LuminaTests/LocalizationIntegrityTests.swift": "b3d51206ff7c6da43f70a20167bd9540961cf11317f9112cb36a7895d405f202",
+    "LuminaTests/LuminaTests.swift": "d63ae97f140294c8149ff939e6c8ad9c814ec52efaa17420c8cd6cb7fc71408d",
+    "LuminaTests/OnDeviceCoachTests.swift": "e130c389327815e7e1027bc61108403ac48d4a1ad128aafb9a3f6868c9e4e94f",
+    "LuminaTests/PhotoImportIntegrityTests.swift": "5b95dd7fe962982f6d1d6da280609fdd707b7a5864db8d15dcd2ecba990eda3c",
+    "LuminaTests/SavedRecordIntegrityTests.swift": "a048d3d3c784aab65f76373de3768d0b0ec68237e5bd4a885182c7a464592165",
+    "LuminaTests/SettingsIntegrityTests.swift": "5628d684db368a378263ecb75c57d3918b1a9be026a63f06aeb58bed16cfa2d3",
+    "LuminaUITests/LuminaUITests.swift": "d65d27dc5c48ada97ba775af54d8d210bfa121954fbf8d43ad573c93500c426b",
+    "LuminaUITests/LuminaUITestsLaunchTests.swift": "6b6e134155142ae9c08c5b6cea3ceabc3f73f963de9164c7faf3586038798f5c"
+  },
+  "original_runner_and_project_unchanged": true,
+  "localization": {
+    "en": {
+      "keys_before": 563,
+      "keys_after": 565,
+      "added": {
+        "Expanded": "Expanded",
+        "Collapsed": "Collapsed"
+      }
+    },
+    "ar": {
+      "keys_before": 563,
+      "keys_after": 565,
+      "added": {
+        "Expanded": "موسّع",
+        "Collapsed": "مطوي"
+      }
+    }
+  },
+  "diff_check": "passed",
+  "isolated_patch_apply": "passed",
+  "native_compile_or_test": false,
+  "commit_push_archive_store": false,
+  "r9_result": {
+    "total": 82,
+    "passed": 78,
+    "failed": 4,
+    "skipped": 0,
+    "unit": {
+      "passed": 61,
+      "total": 61
+    },
+    "ui": {
+      "passed": 17,
+      "total": 21
+    }
+  },
+  "mac_failure_evidence": "/Users/saleh/Library/Caches/Publishing-Continuation-20261117-d597fc87411f/Evidence/lumina-r9-ui-diagnosis-01a49",
+  "official_references": [
+    "https://developer.apple.com/documentation/swiftui/populating-swiftui-menus-with-adaptive-controls",
+    "https://developer.apple.com/documentation/swiftui/disclosuregroupstyle",
+    "https://developer.apple.com/documentation/swiftui/disclosuregroupstyleconfiguration/isexpanded"
+  ],
+  "preserved_native_inventory": {
+    "swift_testing_unit_tests": 61,
+    "selected_UI_tests": 21,
+    "total": 82,
+    "test_plan_byte_identical": true,
+    "test_plan_sha256": "e3758fdd8f88272ca88222fa6a77be7215a8166a1e0df4c40f8deeab715ba7c5",
+    "selected_UI_identifiers": [
+      "LuminaUITests/testHomeAccessibilityAudit()",
+      "LuminaUITests/testNavigationAndDataControlCancelPaths()",
+      "LuminaUITests/testPrivacyInformationAtLargestTextAndBackNavigation()",
+      "LuminaUITests/testSaveRelaunchAndDeleteOnlyIsolatedFixtureRecords()",
+      "LuminaUITests/testSuggestedHabitPersistsWithoutAutomaticCompletion()",
+      "LuminaUITests/testVeryLargeTextExpandsJournalRows()",
+      "LuminaUITests/testFinalHomeLinkRemainsReachableAboveTabBar()",
+      "LuminaUITests/testFullJournalEditCancelAndRelaunch()",
+      "LuminaUITests/testGoalValuesEditRelaunchAndConfirmedDeletion()",
+      "LuminaUITests/testAllSavedMealsRemainEditableBeyondTheRecentPreview()",
+      "LuminaUITests/testWorkoutExercisesSetsAndNotesRemainEditableAfterRelaunch()",
+      "LuminaUITests/testManualHabitDuplicateErrorAndManagementPreserveRecords()",
+      "LuminaUITests/testSavedCheckInNoteEditRelaunchAndDeletion()",
+      "LuminaUITests/testDirectProgressAndSavedCheckInObservationRemainReachable()",
+      "LuminaUITests/testOfflineCoachAcceptsMessageAndShowsLocalReply()",
+      "LuminaUITests/testLanguageChoiceUpdatesVisibleFlowsAndPersistsWithoutLosingDrafts()",
+      "LuminaUITests/testRecoveryPreviewFixtureConfirmationReopenAndPickerCancelPaths()",
+      "LuminaUITests/testWorkoutEffortIsOptionalAndExplicitRatingSurvivesDraftLanguageAndRelaunch()",
+      "LuminaUITests/testArabicDecimalDraftPersistsAcrossAppLanguagesOnEnglishDevice()",
+      "LuminaUITests/testOptionalMealNutritionDistinguishesMissingValuesFromExplicitZero()",
+      "LuminaUITests/testHomeShortcutsReuseTabsAndRetainUnsavedRecords()"
+    ]
+  },
+  "peer_review": {
+    "reviewed_at_utc": "2026-11-17T13:29:24.279636+00:00",
+    "reviewer": "/root/lumina_halaltag_recovery",
+    "finding": "No concrete P0/P1 defect found in the five-file diff. Native Menu AX mapping, RTL wrapping and large-text dimensions still require the unchanged native tests.",
+    "reviewed_product_sha256": {
+      "Lumina/SavedRecordEditors.swift": "62d2d6d3c9c8088304090c1b56c0135ebcd1ccf7a1f2545b7424c07cf9afa15a",
+      "Lumina/Features/MealLogging/MealLogView.swift": "a2804b51c879f4c29ad2b88e9d249d022c88defe57d89676c0b6b90531d5143f",
+      "Lumina/Features/WorkoutLogging/WorkoutLogView.swift": "380d1c1e3d6f213929dc0961e21773e767fdae2bd9e07d83641cd49bcb780b82"
+    },
+    "native_action_taken": false
+  }
+}

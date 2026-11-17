@@ -1,0 +1,119 @@
+Lumina R10 — four product accessibility corrections
+
+Candidate scope
+  Exact parent: 8d22c6072a84afbf0c3fa2ebc74c5472eabbadb3 (R9)
+  Parent tree: 34744681d8f6c3cd4b5c15dcd3e1ec00198992c7
+  Proposed tree: 02f0738f3ebc27d1250a609f50301a63c8eb1dc4
+  Patch SHA256: 78d6b35e195cc5e4d55bcb3f8b4d56aa6f81431ddab55d7fda62620c958da355
+  Status: source preparation independently reviewed; native retest pending.
+  No commit, push, new native run, signed upload, review or release is claimed.
+
+Closed source-bound evidence
+  R9 test step finished 2026-11-17T13:16:53.467904Z, return code 65.
+  xcresult summary: 78 passed / 82 total, 4 failed, zero skipped or expected failures.
+  All 61 unit tests passed;17/21 selected UI tests passed.
+  Device: dedicated Publishing-Lumina-09e4299f930d4a95 iPhone 18 Pro simulator,
+  iOS 27.0, ID 18B98270-EF2E-4643-ABCA-59F8F516BA83.
+  Result bundle:
+  /Users/saleh/Library/Caches/Publishing-Continuation-20261117-d597fc87411f/Lumina/Successor-v7-R9-01a49fa7c28e/NativeRuns/20261117T125731Z-48383-09e4299f93/lumina/UIQATests.xcresult
+
+  Failed-test attachments were exported only after the test step closed, into:
+  /Users/saleh/Library/Caches/Publishing-Continuation-20261117-d597fc87411f/Evidence/lumina-r9-ui-diagnosis-01a49
+  Original xcresult and frozen R9 source were read only. Actual final frames were
+  decoded from existing XCTest recordings with installed ffmpeg, one thread.
+  No simulator input, boot, native build or test was launched during diagnosis.
+  All four actual failure screens were viewed. The export manifest's
+  isAssociatedWithFailure flags are false even on retained failure attachments;
+  per-test exports therefore preserve the original custom evidence as well.
+
+1. Arabic exercise field: unnamed native TextField
+  Test: testArabicDecimalDraftPersistsAcrossAppLanguagesOnEnglishDevice, line 1629.
+  Exact failure hierarchy contains a visible TextField at (32,357.3),338x22 with
+  placeholderValue اسم التمرين, but no accessibility label and no identifier.
+  The original label-equality query correctly finds no exercise field.
+  The screenshot shows the empty exercise entry on the Arabic workout screen;
+  the earlier workout-name draft remains populated. This is not a missing form.
+  Fix: explicitly localize Exercise name as the field's accessible name and add
+  lumina.workout.exercise.<persisted exercise UUID>.name as its stable identifier.
+  LocalRecordEdits preserves that UUID through validation, save and reopen.
+  The test predicate still excludes lumina.workout.new-name and requires exactly
+  one named exercise field. No query, timeout, assertion or input changed.
+  Hierarchy: testArabicDecimalDraftPersistsAcrossAppLanguagesOnEnglishDevice/
+  6B2F3965-D96D-434A-8AA3-27C0C6F057A4.txt
+  Frame: same directory/final-recorded-frame.png
+
+2. Saved journal mood: actual button below 44 points
+  Test: testFullJournalEditCancelAndRelaunch, line 943.
+  Native button height38.33331298828125 was below the retained44-point assertion.
+  The retained final frame shows the actual Mood/Not recorded row after the full
+  saved journal survives editing and relaunch. The outer minimum frame did not
+  enlarge the native menu-Picker button.
+  Fix: a real Menu containing the same inline native Picker, with 44-point minimum
+  sizing inside the Menu's HStack label. The whole label is the actual touch
+  control, with one accessible Mood name and a separate selected value. The
+  original nil tag and every Mood value/tag remain intact. The native Picker
+  provides single selection and checkmarks; no synthetic selection or tap exists.
+  The existing test still chooses Good, saves, relaunches, and checks persistence.
+  Frame: testFullJournalEditCancelAndRelaunch/final-recorded-frame.png
+
+3. Nutrition disclosure: ancestor identifier overwrote child field identifiers
+  Test: testOptionalMealNutritionDistinguishesMissingValuesFromExplicitZero,
+  line 1088 after the real Arabic disclosure button tap.
+  The final hierarchy and screenshot prove both nutrition fields are visible:
+  calories at (32,317.3),338x34; protein at (32,363.3),338x34. Each incorrectly
+  carries lumina.meal.nutrition instead of its own existing field identifier.
+  The enclosing DisclosureGroup identifier propagated into the content. Eight
+  additional swipes cannot correct this semantic identity collision.
+  Fix: keep DisclosureGroup and its existing isExpanded binding, applying a
+  documented DisclosureGroupStyle with a native Button and sibling conditional
+  content. Scope lumina.meal.nutrition to that Button only. Its complete visible
+  title and 44-point minimum stay within the real button label; the decorative
+  chevron follows forward/down expansion and RTL. The Button announces Expanded
+  or Collapsed with new English/Arabic strings. The original field identifiers,
+  labels, bindings, text input, validation, save reset and nil/zero behavior are
+  untouched. Collapsing the disclosure does not clear its parent-owned drafts.
+  Hierarchy: testOptionalMealNutritionDistinguishesMissingValuesFromExplicitZero/
+  329D94CF-5763-445B-AFB7-F33E7C21E1EC.txt
+  Screenshot: same directory/74FE3B74-DA14-4C3D-A940-1DF5584FF60E.png
+
+4. Optional effort: native menu-Picker combined name and value
+  Test: testWorkoutEffortIsOptionalAndExplicitRatingSurvivesDraftLanguageAndRelaunch,
+  line 1195. Actual name Effort (optional), Not recorded; expected Effort (optional).
+  R7 with an explicit label on the menu-Picker previously duplicated the Arabic
+  name. Restoring that one modifier would reintroduce an observed regression.
+  R9 removed it but native Picker name synthesis then combined title and value.
+  The R9 Arabic exercise hierarchy also shows an effort button only 34.3 points
+  high despite bordered/large style and an outer44-point minimum.
+  Fix: real Menu whose label owns its 44-point minimum and whose accessible name
+  is separate from its value. Inside it, the same Picker uses inline native
+  choices, preserving Not recorded/nil and every 1…10 tag/checkmark. The visible
+  selected value and decorative chevrons form the actual Menu label. This avoids
+  the menu-style Picker synthesizer instead of cycling its redundant label.
+  Name, value, hint, current error, drafts, Save reset and existing ID remain
+  localized through the existing observed app-language environment. All exact
+  EN→AR→EN name/value, validation, nil reset, persistence, maximum text size,
+  actual 44-point geometry and Save-reachability assertions remain unchanged.
+  Frame: testWorkoutEffortIsOptionalAndExplicitRatingSurvivesDraftLanguageAndRelaunch/
+  final-recorded-frame.png
+
+Validation and limits
+  Five product/localization files only. All test source files and selected test
+  plan are byte-identical to R9: 61 Swift Testing unit tests plus 21 selected UI
+  methods. The unselected template launch test is not part of the 82-test plan.
+  git diff --check passed. The patch applied with --index in a separate temporary
+  clone at R9 and produced the exact proposed tree above. Both localization
+  catalogs retain every existing value, add only Expanded/Collapsed and contain
+  no duplicate keys. All existing source identifiers remain; one exercise ID was
+  added. No project, runner, test-budget, data, persistence or save-path change.
+  No Swift/iOS toolchain is available in the cloud checkout; only the scheduled
+  exact-source native run can verify compilation, actual 44-point hit areas,
+  Menu naming under live language changes, and the restored field identifiers.
+
+Primary implementation references
+  https://developer.apple.com/documentation/swiftui/populating-swiftui-menus-with-adaptive-controls
+  https://developer.apple.com/documentation/swiftui/disclosuregroupstyle
+  https://developer.apple.com/documentation/swiftui/disclosuregroupstyleconfiguration/isexpanded
+  Apple's documented pattern uses a native Button with the configuration's
+  expansion binding and conditional content for a custom DisclosureGroupStyle;
+  its menu guidance preserves native mutually exclusive selection with an inline
+  Picker inside a Menu. Runtime behavior still requires the preserved native tests.

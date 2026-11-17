@@ -361,6 +361,8 @@
 "Enter your own current value and a positive target. The ratio is a record of those numbers; Lumina does not measure progress for you." = "Enter your own current value and a positive target. The ratio is a record of those numbers; Lumina does not measure progress for you.";
 "Entry" = "Entry";
 "Exercise name" = "Exercise name";
+"Expanded" = "Expanded";
+"Collapsed" = "Collapsed";
 "Exercises and sets" = "Exercises and sets";
 "Exertion 1–10 (optional)" = "Exertion 1–10 (optional)";
 "Export database backup" = "Export database backup";

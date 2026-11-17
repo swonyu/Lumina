@@ -56,7 +56,7 @@ struct MealLogView: View {
                         .textFieldStyle(.roundedBorder)
                         .padding(.top, 8)
                     }
-                    .accessibilityIdentifier("lumina.meal.nutrition")
+                    .disclosureGroupStyle(MealNutritionDisclosureStyle())
                     
                     // Round 37: Meal photo logging with AI coach feedback
                     PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
@@ -196,5 +196,33 @@ struct MealLogView: View {
         photoImport.clear()
         selectedPhotoItem = nil
         showingSuccess = true
+    }
+}
+
+/// Scope the action identifier to the real button, never its editable content.
+private struct MealNutritionDisclosureStyle: DisclosureGroupStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Button {
+                configuration.isExpanded.toggle()
+            } label: {
+                HStack(alignment: .firstTextBaseline) {
+                    configuration.label
+                        .fixedSize(horizontal: false, vertical: true)
+                    Spacer()
+                    Image(systemName: configuration.isExpanded ? "chevron.down" : "chevron.forward")
+                        .accessibilityHidden(true)
+                }
+                .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityValue(L(configuration.isExpanded ? "Expanded" : "Collapsed"))
+            .accessibilityIdentifier("lumina.meal.nutrition")
+
+            if configuration.isExpanded {
+                configuration.content
+            }
+        }
     }
 }

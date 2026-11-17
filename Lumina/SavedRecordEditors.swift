@@ -88,12 +88,26 @@ struct JournalRecordEditor: View {
                 TextEditor(text: $draft.content).frame(minHeight: 240)
                     .accessibilityLabel(L("Full journal entry"))
                     .accessibilityIdentifier("lumina.journal.full-content")
-                Picker(L("Mood"), selection: $draft.mood) {
-                    Text(L("Not recorded")).tag(Mood?.none)
-                    ForEach(Mood.allCases, id: \.self) { value in Text(L(value.rawValue)).tag(Optional(value)) }
+                Menu {
+                    Picker(L("Mood"), selection: $draft.mood) {
+                        Text(L("Not recorded")).tag(Mood?.none)
+                        ForEach(Mood.allCases, id: \.self) { value in Text(L(value.rawValue)).tag(Optional(value)) }
+                    }
+                    .pickerStyle(.inline)
+                } label: {
+                    HStack {
+                        Text(L("Mood"))
+                        Spacer()
+                        Text(draft.mood.map { L($0.rawValue) } ?? L("Not recorded"))
+                        Image(systemName: "chevron.up.chevron.down")
+                            .accessibilityHidden(true)
+                    }
+                    .frame(minWidth: 44, minHeight: 44)
+                    .contentShape(Rectangle())
                 }
-                .pickerStyle(.menu)
-                .frame(minHeight: 44)
+                .buttonStyle(.plain)
+                .controlSize(.large)
+                .accessibilityLabel(L("Mood"))
                 .accessibilityValue(draft.mood.map { L($0.rawValue) } ?? L("Not recorded"))
                 .accessibilityIdentifier("lumina.journal.record-mood")
             }
@@ -187,6 +201,8 @@ struct WorkoutExerciseFields: View {
             VStack(alignment: .leading, spacing: 12) {
                 TextField(L("Exercise name"), text: $exercise.name)
                     .focused(focusedField, equals: .exercise(exercise.id))
+                    .accessibilityLabel(L("Exercise name"))
+                    .accessibilityIdentifier("lumina.workout.exercise.\(exercise.id.uuidString).name")
                 ForEach($exercise.sets) { $set in
                     VStack(alignment: .leading, spacing: 8) {
                         TextField(L("Repetitions"), text: $set.repetitions).keyboardType(.numberPad)

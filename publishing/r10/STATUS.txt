@@ -1,0 +1,17 @@
+Lumina R10 source checkpoint — 17 November 2026
+
+This checkpoint preserves the composed R6, R7, R8 and R9 history, then repairs the four UI failures demonstrated by the R9 native run. It is not a passed native build or a public app release.
+
+Verified predecessor: R9 commit 8d22c6072a84afbf0c3fa2ebc74c5472eabbadb3.
+Native result: 78/82 passed; 61/61 unit tests and 17/21 UI tests. The unsigned production archive and artifact verifier passed. Cleanup completed and the native lock was released at 2026-11-17T13:17:14.206541Z.
+
+R10 changes:
+- Give the saved workout exercise name its localized accessibility label and stable record identifier.
+- Put real 44-point minimum hit areas inside the journal mood and workout effort menu labels. Preserve every optional value and native selection.
+- Put the meal nutrition disclosure identifier on its actual disclosure button so it cannot overwrite child field identifiers. Localize expanded/collapsed accessibility state.
+
+Verification: independent source review found no concrete P0/P1 source defect. All 61 unit tests, 21 selected UI tests, the test plan and native runner are unchanged from R9. Catalogs retain all 563 prior entries and add two disclosure-state entries. Native compile and UI acceptance for R10 are pending; inspect the source receipt for exact hashes and remaining runtime questions.
+
+Release state: no R10 signed archive, distribution export, upload, review submission or public release is claimed. Production ads are not verified live. Core functionality remains free, bilingual and local-first. StockSage remains held until Lumina, HalalTag and Career Finder finish.
+
+Coordination: preserve the existing native queue and locks. Do not start a duplicate native run from this source checkpoint. The original 24 active engineering-hour allowance has not been restarted; the exact consumed active balance is not established.

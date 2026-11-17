@@ -361,6 +361,8 @@
 "Enter your own current value and a positive target. The ratio is a record of those numbers; Lumina does not measure progress for you." = "أدخل قيمتك الحالية وهدفًا موجبًا. تعبر النسبة عن هذه الأرقام المسجلة؛ ولا يقيس Lumina تقدمك نيابةً عنك.";
 "Entry" = "التدوينة";
 "Exercise name" = "اسم التمرين";
+"Expanded" = "موسّع";
+"Collapsed" = "مطوي";
 "Exercises and sets" = "التمارين والمجموعات";
 "Exertion 1–10 (optional)" = "المجهود من 1 إلى 10 (اختياري)";
 "Export database backup" = "تصدير نسخة احتياطية للبيانات";

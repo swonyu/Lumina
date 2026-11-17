@@ -63,17 +63,27 @@ struct WorkoutLogView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text(L("workout.effort_optional"))
                             .font(.headline)
-                        Picker(L("workout.effort_optional"), selection: $rpe) {
-                            Text(L("workout.effort_not_recorded")).tag(Optional<Int>.none)
-                            ForEach(1...10, id: \.self) { value in
-                                Text(L("workout.effort_value", value)).tag(Optional(value))
+                        Menu {
+                            Picker(L("workout.effort_optional"), selection: $rpe) {
+                                Text(L("workout.effort_not_recorded")).tag(Optional<Int>.none)
+                                ForEach(1...10, id: \.self) { value in
+                                    Text(L("workout.effort_value", value)).tag(Optional(value))
+                                }
                             }
+                            .pickerStyle(.inline)
+                        } label: {
+                            HStack {
+                                Text(rpe.map { L("workout.effort_value", $0) }
+                                    ?? L("workout.effort_not_recorded"))
+                                Image(systemName: "chevron.up.chevron.down")
+                                    .accessibilityHidden(true)
+                            }
+                            .frame(minWidth: 44, minHeight: 44)
+                            .contentShape(Rectangle())
                         }
-                        .pickerStyle(.menu)
                         .buttonStyle(.bordered)
                         .controlSize(.large)
-                        .labelsHidden()
-                        .frame(minHeight: 44)
+                        .accessibilityLabel(L("workout.effort_optional"))
                         .accessibilityValue(rpe.map { L("workout.effort_value", $0) }
                             ?? L("workout.effort_not_recorded"))
                         .accessibilityHint(L("workout.effort_hint"))
