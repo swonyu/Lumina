@@ -1,0 +1,45 @@
+{
+  "base_commit": "5f9d1ab475f3ec25b52a4fb3aa66fdc49e5ee608",
+  "source_files": [
+    {
+      "path": "Lumina/Features/Journal/JournalView.swift",
+      "before_sha256": "88db144299cb7fb115209c72990e72e471995e50ec90a5584430e70cd896055d",
+      "after_sha256": "d0fdd854349f872a694ba9c7c1c50b44ca35a0b9bbd38da9827455db9599a913"
+    },
+    {
+      "path": "Lumina/Features/MealLogging/MealLogView.swift",
+      "before_sha256": "5aaaf2b0881dc852a845ec8b0e1115ebca7c26f015f1d451131f264211d81c79",
+      "after_sha256": "d7038c1ba5358b90fb6efff8b686f065c3fcda356eeacfbd572b720480a15026"
+    },
+    {
+      "path": "Lumina/SavedRecordEditors.swift",
+      "before_sha256": "7eaf86fe21f1019b4e291d6446bbd938fd4e450a97b7e8a254b11d4de42092bb",
+      "after_sha256": "3e5d100e7fa8e881c0e8a7e6a58f83a08b422287efa1b04dc614e16acfcee823"
+    },
+    {
+      "path": "Lumina AI personal trainer.xctestplan",
+      "before_sha256": "4d53e90fb1706ea66fc8b95633d6d6b37ad04644eab678a607aa82e217773b81",
+      "after_sha256": "f2af7c7059c2ac1b34e681865dae90f3ed0dcd509b44e2034f79349ba0f17946"
+    },
+    {
+      "path": "LuminaUITests/LuminaUITests.swift",
+      "before_sha256": "a4da9c50694638600154dca0c6aeab063647b763f617e006814efbddfaec0c67",
+      "after_sha256": "ac2edd3f656c3e566f6485f81f0c38c8ae8bb02c273bfea21f7575424c66311a"
+    }
+  ],
+  "patch_sha256": "807bed91e255a76e74717de691feebfb5e29c87fd56f5f06bd78d5887f3633a5",
+  "old_ui_cases_retained": 19,
+  "new_ui_cases": 20,
+  "old_ui_assertions_retained": true,
+  "old_ui_assertions": 318,
+  "new_ui_assertions": 337,
+  "extended_journal_case": "Old test retains all prior assertions, then inspects untouched persisted mood before setting Good and verifying it after relaunch.",
+  "new_meal_case": "Untouched new-meal values inspected after relaunch; explicit0 and Arabic12.5 entered via actual form and inspected after relaunch.",
+  "product_scope": "No schema or saved-record migration. Existing localization keys reused. Empty optional nutrition is nil; explicit0 stays0; journal mood begins nil.",
+  "native_run": false,
+  "pending": [
+    "Native disclosure/menu AX identities",
+    "Arabic Unicode entry and decimalPad keyboard",
+    "DynamicType/VoiceOver/real-device evidence"
+  ]
+}

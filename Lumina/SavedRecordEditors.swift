@@ -92,6 +92,10 @@ struct JournalRecordEditor: View {
                     Text(L("Not recorded")).tag(Mood?.none)
                     ForEach(Mood.allCases, id: \.self) { value in Text(L(value.rawValue)).tag(Optional(value)) }
                 }
+                .pickerStyle(.menu)
+                .frame(minHeight: 44)
+                .accessibilityValue(draft.mood.map { L($0.rawValue) } ?? L("Not recorded"))
+                .accessibilityIdentifier("lumina.journal.record-mood")
             }
             if !entry.tags.isEmpty {
                 Section(L("Saved tags")) { Text(entry.tags.joined(separator: ", ")) }
@@ -278,7 +282,11 @@ struct MealRecordEditor: View {
             }
             Section(L("Your nutrition entries (optional)")) {
                 TextField(L("Calories"), text: $draft.calories).keyboardType(.decimalPad)
+                    .accessibilityLabel(L("Calories"))
+                    .accessibilityIdentifier("lumina.meal.record-calories")
                 TextField(L("Protein in grams"), text: $draft.protein).keyboardType(.decimalPad)
+                    .accessibilityLabel(L("Protein in grams"))
+                    .accessibilityIdentifier("lumina.meal.record-protein")
                 TextField(L("Carbohydrates in grams"), text: $draft.carbs).keyboardType(.decimalPad)
                 TextField(L("Fat in grams"), text: $draft.fat).keyboardType(.decimalPad)
                 Text(L("Leave a field empty if it was not recorded. These are your entries; Lumina does not estimate them from the photo."))

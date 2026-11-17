@@ -77,7 +77,7 @@ struct NewJournalEntryView: View {
     @Environment(\.dismiss) private var dismiss
     
     @State private var content = ""
-    @State private var mood: Mood = .good
+    @State private var mood: Mood? = nil
 
     var body: some View {
         NavigationStack {
@@ -91,10 +91,15 @@ struct NewJournalEntryView: View {
                 
                 Section(L("journal.feeling_section")) {
                     Picker(L("journal.mood_picker"), selection: $mood) {
+                        Text(L("Not recorded")).tag(Mood?.none)
                         ForEach(Mood.allCases, id: \.self) { m in
-                            Text(L(m.rawValue)).tag(m)
+                            Text(L(m.rawValue)).tag(Optional(m))
                         }
                     }
+                    .pickerStyle(.menu)
+                    .frame(minHeight: 44)
+                    .accessibilityValue(mood.map { L($0.rawValue) } ?? L("Not recorded"))
+                    .accessibilityIdentifier("lumina.journal.new-mood")
                 }
             }
             .navigationTitle(L("journal.new_entry_title"))

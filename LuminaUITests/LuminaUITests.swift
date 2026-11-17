@@ -882,6 +882,30 @@ final class LuminaUITests: XCTestCase {
         try tapRecordControl(app.staticTexts[edited], in: app)
         XCTAssertEqual(app.textViews["lumina.journal.full-content"].value as? String, edited)
         attachRecordScreenshot(app, "Full saved journal after relaunch")
+        let savedMood = app.buttons["lumina.journal.record-mood"]
+        for _ in 0..<8 {
+            if savedMood.exists && savedMood.isHittable { break }
+            app.swipeUp()
+        }
+        XCTAssertTrue(savedMood.exists && savedMood.isHittable)
+        XCTAssertEqual(savedMood.value as? String, "Not recorded",
+                       "Writing a journal entry without choosing a mood must never record Good automatically")
+        XCTAssertGreaterThanOrEqual(savedMood.frame.height, 44)
+        savedMood.tap()
+        try tapRecordControl(app.buttons["Good"], in: app)
+        XCTAssertEqual(savedMood.value as? String, "Good")
+        try tapRecordControl(try recordLeafButton("lumina.record.save", in: app), in: app)
+        app.terminate(); app.launch()
+        XCTAssertTrue(app.staticTexts["lumina.qa-store"].waitForExistence(timeout: 15))
+        try openRecordHomeLink("Journal", in: app)
+        try tapRecordControl(app.staticTexts[edited], in: app)
+        for _ in 0..<8 {
+            if savedMood.exists && savedMood.isHittable { break }
+            app.swipeUp()
+        }
+        XCTAssertTrue(savedMood.exists && savedMood.isHittable)
+        XCTAssertEqual(savedMood.value as? String, "Good",
+                       "An explicitly chosen mood must survive the real save and relaunch")
     }
 
     @MainActor
@@ -971,6 +995,72 @@ final class LuminaUITests: XCTestCase {
         try tapRecordControl(try recordLeafButton("Delete record", in: app), in: app)
         XCTAssertFalse(app.staticTexts["Fixture meal 0"].exists)
         for index in 1..<4 { XCTAssertTrue(app.staticTexts["Fixture meal \(index)"].exists) }
+    }
+
+    @MainActor
+    func testOptionalMealNutritionDistinguishesMissingValuesFromExplicitZero() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["--lumina-ui-qa", "-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
+        app.launchEnvironment["LUMINA_QA_ID"] = UUID().uuidString
+        app.launch()
+        XCTAssertTrue(app.staticTexts["lumina.qa-store"].waitForExistence(timeout: 15))
+        app.tabBars.buttons["Nutrition"].tap()
+        let name = app.textFields["lumina.meal.new-name"]
+        try tapRecordControl(name, in: app)
+        name.typeText("Unrecorded nutrition fixture")
+        try dismissRecordKeyboard(in: app)
+        // Do not open or touch the optional nutrition controls before Save.
+        try tapRecordControl(app.buttons["lumina.meal.new-save"], in: app)
+        XCTAssertTrue(app.alerts.firstMatch.waitForExistence(timeout: 5))
+        app.alerts.buttons["OK"].tap()
+        app.terminate(); app.launch()
+        XCTAssertTrue(app.staticTexts["lumina.qa-store"].waitForExistence(timeout: 15))
+        app.tabBars.buttons["Nutrition"].tap()
+        try tapRecordControl(app.buttons["lumina.meal.history"], in: app)
+        try tapRecordControl(app.collectionViews.staticTexts["Unrecorded nutrition fixture"], in: app)
+        for identifier in ["lumina.meal.record-calories", "lumina.meal.record-protein"] {
+            let field = app.textFields[identifier]
+            try tapRecordControl(field, in: app)
+            let value = try XCTUnwrap(field.value as? String)
+            XCTAssertTrue(value.isEmpty || value == field.placeholderValue,
+                          "An untouched nutrition value must remain absent after relaunch, never become zero")
+        }
+        app.terminate(); app.launch()
+        XCTAssertTrue(app.staticTexts["lumina.qa-store"].waitForExistence(timeout: 15))
+        try tapRecordControl(app.buttons["lumina.settings"], in: app)
+        try selectAppLanguage("العربية", in: app)
+        app.tabBars.buttons["التغذية"].tap()
+        try tapRecordControl(name, in: app)
+        name.typeText("Explicit nutrition fixture")
+        try dismissRecordKeyboard(in: app)
+        try tapRecordControl(try recordLeafButton("lumina.meal.nutrition", in: app), in: app)
+        let calories = app.textFields["lumina.meal.new-calories"]
+        try tapRecordControl(calories, in: app)
+        calories.typeText("0")
+        XCTAssertEqual(calories.value as? String, "0")
+        try dismissRecordKeyboard(in: app)
+        let protein = app.textFields["lumina.meal.new-protein"]
+        try tapRecordControl(protein, in: app)
+        protein.typeText("١٢٫٥")
+        XCTAssertEqual(protein.value as? String, "١٢٫٥")
+        try dismissRecordKeyboard(in: app)
+        try tapRecordControl(app.buttons["lumina.meal.new-save"], in: app)
+        XCTAssertTrue(app.alerts.firstMatch.waitForExistence(timeout: 5))
+        app.alerts.buttons["حسناً"].tap()
+        app.terminate(); app.launch()
+        XCTAssertTrue(app.staticTexts["lumina.qa-store"].waitForExistence(timeout: 15))
+        XCTAssertTrue(app.staticTexts["يومياتك"].waitForExistence(timeout: 5))
+        app.tabBars.buttons["التغذية"].tap()
+        try tapRecordControl(app.buttons["lumina.meal.history"], in: app)
+        try tapRecordControl(app.collectionViews.staticTexts["Explicit nutrition fixture"], in: app)
+        let savedCalories = app.textFields["lumina.meal.record-calories"]
+        try tapRecordControl(savedCalories, in: app)
+        XCTAssertEqual(savedCalories.value as? String, "0٫0",
+                       "An explicit zero is a recorded value, distinct from an untouched field")
+        let savedProtein = app.textFields["lumina.meal.record-protein"]
+        try tapRecordControl(savedProtein, in: app)
+        XCTAssertEqual(savedProtein.value as? String, "12٫5")
+        attachRecordScreenshot(app, "Explicit Arabic nutrition values preserved after relaunch")
     }
 
     @MainActor

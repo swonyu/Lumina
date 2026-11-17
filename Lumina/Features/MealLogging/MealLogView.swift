@@ -6,9 +6,11 @@ struct MealLogView: View {
     @Environment(LuminaViewModel.self) private var viewModel
     @Environment(\.modelContext) private var modelContext
     @State private var mealName = ""
-    @FocusState private var mealNameFocused: Bool
-    @State private var calories: Double = 0
-    @State private var protein: Double = 0
+    private enum InputFocus: Hashable { case name, calories, protein }
+    @FocusState private var focusedField: InputFocus?
+    @State private var calories = ""
+    @State private var protein = ""
+    @State private var showingNutrition = false
     @State private var showingSuccess = false
     @State private var showingHistory = false
     @State private var selectedPhotoItem: PhotosPickerItem?
@@ -30,12 +32,31 @@ struct MealLogView: View {
                 
                 GlassCard {
                     TextField(L("meal.what_did_you_eat"), text: $mealName)
-                        .focused($mealNameFocused)
+                        .focused($focusedField, equals: .name)
                         .submitLabel(.done)
-                        .onSubmit { mealNameFocused = false }
+                        .onSubmit { focusedField = nil }
                         .textFieldStyle(.roundedBorder)
-                    Stepper(L("meal.calories_label", Int(calories)), value: $calories, in: 0...2000, step: 10)
-                    Stepper(L("meal.protein_label", Int(protein)), value: $protein, in: 0...200, step: 5)
+                        .accessibilityIdentifier("lumina.meal.new-name")
+                    DisclosureGroup(L("Your nutrition entries (optional)"), isExpanded: $showingNutrition) {
+                        VStack(alignment: .leading, spacing: 12) {
+                            TextField(L("Calories"), text: $calories)
+                                .keyboardType(.decimalPad)
+                                .focused($focusedField, equals: .calories)
+                                .accessibilityLabel(L("Calories"))
+                                .accessibilityIdentifier("lumina.meal.new-calories")
+                            TextField(L("Protein in grams"), text: $protein)
+                                .keyboardType(.decimalPad)
+                                .focused($focusedField, equals: .protein)
+                                .accessibilityLabel(L("Protein in grams"))
+                                .accessibilityIdentifier("lumina.meal.new-protein")
+                            Text(L("Leave a field empty if it was not recorded. These are your entries; Lumina does not estimate them from the photo."))
+                                .font(.caption)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        .textFieldStyle(.roundedBorder)
+                        .padding(.top, 8)
+                    }
+                    .accessibilityIdentifier("lumina.meal.nutrition")
                     
                     // Round 37: Meal photo logging with AI coach feedback
                     PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
@@ -84,6 +105,7 @@ struct MealLogView: View {
                 GlassButton(title: L("meal.save_button"), isProminent: true, action: {
                     saveMeal()
                 })
+                .accessibilityIdentifier("lumina.meal.new-save")
                 .disabled(photoImport.isLoading || (selectedPhotoItem != nil && photoImport.data == nil))
                 
                 if recentMeals.isEmpty {
@@ -100,7 +122,7 @@ struct MealLogView: View {
                                 Text(meal.mealName)
                                 Spacer()
                                 if let cals = meal.calories {
-                                    Text(L("%@ cal", cals.formatted()))
+                                    Text(L("%@ cal", LocalRecordDraft.numberText(cals)))
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
                                 }
@@ -119,8 +141,8 @@ struct MealLogView: View {
         .glassBackground()
         .navigationTitle(L("tab.nutrition"))
         .scrollDismissesKeyboard(.interactively)
-        .keyboardDismissalBar(isFocused: mealNameFocused) {
-            mealNameFocused = false
+        .keyboardDismissalBar(isFocused: focusedField != nil) {
+            focusedField = nil
         }
         .withAppLanguage()
         .sheet(isPresented: $showingHistory) {
@@ -146,7 +168,17 @@ struct MealLogView: View {
             viewModel.errorMessage = L("Enter a meal name.")
             return
         }
-        let log = MealLog(mealName: cleanName, calories: calories, protein: protein, photoData: photoImport.data)
+        let recordedCalories: Double?
+        let recordedProtein: Double?
+        do {
+            recordedCalories = try LocalRecordDraft.number(calories, field: "calories")
+            recordedProtein = try LocalRecordDraft.number(protein, field: "protein")
+        } catch {
+            viewModel.errorMessage = error.localizedDescription
+            return
+        }
+        let log = MealLog(mealName: cleanName, calories: recordedCalories,
+                          protein: recordedProtein, photoData: photoImport.data)
         guard viewModel.saveRecord(log) else { return }
         
         // Round 37: Trigger coach feedback if photo was included
@@ -157,8 +189,10 @@ struct MealLogView: View {
         }
         
         mealName = ""
-        calories = 0
-        protein = 0
+        calories = ""
+        protein = ""
+        showingNutrition = false
+        focusedField = nil
         photoImport.clear()
         selectedPhotoItem = nil
         showingSuccess = true
