@@ -28,9 +28,10 @@ struct GoalsView: View {
                                     .accessibilityLabel(L("Edit goal %@", goal.name))
                                 ProgressView(value: goal.progress)
                                     .accessibilityLabel(L("Recorded goal ratio for %@", goal.name))
-                                Text("\(String(format: "%.1f", goal.currentValue))\(goal.unit) / \(String(format: "%.0f", goal.targetValue))\(goal.unit)")
+                                Text("\(LocalRecordDraft.numberText(goal.currentValue)) \(goal.unit) / \(LocalRecordDraft.numberText(goal.targetValue)) \(goal.unit)")
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
+                                    .accessibilityIdentifier("lumina.goal.values")
                                 
                                 if let notes = goal.adjustmentNotes {
                                     Text(L("Saved adjustment note: %@", notes))

@@ -1,0 +1,69 @@
+{
+  "base_commit": "028c37295821c826fcba3e7752eaba25ffaf5d77",
+  "source_files": [
+    {
+      "path": "Lumina AI personal trainer.xctestplan",
+      "before_sha256": "4bee19802ac7e410317d1033b146c87c7873242ef3fc4c78f297580d1ea58913",
+      "after_sha256": "4d53e90fb1706ea66fc8b95633d6d6b37ad04644eab678a607aa82e217773b81",
+      "bytes": 2163
+    },
+    {
+      "path": "Lumina/Features/Goals/GoalsView.swift",
+      "before_sha256": "26c16084fe162ca47affd999b10cc4dee3cd63f2963fa3b1cbcde4fac7879db8",
+      "after_sha256": "c226c0a87bceb8e46d08bd7ca8c4752b9a9aa86780f8a10cde5478dbca568f35",
+      "bytes": 6885
+    },
+    {
+      "path": "Lumina/LocalRecordEdits.swift",
+      "before_sha256": "854fabf681cf467dbd8ddabb46c97080df26a3b340ed631b57c3a84abad9f20b",
+      "after_sha256": "af45b37fb40b405d2fe6b9c81f318d5c56b8c300e1295c7aec8c2624059b3504",
+      "bytes": 14336
+    },
+    {
+      "path": "LuminaTests/SavedRecordIntegrityTests.swift",
+      "before_sha256": "102717970262887593fef9357b1ffd24284165a9d2a45040d8abeed61c4777a0",
+      "after_sha256": "a048d3d3c784aab65f76373de3768d0b0ec68237e5bd4a885182c7a464592165",
+      "bytes": 19327
+    },
+    {
+      "path": "LuminaUITests/LuminaUITests.swift",
+      "before_sha256": "55269d284321202d78da29d7ea34c4d81923e8dfbea9d921cd3e78328aed1da8",
+      "after_sha256": "a4da9c50694638600154dca0c6aeab063647b763f617e006814efbddfaec0c67",
+      "bytes": 105189
+    }
+  ],
+  "expected_tests": {
+    "LuminaTests": 61,
+    "LuminaUITests": 19
+  },
+  "ui_assertions_before": 299,
+  "ui_assertions_after": 318,
+  "old_ui_methods_retained": 18,
+  "old_ui_methods_byte_identical": 17,
+  "intentionally_extended_ui_method": [
+    "testGoalValuesEditRelaunchAndConfirmedDeletion"
+  ],
+  "new_ui_test": [
+    "testArabicDecimalDraftPersistsAcrossAppLanguagesOnEnglishDevice"
+  ],
+  "saved_record_expect_before": 80,
+  "saved_record_expect_after": 93,
+  "old_assertions_retained": true,
+  "portable_checks": [
+    "git diff --check",
+    "61 unit/19 UI inventory and exact test-plan selection guard",
+    "existing CI scheme guard",
+    "all old UI and SavedRecord test assertions retained with multiplicity"
+  ],
+  "runner_before_sha256": "7431ba3fa0d30eaf939f440a468aca25808ea954aec64833c24b2a0ee6f1bd4f",
+  "runner_after_sha256": "1a52c195a06fdfd38a9e3d52aaf12fb60fbe92621bf9b665b5593db5ea7d7dc9",
+  "runner_change": "Append new actual UI test identity only; no validator or threshold relaxed.",
+  "patch_sha256": "0a5522cf790d6ee2aa379a96d6588fbf54ecaac28d75930989b68600b03bb50d",
+  "native_run": false,
+  "limitations": [
+    "Native Arabic decimal input and field values await an actual simulator/device run.",
+    "Source checks are not compilation, behavioral tests, or an archive.",
+    "Existing R7 manifest and artifacts remain immutable."
+  ],
+  "peer_found_and_fixed": "Arabic workout/exercise labels collide; new UI case now excludes outer workout identifier and requires exactly one exercise field."
+}

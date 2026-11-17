@@ -36,7 +36,8 @@
         "LuminaUITests/testOfflineCoachAcceptsMessageAndShowsLocalReply()",
         "LuminaUITests/testLanguageChoiceUpdatesVisibleFlowsAndPersistsWithoutLosingDrafts()",
         "LuminaUITests/testRecoveryPreviewFixtureConfirmationReopenAndPickerCancelPaths()",
-        "LuminaUITests/testWorkoutEffortIsOptionalAndExplicitRatingSurvivesDraftLanguageAndRelaunch()"
+        "LuminaUITests/testWorkoutEffortIsOptionalAndExplicitRatingSurvivesDraftLanguageAndRelaunch()",
+        "LuminaUITests/testArabicDecimalDraftPersistsAcrossAppLanguagesOnEnglishDevice()"
       ],
       "target": {
         "containerPath": "container:Lumina.xcodeproj",

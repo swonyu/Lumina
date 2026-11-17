@@ -1,0 +1,228 @@
+diff --git a/Lumina AI personal trainer.xctestplan b/Lumina AI personal trainer.xctestplan
+index 013be4c..8a8eb79 100644
+--- a/Lumina AI personal trainer.xctestplan	
++++ b/Lumina AI personal trainer.xctestplan	
+@@ -36,7 +36,8 @@
+         "LuminaUITests/testOfflineCoachAcceptsMessageAndShowsLocalReply()",
+         "LuminaUITests/testLanguageChoiceUpdatesVisibleFlowsAndPersistsWithoutLosingDrafts()",
+         "LuminaUITests/testRecoveryPreviewFixtureConfirmationReopenAndPickerCancelPaths()",
+-        "LuminaUITests/testWorkoutEffortIsOptionalAndExplicitRatingSurvivesDraftLanguageAndRelaunch()"
++        "LuminaUITests/testWorkoutEffortIsOptionalAndExplicitRatingSurvivesDraftLanguageAndRelaunch()",
++        "LuminaUITests/testArabicDecimalDraftPersistsAcrossAppLanguagesOnEnglishDevice()"
+       ],
+       "target": {
+         "containerPath": "container:Lumina.xcodeproj",
+diff --git a/Lumina/Features/Goals/GoalsView.swift b/Lumina/Features/Goals/GoalsView.swift
+index 29208f3..f04f861 100644
+--- a/Lumina/Features/Goals/GoalsView.swift
++++ b/Lumina/Features/Goals/GoalsView.swift
+@@ -28,9 +28,10 @@ struct GoalsView: View {
+                                     .accessibilityLabel(L("Edit goal %@", goal.name))
+                                 ProgressView(value: goal.progress)
+                                     .accessibilityLabel(L("Recorded goal ratio for %@", goal.name))
+-                                Text("\(String(format: "%.1f", goal.currentValue))\(goal.unit) / \(String(format: "%.0f", goal.targetValue))\(goal.unit)")
++                                Text("\(LocalRecordDraft.numberText(goal.currentValue)) \(goal.unit) / \(LocalRecordDraft.numberText(goal.targetValue)) \(goal.unit)")
+                                     .font(.caption)
+                                     .foregroundStyle(.secondary)
++                                    .accessibilityIdentifier("lumina.goal.values")
+                                 
+                                 if let notes = goal.adjustmentNotes {
+                                     Text(L("Saved adjustment note: %@", notes))
+diff --git a/Lumina/LocalRecordEdits.swift b/Lumina/LocalRecordEdits.swift
+index 68a7b17..c04ef88 100644
+--- a/Lumina/LocalRecordEdits.swift
++++ b/Lumina/LocalRecordEdits.swift
+@@ -15,16 +15,21 @@ enum LocalRecordDraft {
+         return result
+     }
+ 
+-    static func numberText(_ value: Double?, locale: Locale = .current) -> String {
++    static func numberText(_ value: Double?, locale: Locale? = nil) -> String {
+         guard let value else { return "" }
+-        return String(value).replacingOccurrences(of: ".", with: locale.decimalSeparator ?? ".")
++        let selectedLocale = locale ?? LocalizationManager.shared.currentLanguage.locale
++        // String(Double) preserves the stored value's shortest round-trip
++        // representation. Do not round a fractional target to a whole number.
++        return String(value).replacingOccurrences(of: ".", with: selectedLocale.decimalSeparator ?? ".")
+     }
+ 
+     /// Whole-string parsing prevents a malformed draft from silently keeping an
+-    /// old numeric binding. Local decimal separators and decimal digits work;
+-    /// thousands separators are intentionally not accepted in an editing field.
++    /// old numeric binding. Formatting follows the selected app language, not
++    /// the phone's region. Accept both supported decimal marks so a live EN/AR
++    /// language change cannot invalidate an existing string-backed draft.
++    /// Thousands separators are intentionally not accepted in an editing field.
+     static func number(_ value: String, field: String, required: Bool = false,
+-                       locale: Locale = .current) throws -> Double? {
++                       locale: Locale? = nil) throws -> Double? {
+         let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+         if trimmed.isEmpty {
+             guard !required else { throw LocalRecordEditError.invalid(L("Enter %@.", L(field))) }
+@@ -34,7 +39,11 @@ enum LocalRecordDraft {
+             if let digit = character.wholeNumberValue, (0...9).contains(digit) { return String(digit) }
+             return String(character)
+         }.joined()
+-        let normalized = digits.replacingOccurrences(of: locale.decimalSeparator ?? ".", with: ".")
++        let selectedLocale = locale ?? LocalizationManager.shared.currentLanguage.locale
++        let decimalMarks = Set([".", "٫", selectedLocale.decimalSeparator ?? "."])
++        let normalized = decimalMarks.reduce(digits) { text, mark in
++            text.replacingOccurrences(of: mark, with: ".")
++        }
+         guard normalized.range(of: #"^[+]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?$"#,
+                                options: .regularExpression) != nil,
+               let result = Double(normalized), result.isFinite, result >= 0 else {
+diff --git a/LuminaTests/SavedRecordIntegrityTests.swift b/LuminaTests/SavedRecordIntegrityTests.swift
+index 71f586d..ad179e6 100644
+--- a/LuminaTests/SavedRecordIntegrityTests.swift
++++ b/LuminaTests/SavedRecordIntegrityTests.swift
+@@ -229,6 +229,51 @@ struct SavedRecordIntegrityTests {
+         #expect(throws:LocalRecordEditError.self) { try draft.validated() }
+         draft.repetitions="12";draft.exertion="11"
+         #expect(throws:LocalRecordEditError.self) { try draft.validated() }
++
++        // Real draft/save paths intentionally omit a locale argument. The old
++        // helper-only Arabic test above did not cover an English phone whose
++        // app language or unsaved decimal text is Arabic.
++        for locale in [Locale(identifier: "en_US"), Locale(identifier: "ar_SA")] {
++            #expect(try LocalRecordDraft.number("١٢٫٥", field: "weight", locale: locale) == 12.5)
++            #expect(try LocalRecordDraft.number("12.5", field: "weight", locale: locale) == 12.5)
++            for malformed in ["١٬٠٠٠", "1,000", "12٫5.2", "12.5٫2", "12kg", "1 000", "١٢٫٥x"] {
++                #expect(throws: LocalRecordEditError.self) {
++                    try LocalRecordDraft.number(malformed, field: "weight", required: true, locale: locale)
++                }
++            }
++        }
++        #expect(LocalRecordDraft.numberText(0.25, locale: Locale(identifier: "en_US")) == "0.25")
++        #expect(LocalRecordDraft.numberText(0.25, locale: Locale(identifier: "ar_SA")) == "0٫25")
++        #expect(LocalRecordDraft.numberText(0.25) == "0" +
++            (LocalizationManager.shared.currentLanguage.locale.decimalSeparator ?? ".") + "25")
++
++        let (directory, container, model) = try makeStore()
++        defer { try? FileManager.default.removeItem(at: directory) }
++        var goalDraft = GoalEditDraft()
++        goalDraft.name = "Fractional goal"; goalDraft.current = "٠٫١٢٥"; goalDraft.target = "٠٫٢٥"
++        try goalDraft.save(to: nil, using: model)
++        let meal = MealLog(mealName: "Decimal meal")
++        #expect(model.saveRecord(meal))
++        var mealDraft = MealEditDraft(meal)
++        mealDraft.calories = "١٢٫٥"; mealDraft.protein = "٠٫٢٥"
++        mealDraft.carbs = "3.5"; mealDraft.fat = "٠٫١٢٥"
++        try mealDraft.save(to: meal, using: model)
++        let workout = WorkoutLog(workoutName: "Decimal workout", exercises: [
++            LoggedExercise(name: "Decimal set", sets: [LoggedSet(reps: 8, weight: nil)])
++        ])
++        #expect(model.saveRecord(workout))
++        var workoutDraft = WorkoutEditDraft(workout)
++        workoutDraft.exercises[0].sets[0].weight = "١٢٫٥"
++        try workoutDraft.save(to: workout, using: model)
++        #expect(!container.mainContext.hasChanges)
++        let reopened = try reopen(directory)
++        let savedGoal = try #require(reopened.mainContext.fetch(FetchDescriptor<Goal>()).first)
++        let savedMeal = try #require(reopened.mainContext.fetch(FetchDescriptor<MealLog>()).first)
++        let savedWorkout = try #require(reopened.mainContext.fetch(FetchDescriptor<WorkoutLog>()).first)
++        #expect(savedGoal.currentValue == 0.125 && savedGoal.targetValue == 0.25)
++        #expect(savedMeal.calories == 12.5 && savedMeal.protein == 0.25 && savedMeal.carbs == 3.5 && savedMeal.fat == 0.125)
++        #expect(savedWorkout.exercises[0].sets[0].weight == 12.5)
++        #expect(savedWorkout.exercises[0].sets[0].id == workout.exercises[0].sets[0].id)
+     }
+ 
+     private func makeStore() throws -> (URL,ModelContainer,LuminaViewModel) {
+diff --git a/LuminaUITests/LuminaUITests.swift b/LuminaUITests/LuminaUITests.swift
+index 16d0743..684ccc6 100644
+--- a/LuminaUITests/LuminaUITests.swift
++++ b/LuminaUITests/LuminaUITests.swift
+@@ -918,6 +918,27 @@ final class LuminaUITests: XCTestCase {
+         try tapRecordControl(app.buttons["Delete this record"], in: app)
+         try tapRecordControl(try recordLeafButton("Delete record", in: app), in: app)
+         XCTAssertTrue(app.staticTexts["No goals yet. Add a goal to record what you want to work toward."].waitForExistence(timeout: 5))
++
++        // The saved fraction must remain visible, not be rounded to a zero
++        // target by the card while the editor still stores a different value.
++        try tapRecordControl(app.buttons["lumina.goal.add"], in: app)
++        let fractionalName = app.textFields["lumina.goal.name"]
++        try tapRecordControl(fractionalName, in: app)
++        fractionalName.typeText("Fractional fixture goal")
++        try replaceShortNumericRecordField(app.textFields["lumina.goal.current"], with: "0.125", in: app)
++        try replaceShortNumericRecordField(app.textFields["lumina.goal.target"], with: "0.25", in: app)
++        try tapRecordControl(try recordLeafButton("lumina.record.save", in: app), in: app)
++        let values = app.staticTexts["lumina.goal.values"]
++        XCTAssertTrue(values.waitForExistence(timeout: 5))
++        XCTAssertEqual(values.label, "0.125 completion / 0.25 completion")
++        XCTAssertTrue(values.isHittable)
++        app.terminate(); app.launch()
++        XCTAssertTrue(app.staticTexts["lumina.qa-store"].waitForExistence(timeout: 15))
++        try openRecordHomeLink("Goals", in: app)
++        XCTAssertEqual(values.label, "0.125 completion / 0.25 completion")
++        try tapRecordControl(app.buttons["Edit goal Fractional fixture goal"], in: app)
++        XCTAssertEqual(app.textFields["lumina.goal.current"].value as? String, "0.125")
++        XCTAssertEqual(app.textFields["lumina.goal.target"].value as? String, "0.25")
+     }
+ 
+     @MainActor
+@@ -1434,6 +1455,65 @@ final class LuminaUITests: XCTestCase {
+         assertLanguageTabOrder(app, arabic: false)
+     }
+ 
++    @MainActor
++    func testArabicDecimalDraftPersistsAcrossAppLanguagesOnEnglishDevice() throws {
++        let app = XCUIApplication()
++        // The regional decimal separator remains English while the real in-app
++        // control selects Arabic. No fixture sets a numeric locale directly.
++        app.launchArguments = ["--lumina-ui-qa", "-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
++        app.launchEnvironment["LUMINA_QA_ID"] = UUID().uuidString
++        app.launch()
++        XCTAssertTrue(app.staticTexts["lumina.qa-store"].waitForExistence(timeout: 15))
++        XCTAssertTrue(app.staticTexts["Your journal"].waitForExistence(timeout: 5))
++        try tapRecordControl(app.buttons["lumina.settings"], in: app)
++        try selectAppLanguage("العربية", in: app)
++        app.tabBars.buttons["التمارين"].tap()
++        let name = app.textFields["lumina.workout.new-name"]
++        try tapRecordControl(name, in: app)
++        name.typeText("Arabic decimal fixture")
++        try dismissRecordKeyboard(in: app)
++        try tapRecordControl(app.buttons["إضافة تمرين"], in: app)
++        let exercise = app.textFields["اسم التمرين"]
++        try tapRecordControl(exercise, in: app)
++        exercise.typeText("Decimal squat")
++        try dismissRecordKeyboard(in: app)
++        try tapRecordControl(app.buttons["إضافة مجموعة"], in: app)
++        let arabicWeight = app.textFields["الوزن بالكيلوغرام في Decimal squat"]
++        try tapRecordControl(arabicWeight, in: app)
++        arabicWeight.typeText("١٢٫٥")
++        XCTAssertEqual(arabicWeight.value as? String, "١٢٫٥")
++        try dismissRecordKeyboard(in: app)
++
++        // A live language change preserves the exact unsaved text, and Save
++        // must parse it even after the app switches to the other decimal mark.
++        app.tabBars.buttons["الرئيسية"].tap()
++        XCTAssertTrue(app.navigationBars["الإعدادات"].waitForExistence(timeout: 5))
++        try selectAppLanguage("English", in: app)
++        app.tabBars.buttons["Workouts"].tap()
++        let englishWeight = app.textFields["Weight in kilograms for Decimal squat"]
++        try tapRecordControl(englishWeight, in: app, scrollDown: true)
++        XCTAssertEqual(englishWeight.value as? String, "١٢٫٥")
++        try dismissRecordKeyboard(in: app)
++        try tapRecordControl(app.buttons["lumina.workout.new-save"], in: app)
++        XCTAssertTrue(app.alerts["Workout saved!"].waitForExistence(timeout: 5),
++                      "The production Save path must accept the preserved Arabic decimal")
++        app.alerts.buttons["OK"].tap()
++        app.tabBars.buttons["Home"].tap()
++        XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 5))
++        try selectAppLanguage("العربية", in: app)
++        app.terminate(); app.launch()
++        XCTAssertTrue(app.staticTexts["lumina.qa-store"].waitForExistence(timeout: 15))
++        XCTAssertTrue(app.staticTexts["يومياتك"].waitForExistence(timeout: 5))
++        app.tabBars.buttons["التمارين"].tap()
++        try tapRecordControl(app.buttons["lumina.workout.history"], in: app)
++        try tapRecordControl(app.collectionViews.staticTexts["Arabic decimal fixture"], in: app)
++        let savedWeight = app.textFields["الوزن بالكيلوغرام في Decimal squat"]
++        try tapRecordControl(savedWeight, in: app)
++        XCTAssertEqual(savedWeight.value as? String, "12٫5",
++                       "Reopened numeric fields must format the saved value in the selected app locale")
++        attachRecordScreenshot(app, "Arabic decimal retained and formatted on English-region phone")
++    }
++
+     @MainActor
+     private func selectAppLanguage(_ label: String, in app: XCUIApplication) throws {
+         let picker = app.segmentedControls["lumina.language-picker"]

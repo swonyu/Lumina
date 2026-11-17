@@ -1,0 +1,10 @@
+--- a/Runner/verify_publishing.py
++++ b/Runner/verify_publishing.py
+@@ -169,6 +169,7 @@
+         'LuminaUITests/testAllSavedMealsRemainEditableBeyondTheRecentPreview()',
+         'LuminaUITests/testWorkoutExercisesSetsAndNotesRemainEditableAfterRelaunch()',
+         'LuminaUITests/testWorkoutEffortIsOptionalAndExplicitRatingSurvivesDraftLanguageAndRelaunch()',
++        'LuminaUITests/testArabicDecimalDraftPersistsAcrossAppLanguagesOnEnglishDevice()',
+         'LuminaUITests/testManualHabitDuplicateErrorAndManagementPreserveRecords()',
+         'LuminaUITests/testSavedCheckInNoteEditRelaunchAndDeletion()',
+         'LuminaUITests/testDirectProgressAndSavedCheckInObservationRemainReachable()',

@@ -229,6 +229,51 @@ struct SavedRecordIntegrityTests {
         #expect(throws:LocalRecordEditError.self) { try draft.validated() }
         draft.repetitions="12";draft.exertion="11"
         #expect(throws:LocalRecordEditError.self) { try draft.validated() }
+
+        // Real draft/save paths intentionally omit a locale argument. The old
+        // helper-only Arabic test above did not cover an English phone whose
+        // app language or unsaved decimal text is Arabic.
+        for locale in [Locale(identifier: "en_US"), Locale(identifier: "ar_SA")] {
+            #expect(try LocalRecordDraft.number("١٢٫٥", field: "weight", locale: locale) == 12.5)
+            #expect(try LocalRecordDraft.number("12.5", field: "weight", locale: locale) == 12.5)
+            for malformed in ["١٬٠٠٠", "1,000", "12٫5.2", "12.5٫2", "12kg", "1 000", "١٢٫٥x"] {
+                #expect(throws: LocalRecordEditError.self) {
+                    try LocalRecordDraft.number(malformed, field: "weight", required: true, locale: locale)
+                }
+            }
+        }
+        #expect(LocalRecordDraft.numberText(0.25, locale: Locale(identifier: "en_US")) == "0.25")
+        #expect(LocalRecordDraft.numberText(0.25, locale: Locale(identifier: "ar_SA")) == "0٫25")
+        #expect(LocalRecordDraft.numberText(0.25) == "0" +
+            (LocalizationManager.shared.currentLanguage.locale.decimalSeparator ?? ".") + "25")
+
+        let (directory, container, model) = try makeStore()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        var goalDraft = GoalEditDraft()
+        goalDraft.name = "Fractional goal"; goalDraft.current = "٠٫١٢٥"; goalDraft.target = "٠٫٢٥"
+        try goalDraft.save(to: nil, using: model)
+        let meal = MealLog(mealName: "Decimal meal")
+        #expect(model.saveRecord(meal))
+        var mealDraft = MealEditDraft(meal)
+        mealDraft.calories = "١٢٫٥"; mealDraft.protein = "٠٫٢٥"
+        mealDraft.carbs = "3.5"; mealDraft.fat = "٠٫١٢٥"
+        try mealDraft.save(to: meal, using: model)
+        let workout = WorkoutLog(workoutName: "Decimal workout", exercises: [
+            LoggedExercise(name: "Decimal set", sets: [LoggedSet(reps: 8, weight: nil)])
+        ])
+        #expect(model.saveRecord(workout))
+        var workoutDraft = WorkoutEditDraft(workout)
+        workoutDraft.exercises[0].sets[0].weight = "١٢٫٥"
+        try workoutDraft.save(to: workout, using: model)
+        #expect(!container.mainContext.hasChanges)
+        let reopened = try reopen(directory)
+        let savedGoal = try #require(reopened.mainContext.fetch(FetchDescriptor<Goal>()).first)
+        let savedMeal = try #require(reopened.mainContext.fetch(FetchDescriptor<MealLog>()).first)
+        let savedWorkout = try #require(reopened.mainContext.fetch(FetchDescriptor<WorkoutLog>()).first)
+        #expect(savedGoal.currentValue == 0.125 && savedGoal.targetValue == 0.25)
+        #expect(savedMeal.calories == 12.5 && savedMeal.protein == 0.25 && savedMeal.carbs == 3.5 && savedMeal.fat == 0.125)
+        #expect(savedWorkout.exercises[0].sets[0].weight == 12.5)
+        #expect(savedWorkout.exercises[0].sets[0].id == workout.exercises[0].sets[0].id)
     }
 
     private func makeStore() throws -> (URL,ModelContainer,LuminaViewModel) {

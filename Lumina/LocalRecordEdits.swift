@@ -15,16 +15,21 @@ enum LocalRecordDraft {
         return result
     }
 
-    static func numberText(_ value: Double?, locale: Locale = .current) -> String {
+    static func numberText(_ value: Double?, locale: Locale? = nil) -> String {
         guard let value else { return "" }
-        return String(value).replacingOccurrences(of: ".", with: locale.decimalSeparator ?? ".")
+        let selectedLocale = locale ?? LocalizationManager.shared.currentLanguage.locale
+        // String(Double) preserves the stored value's shortest round-trip
+        // representation. Do not round a fractional target to a whole number.
+        return String(value).replacingOccurrences(of: ".", with: selectedLocale.decimalSeparator ?? ".")
     }
 
     /// Whole-string parsing prevents a malformed draft from silently keeping an
-    /// old numeric binding. Local decimal separators and decimal digits work;
-    /// thousands separators are intentionally not accepted in an editing field.
+    /// old numeric binding. Formatting follows the selected app language, not
+    /// the phone's region. Accept both supported decimal marks so a live EN/AR
+    /// language change cannot invalidate an existing string-backed draft.
+    /// Thousands separators are intentionally not accepted in an editing field.
     static func number(_ value: String, field: String, required: Bool = false,
-                       locale: Locale = .current) throws -> Double? {
+                       locale: Locale? = nil) throws -> Double? {
         let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
         if trimmed.isEmpty {
             guard !required else { throw LocalRecordEditError.invalid(L("Enter %@.", L(field))) }
@@ -34,7 +39,11 @@ enum LocalRecordDraft {
             if let digit = character.wholeNumberValue, (0...9).contains(digit) { return String(digit) }
             return String(character)
         }.joined()
-        let normalized = digits.replacingOccurrences(of: locale.decimalSeparator ?? ".", with: ".")
+        let selectedLocale = locale ?? LocalizationManager.shared.currentLanguage.locale
+        let decimalMarks = Set([".", "٫", selectedLocale.decimalSeparator ?? "."])
+        let normalized = decimalMarks.reduce(digits) { text, mark in
+            text.replacingOccurrences(of: mark, with: ".")
+        }
         guard normalized.range(of: #"^[+]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?$"#,
                                options: .regularExpression) != nil,
               let result = Double(normalized), result.isFinite, result >= 0 else {

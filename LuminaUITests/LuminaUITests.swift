@@ -918,6 +918,27 @@ final class LuminaUITests: XCTestCase {
         try tapRecordControl(app.buttons["Delete this record"], in: app)
         try tapRecordControl(try recordLeafButton("Delete record", in: app), in: app)
         XCTAssertTrue(app.staticTexts["No goals yet. Add a goal to record what you want to work toward."].waitForExistence(timeout: 5))
+
+        // The saved fraction must remain visible, not be rounded to a zero
+        // target by the card while the editor still stores a different value.
+        try tapRecordControl(app.buttons["lumina.goal.add"], in: app)
+        let fractionalName = app.textFields["lumina.goal.name"]
+        try tapRecordControl(fractionalName, in: app)
+        fractionalName.typeText("Fractional fixture goal")
+        try replaceShortNumericRecordField(app.textFields["lumina.goal.current"], with: "0.125", in: app)
+        try replaceShortNumericRecordField(app.textFields["lumina.goal.target"], with: "0.25", in: app)
+        try tapRecordControl(try recordLeafButton("lumina.record.save", in: app), in: app)
+        let values = app.staticTexts["lumina.goal.values"]
+        XCTAssertTrue(values.waitForExistence(timeout: 5))
+        XCTAssertEqual(values.label, "0.125 completion / 0.25 completion")
+        XCTAssertTrue(values.isHittable)
+        app.terminate(); app.launch()
+        XCTAssertTrue(app.staticTexts["lumina.qa-store"].waitForExistence(timeout: 15))
+        try openRecordHomeLink("Goals", in: app)
+        XCTAssertEqual(values.label, "0.125 completion / 0.25 completion")
+        try tapRecordControl(app.buttons["Edit goal Fractional fixture goal"], in: app)
+        XCTAssertEqual(app.textFields["lumina.goal.current"].value as? String, "0.125")
+        XCTAssertEqual(app.textFields["lumina.goal.target"].value as? String, "0.25")
     }
 
     @MainActor
@@ -1432,6 +1453,69 @@ final class LuminaUITests: XCTestCase {
         app.navigationBars["Settings"].buttons["Lumina"].tap()
         XCTAssertTrue(app.staticTexts["Your journal"].waitForExistence(timeout: 5))
         assertLanguageTabOrder(app, arabic: false)
+    }
+
+    @MainActor
+    func testArabicDecimalDraftPersistsAcrossAppLanguagesOnEnglishDevice() throws {
+        let app = XCUIApplication()
+        // The regional decimal separator remains English while the real in-app
+        // control selects Arabic. No fixture sets a numeric locale directly.
+        app.launchArguments = ["--lumina-ui-qa", "-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
+        app.launchEnvironment["LUMINA_QA_ID"] = UUID().uuidString
+        app.launch()
+        XCTAssertTrue(app.staticTexts["lumina.qa-store"].waitForExistence(timeout: 15))
+        XCTAssertTrue(app.staticTexts["Your journal"].waitForExistence(timeout: 5))
+        try tapRecordControl(app.buttons["lumina.settings"], in: app)
+        try selectAppLanguage("العربية", in: app)
+        app.tabBars.buttons["التمارين"].tap()
+        let name = app.textFields["lumina.workout.new-name"]
+        try tapRecordControl(name, in: app)
+        name.typeText("Arabic decimal fixture")
+        try dismissRecordKeyboard(in: app)
+        try tapRecordControl(app.buttons["إضافة تمرين"], in: app)
+        let exerciseFields = app.textFields.matching(NSPredicate(format: "label == %@ AND identifier != %@",
+            "اسم التمرين", "lumina.workout.new-name"))
+        XCTAssertTrue(exerciseFields.firstMatch.waitForExistence(timeout: 5))
+        XCTAssertEqual(exerciseFields.count, 1, "The exercise field must be distinct from the identically named workout field")
+        let exercise = exerciseFields.element(boundBy: 0)
+        try tapRecordControl(exercise, in: app)
+        exercise.typeText("Decimal squat")
+        try dismissRecordKeyboard(in: app)
+        try tapRecordControl(app.buttons["إضافة مجموعة"], in: app)
+        let arabicWeight = app.textFields["الوزن بالكيلوغرام في Decimal squat"]
+        try tapRecordControl(arabicWeight, in: app)
+        arabicWeight.typeText("١٢٫٥")
+        XCTAssertEqual(arabicWeight.value as? String, "١٢٫٥")
+        try dismissRecordKeyboard(in: app)
+
+        // A live language change preserves the exact unsaved text, and Save
+        // must parse it even after the app switches to the other decimal mark.
+        app.tabBars.buttons["الرئيسية"].tap()
+        XCTAssertTrue(app.navigationBars["الإعدادات"].waitForExistence(timeout: 5))
+        try selectAppLanguage("English", in: app)
+        app.tabBars.buttons["Workouts"].tap()
+        let englishWeight = app.textFields["Weight in kilograms for Decimal squat"]
+        try tapRecordControl(englishWeight, in: app, scrollDown: true)
+        XCTAssertEqual(englishWeight.value as? String, "١٢٫٥")
+        try dismissRecordKeyboard(in: app)
+        try tapRecordControl(app.buttons["lumina.workout.new-save"], in: app)
+        XCTAssertTrue(app.alerts["Workout saved!"].waitForExistence(timeout: 5),
+                      "The production Save path must accept the preserved Arabic decimal")
+        app.alerts.buttons["OK"].tap()
+        app.tabBars.buttons["Home"].tap()
+        XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 5))
+        try selectAppLanguage("العربية", in: app)
+        app.terminate(); app.launch()
+        XCTAssertTrue(app.staticTexts["lumina.qa-store"].waitForExistence(timeout: 15))
+        XCTAssertTrue(app.staticTexts["يومياتك"].waitForExistence(timeout: 5))
+        app.tabBars.buttons["التمارين"].tap()
+        try tapRecordControl(app.buttons["lumina.workout.history"], in: app)
+        try tapRecordControl(app.collectionViews.staticTexts["Arabic decimal fixture"], in: app)
+        let savedWeight = app.textFields["الوزن بالكيلوغرام في Decimal squat"]
+        try tapRecordControl(savedWeight, in: app)
+        XCTAssertEqual(savedWeight.value as? String, "12٫5",
+                       "Reopened numeric fields must format the saved value in the selected app locale")
+        attachRecordScreenshot(app, "Arabic decimal retained and formatted on English-region phone")
     }
 
     @MainActor

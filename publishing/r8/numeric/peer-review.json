@@ -1,0 +1,10 @@
+{
+  "reviewer": "career_readiness",
+  "result": "No remaining definite source blocker after Arabic field-selector correction",
+  "ui_sha256": "a4da9c50694638600154dca0c6aeab063647b763f617e006814efbddfaec0c67",
+  "preservation": "299 old XCTAssert retained;318 total;17 original UI bodies exact; goal method extended;61 unit+19 UI",
+  "findings_fixed": [
+    "Arabic workout and exercise share a label: exclude lumina.workout.new-name and require one exercise field"
+  ],
+  "qualification": "Source-only review;80 native results, Arabic Unicode entry, rendering and storage reopen pending."
+}
