@@ -1,0 +1,21 @@
+{
+  "scope": "STATIC_FILE_CHECKS_ONLY_NO_NATIVE_EXECUTION",
+  "parent_commit": "add412734658eef9aece0ec19618841f00ecc2c9",
+  "unit_methods": 62,
+  "all_original_unit_methods_retained": true,
+  "UI_source_unchanged": true,
+  "UI_sha256": "7367e68fbacda4e7f38f88d0278250971b102c91e35e43a31e2b03d0acecccc7",
+  "production_saved_editors_unchanged": true,
+  "date_pickers_retained": 4,
+  "diff_check": "passed",
+  "screened_text_files": 6,
+  "secret_pattern_hits": [],
+  "changed_product_test_sha256": {
+    "Lumina/LocalRecordEdits.swift": "c5f7a72e59e8c8a85087db118712332961148ab092826824b029407d3aaa03ef",
+    "Lumina/Localization/LocalizationManager.swift": "486ee1f587f1c7803a2b8c12f75c1dddcbd7ac2d927b4c8b44e9fe74298fdd1e",
+    "LuminaTests/LocalizationIntegrityTests.swift": "d1292f8b4bfa84918df9caf396b1b81d8260d57bb892644c55ffc990508f7ae1",
+    "LuminaTests/SavedRecordIntegrityTests.swift": "175d4e888691aefaa4056714b4835a6c9904691b006371d5669890a4ef2662f4"
+  },
+  "independent_peer": "/root/github_recovery: no blocking source finding; native acceptance remains pending",
+  "test_change_explanation": "R12-only numeric expectations moved from global UI locale to dedicated numericLocale; expected Arabic numbering and separator retained. Added ordinary UI locale identifiers. Original native UI assertion is unchanged."
+}

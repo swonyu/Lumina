@@ -15,9 +15,13 @@ enum AppLanguage: String, CaseIterable, Identifiable {
         }
     }
 
-    var locale: Locale {
-        // A language-only Arabic locale can default to Latin numeric symbols.
-        // Select Arabic numbering explicitly without forcing a region/calendar.
+    // Keep the UI locale language-only. UIKit's compact date picker crashed
+    // while applying the numbering-system extension during the native audit.
+    var locale: Locale { Locale(identifier: rawValue) }
+
+    var numericLocale: Locale {
+        // Numeric drafts need an explicit Arabic decimal mark independently
+        // of the locale supplied to date pickers and other native controls.
         Locale(identifier: self == .arabic ? "ar-u-nu-arab" : rawValue)
     }
 

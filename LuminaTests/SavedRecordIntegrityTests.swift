@@ -244,12 +244,12 @@ struct SavedRecordIntegrityTests {
         }
         #expect(LocalRecordDraft.numberText(0.25, locale: Locale(identifier: "en_US")) == "0.25")
         #expect(LocalRecordDraft.numberText(0.25, locale: Locale(identifier: "ar_SA")) == "0٫25")
-        // Use the actual in-app locale, not a regional surrogate. The native
-        // English-device/Arabic-app journey exposed that distinction.
-        #expect(LocalRecordDraft.numberText(12.5, locale: AppLanguage.arabic.locale) == "12٫5")
-        #expect(LocalRecordDraft.numberText(12.5, locale: AppLanguage.english.locale) == "12.5")
+        // Use the app's actual numeric policy, not a regional surrogate or
+        // the UI locale supplied to date pickers and other native controls.
+        #expect(LocalRecordDraft.numberText(12.5, locale: AppLanguage.arabic.numericLocale) == "12٫5")
+        #expect(LocalRecordDraft.numberText(12.5, locale: AppLanguage.english.numericLocale) == "12.5")
         #expect(LocalRecordDraft.numberText(0.25) == "0" +
-            (LocalizationManager.shared.currentLanguage.locale.decimalSeparator ?? ".") + "25")
+            (LocalizationManager.shared.currentLanguage.numericLocale.decimalSeparator ?? ".") + "25")
 
         let (directory, container, model) = try makeStore()
         defer { try? FileManager.default.removeItem(at: directory) }

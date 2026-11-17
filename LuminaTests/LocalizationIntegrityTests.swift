@@ -43,8 +43,13 @@ struct LocalizationIntegrityTests {
         #expect(AppLanguage.resolve(saved: "ar", preferredLanguages: ["en-US"]) == .arabic)
         #expect(AppLanguage.resolve(saved: nil, preferredLanguages: ["fr-FR", "AR_sa"]) == .arabic)
         #expect(AppLanguage.resolve(saved: "unsupported", preferredLanguages: ["fr-FR"]) == .english)
-        #expect(AppLanguage.arabic.locale.numberingSystem.identifier == "arab")
-        #expect(AppLanguage.arabic.locale.decimalSeparator == "٫")
-        #expect(AppLanguage.english.locale.decimalSeparator == ".")
+        // The real saved-workout journey crashed in UIDatePicker.setLocale
+        // when numeric options leaked into the UI environment. Keep the UI
+        // locale ordinary while requiring Arabic formatting for draft values.
+        #expect(AppLanguage.arabic.locale.identifier == "ar")
+        #expect(AppLanguage.english.locale.identifier == "en")
+        #expect(AppLanguage.arabic.numericLocale.numberingSystem.identifier == "arab")
+        #expect(AppLanguage.arabic.numericLocale.decimalSeparator == "٫")
+        #expect(AppLanguage.english.numericLocale.decimalSeparator == ".")
     }
 }

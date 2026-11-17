@@ -39,7 +39,7 @@ enum LocalRecordDraft {
 
     static func numberText(_ value: Double?, locale: Locale? = nil) -> String {
         guard let value else { return "" }
-        let selectedLocale = locale ?? LocalizationManager.shared.currentLanguage.locale
+        let selectedLocale = locale ?? LocalizationManager.shared.currentLanguage.numericLocale
         // String(Double) preserves the stored value's shortest round-trip
         // representation. Do not round a fractional target to a whole number.
         return String(value).replacingOccurrences(of: ".", with: selectedLocale.decimalSeparator ?? ".")
@@ -61,7 +61,7 @@ enum LocalRecordDraft {
             if let digit = character.wholeNumberValue, (0...9).contains(digit) { return String(digit) }
             return String(character)
         }.joined()
-        let selectedLocale = locale ?? LocalizationManager.shared.currentLanguage.locale
+        let selectedLocale = locale ?? LocalizationManager.shared.currentLanguage.numericLocale
         let decimalMarks = Set([".", "٫", selectedLocale.decimalSeparator ?? "."])
         let normalized = decimalMarks.reduce(digits) { text, mark in
             text.replacingOccurrences(of: mark, with: ".")
