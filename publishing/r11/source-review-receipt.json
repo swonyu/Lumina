@@ -1,0 +1,17 @@
+{
+  "status": "SOURCE_IMPLEMENTED_PEER_PENDING_NOT_NATIVE_TESTED",
+  "source_base_commit": "079aeb0d150111e9ba09239eb6cb7c428ef0c179",
+  "source_files": {
+    "Lumina/Features/MealLogging/MealLogView.swift": "324464c626ac744a8ec727d3402cd8dba6a08dd522927290cd12dd8137faf7a7",
+    "LuminaUITests/LuminaUITests.swift": "7367e68fbacda4e7f38f88d0278250971b102c91e35e43a31e2b03d0acecccc7"
+  },
+  "native_execution": false,
+  "source_compile": false,
+  "preserved_original_test_methods": 82,
+  "preserved_original_ui_assertions": true,
+  "peer_review": "PENDING",
+  "root_forced_dark_preserved": true,
+  "new_colors_adaptive_native_result_unverified": true,
+  "prior_native_candidates_changed": false,
+  "shared_lock_or_queue_touched": false
+}

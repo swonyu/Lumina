@@ -1,0 +1,13 @@
+{
+  "base_commit": "079aeb0d150111e9ba09239eb6cb7c428ef0c179",
+  "ui_test_method_count": 21,
+  "expected_total_tests": 82,
+  "unit_sources_unchanged": true,
+  "all_original_ui_test_bytes_retained_by_insertions_only": true,
+  "changed_existing_method": "testOptionalMealNutritionDistinguishesMissingValuesFromExplicitZero",
+  "baseline_ui_sha256": "d65d27dc5c48ada97ba775af54d8d210bfa121954fbf8d43ad573c93500c426b",
+  "candidate_ui_sha256": "7367e68fbacda4e7f38f88d0278250971b102c91e35e43a31e2b03d0acecccc7",
+  "baseline_meal_method_sha256": "bcbc9d9ecb99950da438df13e846e39544aa87f87a587b87f9eed70e26ee6efb",
+  "candidate_meal_method_sha256": "e60e1a03e9808b06a5c95c4987f41d3b6deef969eb09118f777172d444e6dab5",
+  "native_execution": false
+}

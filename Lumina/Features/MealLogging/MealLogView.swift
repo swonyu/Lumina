@@ -31,29 +31,43 @@ struct MealLogView: View {
                     .accessibilityIdentifier("lumina.meal.history")
                 
                 GlassCard {
-                    TextField(L("meal.what_did_you_eat"), text: $mealName)
-                        .focused($focusedField, equals: .name)
-                        .submitLabel(.done)
-                        .onSubmit { focusedField = nil }
-                        .textFieldStyle(.roundedBorder)
-                        .accessibilityIdentifier("lumina.meal.new-name")
+                    VStack(alignment: .leading, spacing: 6) {
+                        mealFieldLabel("meal.what_did_you_eat", identifier: "lumina.meal.new-name-label")
+                        TextField(L("meal.what_did_you_eat"), text: $mealName,
+                                  prompt: Text(L("Meal name")).foregroundColor(Color(uiColor: .label)))
+                            .focused($focusedField, equals: .name)
+                            .submitLabel(.done)
+                            .onSubmit { focusedField = nil }
+                            .modifier(MealEntryFieldAppearance())
+                            .accessibilityLabel(L("meal.what_did_you_eat"))
+                            .accessibilityIdentifier("lumina.meal.new-name")
+                    }
                     DisclosureGroup(L("Your nutrition entries (optional)"), isExpanded: $showingNutrition) {
                         VStack(alignment: .leading, spacing: 12) {
-                            TextField(L("Calories"), text: $calories)
-                                .keyboardType(.decimalPad)
-                                .focused($focusedField, equals: .calories)
-                                .accessibilityLabel(L("Calories"))
-                                .accessibilityIdentifier("lumina.meal.new-calories")
-                            TextField(L("Protein in grams"), text: $protein)
-                                .keyboardType(.decimalPad)
-                                .focused($focusedField, equals: .protein)
-                                .accessibilityLabel(L("Protein in grams"))
-                                .accessibilityIdentifier("lumina.meal.new-protein")
+                            VStack(alignment: .leading, spacing: 6) {
+                                mealFieldLabel("Calories", identifier: "lumina.meal.new-calories-label")
+                                TextField(L("Calories"), text: $calories,
+                                          prompt: Text(L("Not recorded")).foregroundColor(Color(uiColor: .label)))
+                                    .keyboardType(.decimalPad)
+                                    .focused($focusedField, equals: .calories)
+                                    .modifier(MealEntryFieldAppearance())
+                                    .accessibilityLabel(L("Calories"))
+                                    .accessibilityIdentifier("lumina.meal.new-calories")
+                            }
+                            VStack(alignment: .leading, spacing: 6) {
+                                mealFieldLabel("Protein in grams", identifier: "lumina.meal.new-protein-label")
+                                TextField(L("Protein in grams"), text: $protein,
+                                          prompt: Text(L("Not recorded")).foregroundColor(Color(uiColor: .label)))
+                                    .keyboardType(.decimalPad)
+                                    .focused($focusedField, equals: .protein)
+                                    .modifier(MealEntryFieldAppearance())
+                                    .accessibilityLabel(L("Protein in grams"))
+                                    .accessibilityIdentifier("lumina.meal.new-protein")
+                            }
                             Text(L("Leave a field empty if it was not recorded. These are your entries; Lumina does not estimate them from the photo."))
                                 .font(.caption)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
-                        .textFieldStyle(.roundedBorder)
                         .padding(.top, 8)
                     }
                     .disclosureGroupStyle(MealNutritionDisclosureStyle())
@@ -158,6 +172,15 @@ struct MealLogView: View {
         }
     }
     
+    private func mealFieldLabel(_ key: String, identifier: String) -> some View {
+        Text(L(key))
+            .font(.body.weight(.semibold))
+            .foregroundStyle(Color(uiColor: .label))
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .accessibilityIdentifier(identifier)
+    }
+
     private func saveMeal() {
         guard !photoImport.isLoading, selectedPhotoItem == nil || photoImport.data != nil else {
             viewModel.errorMessage = L("Wait for the selected photo to load, or remove it before saving.")
@@ -224,5 +247,28 @@ private struct MealNutritionDisclosureStyle: DisclosureGroupStyle {
                 configuration.content
             }
         }
+    }
+}
+
+
+/// Keep input text and its explicit prompt readable over the glass card in
+/// either system appearance. Labels stay separate from editable field values.
+private struct MealEntryFieldAppearance: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .textFieldStyle(.plain)
+            .font(.body)
+            .foregroundStyle(Color(uiColor: .label))
+            .tint(Color(uiColor: .label))
+            .multilineTextAlignment(.leading)
+            .frame(minHeight: 44)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 4)
+            .background(Color(uiColor: .secondarySystemBackground),
+                        in: RoundedRectangle(cornerRadius: 10))
+            .overlay {
+                RoundedRectangle(cornerRadius: 10)
+                    .strokeBorder(Color(uiColor: .secondaryLabel), lineWidth: 1)
+            }
     }
 }

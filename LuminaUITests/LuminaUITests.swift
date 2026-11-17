@@ -1055,10 +1055,16 @@ final class LuminaUITests: XCTestCase {
         app.launch()
         XCTAssertTrue(app.staticTexts["lumina.qa-store"].waitForExistence(timeout: 15))
         app.tabBars.buttons["Nutrition"].tap()
+        try auditMealFieldContrast(app, expected: [mealFieldExpectations(arabic: false)[0]],
+                                   state: "English empty meal name")
         let name = app.textFields["lumina.meal.new-name"]
         try tapRecordControl(name, in: app)
         name.typeText("Unrecorded nutrition fixture")
+        assertMealLabelWhileEditing(app, suffix: "name", label: "What did you eat?")
         try dismissRecordKeyboard(in: app)
+        try auditMealFieldContrast(app,
+            expected: [mealFieldExpectations(arabic: false, name: "Unrecorded nutrition fixture")[0]],
+            state: "English populated meal name keeps its label")
         // Do not open or touch the optional nutrition controls before Save.
         try tapRecordControl(app.buttons["lumina.meal.new-save"], in: app)
         XCTAssertTrue(app.alerts.firstMatch.waitForExistence(timeout: 5))
@@ -1084,16 +1090,27 @@ final class LuminaUITests: XCTestCase {
         name.typeText("Explicit nutrition fixture")
         try dismissRecordKeyboard(in: app)
         try tapRecordControl(try recordLeafButton("lumina.meal.nutrition", in: app), in: app)
+        try auditMealFieldContrast(app,
+            expected: mealFieldExpectations(arabic: true, name: "Explicit nutrition fixture"),
+            state: "Arabic empty nutrition prompts on English-region device")
+        let standardMealLabelHeight = app.staticTexts["lumina.meal.new-name-label"].frame.height
+        XCTAssertGreaterThan(standardMealLabelHeight, 0)
         let calories = app.textFields["lumina.meal.new-calories"]
         try tapRecordControl(calories, in: app)
         calories.typeText("0")
         XCTAssertEqual(calories.value as? String, "0")
+        assertMealLabelWhileEditing(app, suffix: "calories", label: "السعرات الحرارية")
         try dismissRecordKeyboard(in: app)
         let protein = app.textFields["lumina.meal.new-protein"]
         try tapRecordControl(protein, in: app)
         protein.typeText("١٢٫٥")
         XCTAssertEqual(protein.value as? String, "١٢٫٥")
+        assertMealLabelWhileEditing(app, suffix: "protein", label: "البروتين بالغرام")
         try dismissRecordKeyboard(in: app)
+        try auditMealFieldContrast(app,
+            expected: mealFieldExpectations(arabic: true, name: "Explicit nutrition fixture",
+                                            calories: "0", protein: "١٢٫٥"),
+            state: "Arabic populated meal fields retain labels and exact draft values")
         try tapRecordControl(app.buttons["lumina.meal.new-save"], in: app)
         XCTAssertTrue(app.alerts.firstMatch.waitForExistence(timeout: 5))
         app.alerts.buttons["حسناً"].tap()
@@ -1111,6 +1128,164 @@ final class LuminaUITests: XCTestCase {
         try tapRecordControl(savedProtein, in: app)
         XCTAssertEqual(savedProtein.value as? String, "12٫5")
         attachRecordScreenshot(app, "Explicit Arabic nutrition values preserved after relaunch")
+
+        // Cover the actual expanded form at the largest accessibility size;
+        // this reuses the isolated store and the user's real persisted Arabic choice.
+        app.terminate()
+        app.launchArguments += ["-UIPreferredContentSizeCategoryName",
+                                UIContentSizeCategory.accessibilityExtraExtraExtraLarge.rawValue]
+        app.launch()
+        XCTAssertTrue(app.staticTexts["lumina.qa-store"].waitForExistence(timeout: 15))
+        XCTAssertTrue(app.staticTexts["يومياتك"].waitForExistence(timeout: 5))
+        app.tabBars.buttons["التغذية"].tap()
+        try tapRecordControl(try recordLeafButton("lumina.meal.nutrition", in: app), in: app)
+        try auditMealFieldContrast(app, expected: mealFieldExpectations(arabic: true),
+                                   state: "Arabic empty meal form at largest accessibility size")
+        XCTAssertGreaterThan(app.staticTexts["lumina.meal.new-name-label"].frame.height,
+                             standardMealLabelHeight,
+                             "The persistent meal label must grow with Dynamic Type")
+        try tapRecordControl(name, in: app, scrollDown: true)
+        name.typeText("تفاح")
+        assertMealLabelWhileEditing(app, suffix: "name", label: "ماذا أكلت؟")
+        try dismissRecordKeyboard(in: app)
+        try tapRecordControl(calories, in: app)
+        calories.typeText("0")
+        assertMealLabelWhileEditing(app, suffix: "calories", label: "السعرات الحرارية")
+        try dismissRecordKeyboard(in: app)
+        try tapRecordControl(protein, in: app)
+        protein.typeText("١٢٫٥")
+        assertMealLabelWhileEditing(app, suffix: "protein", label: "البروتين بالغرام")
+        try dismissRecordKeyboard(in: app)
+        try auditMealFieldContrast(app,
+            expected: mealFieldExpectations(arabic: true, name: "تفاح", calories: "0", protein: "١٢٫٥"),
+            state: "Arabic populated meal form at largest accessibility size")
+    }
+
+    private struct MealFieldExpectation {
+        let suffix: String
+        let label: String
+        let prompt: String
+        let value: String?
+        var fieldID: String { "lumina.meal.new-\(suffix)" }
+        var labelID: String { fieldID + "-label" }
+    }
+
+    private func mealFieldExpectations(arabic: Bool, name: String? = nil,
+                                      calories: String? = nil, protein: String? = nil) -> [MealFieldExpectation] {
+        let empty = arabic ? "غير مسجل" : "Not recorded"
+        return [
+            MealFieldExpectation(suffix: "name", label: arabic ? "ماذا أكلت؟" : "What did you eat?",
+                                 prompt: arabic ? "اسم الوجبة" : "Meal name", value: name),
+            MealFieldExpectation(suffix: "calories", label: arabic ? "السعرات الحرارية" : "Calories",
+                                 prompt: empty, value: calories),
+            MealFieldExpectation(suffix: "protein", label: arabic ? "البروتين بالغرام" : "Protein in grams",
+                                 prompt: empty, value: protein),
+        ]
+    }
+
+    @MainActor
+    private func mealAuditViewport(_ app: XCUIApplication) throws -> CGRect {
+        let scrolls = app.scrollViews.allElementsBoundByIndex
+        XCTAssertEqual(scrolls.count, 1, "Meal audit requires the real form's single scroll view")
+        let scroll = try XCTUnwrap(scrolls.first)
+        let frame = app.frame.intersection(scroll.frame)
+        var top = frame.minY
+        var bottom = frame.maxY
+        for bar in app.statusBars.allElementsBoundByIndex + app.navigationBars.allElementsBoundByIndex {
+            if !bar.frame.isEmpty && bar.frame.intersects(frame) {
+                top = max(top, bar.frame.maxY)
+            }
+        }
+        for bar in app.tabBars.allElementsBoundByIndex {
+            if !bar.frame.isEmpty && bar.frame.intersects(frame) {
+                bottom = min(bottom, bar.frame.minY)
+            }
+        }
+        let viewport = CGRect(x: frame.minX, y: top, width: frame.width, height: bottom - top)
+        XCTAssertTrue(!viewport.isNull && !viewport.isInfinite && viewport.width > 0 && viewport.height > 0,
+                      "Meal audit needs an unobscured visible viewport")
+        return viewport
+    }
+
+    @MainActor
+    private func mealPairIsVisible(_ expected: MealFieldExpectation, in app: XCUIApplication,
+                                   viewport: CGRect) -> Bool {
+        let label = app.staticTexts[expected.labelID]
+        let field = app.textFields[expected.fieldID]
+        return label.exists && field.exists && field.isHittable
+            && !label.frame.isEmpty && !field.frame.isEmpty
+            && viewport.contains(label.frame) && viewport.contains(field.frame)
+    }
+
+    @MainActor
+    private func auditMealFieldContrast(_ app: XCUIApplication,
+                                       expected: [MealFieldExpectation], state: String) throws {
+        XCTAssertFalse(app.keyboards.firstMatch.exists, "Dismiss the real keyboard before a form contrast audit")
+        XCTAssertEqual(Set(expected.map(\.fieldID)).count, expected.count)
+        var covered: Set<String> = []
+        for target in expected {
+            if covered.contains(target.fieldID) { continue }
+            _ = app.textFields[target.fieldID].waitForExistence(timeout: 5)
+            var viewport = try mealAuditViewport(app)
+            for _ in 0..<8 {
+                if mealPairIsVisible(target, in: app, viewport: viewport) { break }
+                let label = app.staticTexts[target.labelID]
+                let field = app.textFields[target.fieldID]
+                if (label.exists && label.frame.minY < viewport.minY)
+                    || (field.exists && field.frame.minY < viewport.minY) {
+                    app.swipeDown()
+                } else {
+                    app.swipeUp()
+                }
+                viewport = try mealAuditViewport(app)
+            }
+            XCTAssertTrue(mealPairIsVisible(target, in: app, viewport: viewport),
+                          "Both the persistent label and actual input must be fully visible after bounded scrolling")
+            let visible = expected.filter { mealPairIsVisible($0, in: app, viewport: viewport) }
+            XCTAssertTrue(visible.contains { $0.fieldID == target.fieldID })
+            for item in visible {
+                let field = app.textFields[item.fieldID]
+                XCTAssertEqual(app.staticTexts[item.labelID].label, item.label)
+                XCTAssertEqual(field.label, item.label, "The input name must match its persistent visible label")
+                XCTAssertGreaterThanOrEqual(field.frame.width, 44)
+                XCTAssertGreaterThanOrEqual(field.frame.height, 44)
+                let value = try XCTUnwrap(field.value as? String)
+                if let recorded = item.value {
+                    XCTAssertEqual(value, recorded, "Auditing must preserve the exact entered draft")
+                } else {
+                    XCTAssertEqual(field.placeholderValue, item.prompt)
+                    XCTAssertTrue(value.isEmpty || value == item.prompt,
+                                  "An empty nutrition field must not silently become zero")
+                }
+            }
+            attachRecordScreenshot(app, state + " — before contrast audit")
+            let evidence = XCTAttachment(string: "Audited fields: \(visible.map(\.fieldID))\n"
+                + "Viewport: \(viewport)\n" + app.debugDescription)
+            evidence.name = state + " — visible meal fields"
+            evidence.lifetime = .keepAlways
+            add(evidence)
+            // Run the real complete audit. No issue handler, exclusions or synthetic result.
+            try app.performAccessibilityAudit(for: .contrast)
+            let after = try mealAuditViewport(app)
+            for item in visible {
+                XCTAssertTrue(mealPairIsVisible(item, in: app, viewport: after),
+                              "A field cannot receive contrast credit after leaving the visible viewport")
+            }
+            attachRecordScreenshot(app, state + " — after contrast audit")
+            covered.formUnion(visible.map(\.fieldID))
+        }
+        XCTAssertEqual(covered, Set(expected.map(\.fieldID)), "Every requested field needs actual contrast coverage")
+    }
+
+    @MainActor
+    private func assertMealLabelWhileEditing(_ app: XCUIApplication, suffix: String, label: String) {
+        XCTAssertTrue(app.keyboards.firstMatch.exists)
+        let persistent = app.staticTexts["lumina.meal.new-\(suffix)-label"]
+        XCTAssertEqual(persistent.label, label)
+        XCTAssertTrue(persistent.isHittable, "The label must remain readable while the field is being edited")
+        XCTAssertLessThanOrEqual(persistent.frame.maxY, app.keyboards.firstMatch.frame.minY,
+                                 "The keyboard must not cover the persistent field label")
+        attachRecordScreenshot(app, "Persistent \(suffix) label with keyboard")
     }
 
     @MainActor

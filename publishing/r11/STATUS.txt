@@ -1,0 +1,19 @@
+R11 source candidate: implemented; native acceptance pending
+
+Base: 079aeb0d150111e9ba09239eb6cb7c428ef0c179 (reviewed R10).
+Branch: continuation/lumina-r11-meal-contrast-20261117-01a49.
+The initial cloud clone was rejected before execution during the workspace
+outage. Root authorized an isolated file-only Mac checkout at Lumina/R11-Source-
+01a49. After cloud recovery, its exact Git diff was mirrored for peer review.
+Original native candidates, the HalalTag waiting process and all locks are intact.
+
+Product: Lumina/Features/MealLogging/MealLogView.swift.
+Tests: LuminaUITests/LuminaUITests.swift; all original assertions and 82 methods
+remain. See DIAGNOSIS.txt, test-retention.json and source-review-receipt.json.
+Peer review is pending at this preparation checkpoint. R9 finished 78/82;
+R10 and R11 have no native acceptance result. Compilation, full native validation,
+archive, signing, upload, App Review and public release are separate pending steps.
+
+Keep the app free. No ad SDK or verified live ad release is added. The original
+24 ACTIVE engineering-hour budget is not restarted; actual active use remains
+unknown. StockSage remains excluded until the first three are finished.

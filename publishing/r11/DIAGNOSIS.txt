@@ -1,0 +1,47 @@
+Lumina R11: readable meal inputs with persistent labels
+
+The retained actual R9 Arabic meal screenshot showed the calories/protein
+placeholders as RGB(70,70,73) on black. Independent image/source research measured
+2.2326896:1 contrast. A populated meal field also lost its visible placeholder
+label. R10 fixed four earlier accessibility failures but retained that styling.
+Evidence image: deep-ui-research/images/lumina-r9-arabic-meal-actual.png.
+Base source: 079aeb0d150111e9ba09239eb6cb7c428ef0c179.
+
+Only MealLogView changes shipping behavior. All three native inputs receive
+persistent localized labels and explicit label-color prompts and values on an
+opaque secondarySystemBackground. Their text follows body Dynamic Type; labels
+wrap and follow the real RTL/LTR environment. No fixed RGB, font cap, hidden audit
+text, custom accessibility frame or numeric string mirroring is introduced.
+
+The meal field keeps What did you eat? as both visible label and accessible name,
+preserving existing selectors and label-in-name. Its prompt is Meal name.
+Calories and Protein in grams retain their labels; their empty prompt is
+Not recorded. Existing localization keys are reused. Empty values remain absent;
+zero remains an explicit value. The exact save/parser/disclosure implementations,
+FocusState, identifiers, keyboard dismissal and photo behavior are unchanged.
+
+The shared GlassCard and ContentView theme remain unchanged. ContentView currently
+forces dark appearance. Using adaptive colors does not establish an app-wide
+light mode or a light-mode native pass. Actual native readability remains a gate.
+
+The existing optional-meal UI journey adds unfiltered whole-app contrast audits
+for fully visible label/input pairs: English name empty/filled, Arabic three
+fields with empty prompts/entered values on an English-region device, and Arabic
+empty/filled fields at the largest accessibility size. Keyboard-label visibility
+is checked using the actual keyboard; the original strict Done, nil/zero,
+Arabic-decimal save and relaunch assertions remain. Every original UI-test byte
+is retained by insertions only; all 82 method names remain. Each requested pair
+has bounded real scrolling and must be visible before receiving audit credit.
+No issue filter, fabricated passing result or assertion removal is used.
+
+Source checks: clean exact base, no local AGENTS found, git diff --check, unchanged
+save/disclosure bytes and all unit/parser/theme files, unchanged UI method inventory,
+insertion-only retention proof and exact Mac/cloud source hash equality.
+No Swift compiler, simulator, native test, archive, signing or upload has run.
+
+Official API references read 17 November 2026:
+https://developer.apple.com/documentation/swiftui/textfield
+https://developer.apple.com/documentation/uikit/ui-element-colors
+https://developer.apple.com/documentation/uikit/uicolor/label
+https://developer.apple.com/documentation/uikit/uicolor/secondarysystembackground
+https://developer.apple.com/documentation/xcuiautomation/xcuielementtypequeryprovider/statusbars
