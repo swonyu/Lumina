@@ -1,0 +1,56 @@
+{
+  "record_type": "isolated_recovery_source_review",
+  "recorded_at_utc": "2026-11-17T14:26:48.987880+00:00",
+  "original_base_commit": "079aeb0d150111e9ba09239eb6cb7c428ef0c179",
+  "preserved_R11_commit": "cf67204a8b5a0378586276b8c5a54c1a39e30a36",
+  "source_files": {
+    "Lumina/Features/MealLogging/MealLogView.swift": "324464c626ac744a8ec727d3402cd8dba6a08dd522927290cd12dd8137faf7a7",
+    "LuminaUITests/LuminaUITests.swift": "7367e68fbacda4e7f38f88d0278250971b102c91e35e43a31e2b03d0acecccc7"
+  },
+  "recovered_patch_sha256": "401c559fa48d23eb43ee7f0ce8a61a94fb3bd32a8838504cd5e367e0fa28497b",
+  "old_workspace_modified": false,
+  "original_R11_evidence_retained_byte_for_byte": true,
+  "original_UI_methods": 21,
+  "current_UI_methods": 21,
+  "all_original_UI_lines_retained": true,
+  "original_assertion_calls": 378,
+  "current_assertion_calls": 403,
+  "other_test_files_unchanged": 10,
+  "test_plan_unchanged": true,
+  "forced_dark_root_unchanged": true,
+  "static_existing_native_verifier": {
+    "scheme_and_plan": "passed",
+    "source_inventory": "passed",
+    "expected_counts": {
+      "LuminaTests": 61,
+      "LuminaUITests": 21
+    },
+    "runner_sha256": "0e7af7af455b34b1b90606f7412d4cb57fbdcee58c2953191e2d21e05bafd109",
+    "native_runner_executed": false
+  },
+  "diff_check": "passed",
+  "secret_pattern_scan": {
+    "new_recovered_files": 6,
+    "findings": 0,
+    "limitation": "Pattern scan of the recovered diff and evidence; not a guarantee about every historical revision."
+  },
+  "README_corrections": [
+    "All configurations use the free on-device/local coaching route; no Debug xAI client.",
+    "Supported backup preview and confirmed restoration into an empty local journal already exist; raw/old backups remain excluded."
+  ],
+  "native_compile_or_test": false,
+  "push_invoked": false,
+  "store_actions": false,
+  "historical_R9_result": {
+    "source_commit": "8d22c6072a84afbf0c3fa2ebc74c5472eabbadb3",
+    "passed": 78,
+    "total": 82,
+    "units_passed": 61,
+    "units_total": 61,
+    "UI_passed": 17,
+    "UI_total": 21,
+    "applies_to_recovered_source": false
+  },
+  "original_cutoff_utc": "2026-11-17T22:26:12Z",
+  "next_owner": "root for native scheduling, screening and remote checkpoint"
+}
