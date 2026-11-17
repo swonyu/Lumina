@@ -189,6 +189,22 @@ struct GoalRecordEditor: View {
     }
 }
 
+/// A separate visible label remains when the field contains a saved value.
+/// The native text field keeps its original binding, focus and accessible name.
+private struct RecordFieldLabel: View {
+    let title: String
+    let identifier: String
+
+    var body: some View {
+        Text(L(title))
+            .font(.body.weight(.semibold))
+            .foregroundStyle(Color.primary)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .accessibilityIdentifier(identifier)
+    }
+}
+
 /// Native text fields retain each string draft until validated on explicit Save.
 /// The same fields are used for new workouts and saved workout editing.
 struct WorkoutExerciseFields: View {
@@ -205,15 +221,27 @@ struct WorkoutExerciseFields: View {
                     .accessibilityIdentifier("lumina.workout.exercise.\(exercise.id.uuidString).name")
                 ForEach($exercise.sets) { $set in
                     VStack(alignment: .leading, spacing: 8) {
-                        TextField(L("Repetitions"), text: $set.repetitions).keyboardType(.numberPad)
-                            .focused(focusedField, equals: .repetitions(set.id))
-                            .accessibilityLabel(L("Repetitions for %@", exercise.name))
-                        TextField(L("Weight in kilograms (optional)"), text: $set.weight).keyboardType(.decimalPad)
-                            .focused(focusedField, equals: .weight(set.id))
-                            .accessibilityLabel(L("Weight in kilograms for %@", exercise.name))
-                        TextField(L("Set exertion 1–10 (optional)"), text: $set.exertion).keyboardType(.numberPad)
-                            .focused(focusedField, equals: .exertion(set.id))
-                            .accessibilityLabel(L("Set exertion for %@", exercise.name))
+                        VStack(alignment: .leading, spacing: 6) {
+                            RecordFieldLabel(title: "Repetitions",
+                                             identifier: "lumina.workout.set.\(set.id.uuidString).repetitions-label")
+                            TextField(L("Repetitions"), text: $set.repetitions).keyboardType(.numberPad)
+                                .focused(focusedField, equals: .repetitions(set.id))
+                                .accessibilityLabel(L("Repetitions for %@", exercise.name))
+                        }
+                        VStack(alignment: .leading, spacing: 6) {
+                            RecordFieldLabel(title: "Weight in kilograms (optional)",
+                                             identifier: "lumina.workout.set.\(set.id.uuidString).weight-label")
+                            TextField(L("Weight in kilograms (optional)"), text: $set.weight).keyboardType(.decimalPad)
+                                .focused(focusedField, equals: .weight(set.id))
+                                .accessibilityLabel(L("Weight in kilograms for %@", exercise.name))
+                        }
+                        VStack(alignment: .leading, spacing: 6) {
+                            RecordFieldLabel(title: "Set exertion 1–10 (optional)",
+                                             identifier: "lumina.workout.set.\(set.id.uuidString).exertion-label")
+                            TextField(L("Set exertion 1–10 (optional)"), text: $set.exertion).keyboardType(.numberPad)
+                                .focused(focusedField, equals: .exertion(set.id))
+                                .accessibilityLabel(L("Set exertion for %@", exercise.name))
+                        }
                         Button(L("Remove set"), role: .destructive) {
                             exercise.sets.removeAll { $0.id == set.id }
                         }
@@ -252,12 +280,20 @@ struct WorkoutRecordEditor: View {
                     .focused($focusedField, equals: .name)
                     .accessibilityIdentifier("lumina.workout.record-name")
                 DatePicker(L("Recorded at"), selection: $draft.date)
-                TextField(L("Exertion 1–10 (optional)"), text: $draft.exertion).keyboardType(.numberPad)
-                    .focused($focusedField, equals: .workoutExertion)
-                    .accessibilityLabel(L("Exertion 1–10 (optional)"))
-                    .accessibilityIdentifier("lumina.workout.record-effort")
-                TextField(L("Duration in minutes (optional)"), text: $draft.duration).keyboardType(.numberPad)
-                    .focused($focusedField, equals: .duration)
+                VStack(alignment: .leading, spacing: 6) {
+                    RecordFieldLabel(title: "Exertion 1–10 (optional)",
+                                     identifier: "lumina.workout.record-effort-label")
+                    TextField(L("Exertion 1–10 (optional)"), text: $draft.exertion).keyboardType(.numberPad)
+                        .focused($focusedField, equals: .workoutExertion)
+                        .accessibilityLabel(L("Exertion 1–10 (optional)"))
+                        .accessibilityIdentifier("lumina.workout.record-effort")
+                }
+                VStack(alignment: .leading, spacing: 6) {
+                    RecordFieldLabel(title: "Duration in minutes (optional)",
+                                     identifier: "lumina.workout.record-duration-label")
+                    TextField(L("Duration in minutes (optional)"), text: $draft.duration).keyboardType(.numberPad)
+                        .focused($focusedField, equals: .duration)
+                }
                 TextEditor(text: $draft.notes).frame(minHeight: 120).accessibilityLabel(L("Workout notes"))
                     .focused($focusedField, equals: .notes)
                     .accessibilityIdentifier("lumina.workout.record-notes")
@@ -297,14 +333,30 @@ struct MealRecordEditor: View {
                     .accessibilityIdentifier("lumina.meal.record-notes")
             }
             Section(L("Your nutrition entries (optional)")) {
-                TextField(L("Calories"), text: $draft.calories).keyboardType(.decimalPad)
-                    .accessibilityLabel(L("Calories"))
-                    .accessibilityIdentifier("lumina.meal.record-calories")
-                TextField(L("Protein in grams"), text: $draft.protein).keyboardType(.decimalPad)
-                    .accessibilityLabel(L("Protein in grams"))
-                    .accessibilityIdentifier("lumina.meal.record-protein")
-                TextField(L("Carbohydrates in grams"), text: $draft.carbs).keyboardType(.decimalPad)
-                TextField(L("Fat in grams"), text: $draft.fat).keyboardType(.decimalPad)
+                VStack(alignment: .leading, spacing: 6) {
+                    RecordFieldLabel(title: "Calories",
+                                     identifier: "lumina.meal.record-calories-label")
+                    TextField(L("Calories"), text: $draft.calories).keyboardType(.decimalPad)
+                        .accessibilityLabel(L("Calories"))
+                        .accessibilityIdentifier("lumina.meal.record-calories")
+                }
+                VStack(alignment: .leading, spacing: 6) {
+                    RecordFieldLabel(title: "Protein in grams",
+                                     identifier: "lumina.meal.record-protein-label")
+                    TextField(L("Protein in grams"), text: $draft.protein).keyboardType(.decimalPad)
+                        .accessibilityLabel(L("Protein in grams"))
+                        .accessibilityIdentifier("lumina.meal.record-protein")
+                }
+                VStack(alignment: .leading, spacing: 6) {
+                    RecordFieldLabel(title: "Carbohydrates in grams",
+                                     identifier: "lumina.meal.record-carbs-label")
+                    TextField(L("Carbohydrates in grams"), text: $draft.carbs).keyboardType(.decimalPad)
+                }
+                VStack(alignment: .leading, spacing: 6) {
+                    RecordFieldLabel(title: "Fat in grams",
+                                     identifier: "lumina.meal.record-fat-label")
+                    TextField(L("Fat in grams"), text: $draft.fat).keyboardType(.decimalPad)
+                }
                 Text(L("Leave a field empty if it was not recorded. These are your entries; Lumina does not estimate them from the photo."))
                     .font(.caption)
             }

@@ -1084,6 +1084,10 @@ final class LuminaUITests: XCTestCase {
             XCTAssertTrue(value.isEmpty || value == field.placeholderValue,
                           "An untouched nutrition value must remain absent after relaunch, never become zero")
         }
+        try assertSavedFieldLabel(app, field: app.textFields["lumina.meal.record-calories"], label: "Calories", identifier: "lumina.meal.record-calories-label", scrollDown: true)
+        try assertSavedFieldLabel(app, field: app.textFields["lumina.meal.record-protein"], label: "Protein in grams", identifier: "lumina.meal.record-protein-label")
+        try assertSavedFieldLabel(app, field: app.textFields["Carbohydrates in grams"], label: "Carbohydrates in grams", identifier: "lumina.meal.record-carbs-label")
+        try assertSavedFieldLabel(app, field: app.textFields["Fat in grams"], label: "Fat in grams", identifier: "lumina.meal.record-fat-label")
         app.terminate(); app.launch()
         XCTAssertTrue(app.staticTexts["lumina.qa-store"].waitForExistence(timeout: 15))
         try tapRecordControl(app.buttons["lumina.settings"], in: app)
@@ -1128,10 +1132,15 @@ final class LuminaUITests: XCTestCase {
         try tapRecordControl(savedCalories, in: app)
         XCTAssertEqual(savedCalories.value as? String, "0٫0",
                        "An explicit zero is a recorded value, distinct from an untouched field")
+        try assertSavedFieldLabel(app, field: savedCalories, label: "السعرات الحرارية", identifier: "lumina.meal.record-calories-label")
         let savedProtein = app.textFields["lumina.meal.record-protein"]
         try tapRecordControl(savedProtein, in: app)
         XCTAssertEqual(savedProtein.value as? String, "12٫5")
+        try assertSavedFieldLabel(app, field: savedProtein, label: "البروتين بالغرام", identifier: "lumina.meal.record-protein-label")
+        let standardSavedProteinLabelHeight = app.staticTexts["lumina.meal.record-protein-label"].frame.height
         attachRecordScreenshot(app, "Explicit Arabic nutrition values preserved after relaunch")
+        try assertSavedFieldLabel(app, field: app.textFields["الكربوهيدرات بالغرام"], label: "الكربوهيدرات بالغرام", identifier: "lumina.meal.record-carbs-label")
+        try assertSavedFieldLabel(app, field: app.textFields["الدهون بالغرام"], label: "الدهون بالغرام", identifier: "lumina.meal.record-fat-label")
 
         // Cover the actual expanded form at the largest accessibility size;
         // this reuses the isolated store and the user's real persisted Arabic choice.
@@ -1139,6 +1148,18 @@ final class LuminaUITests: XCTestCase {
         app.launchArguments += ["-UIPreferredContentSizeCategoryName",
                                 UIContentSizeCategory.accessibilityExtraExtraExtraLarge.rawValue]
         app.launch()
+        XCTAssertTrue(app.staticTexts["lumina.qa-store"].waitForExistence(timeout: 15))
+        XCTAssertTrue(app.staticTexts["يومياتك"].waitForExistence(timeout: 5))
+        app.tabBars.buttons["التغذية"].tap()
+        try tapRecordControl(app.buttons["lumina.meal.history"], in: app)
+        try tapRecordControl(app.collectionViews.staticTexts["Explicit nutrition fixture"], in: app)
+        let largeSavedProtein = app.textFields["lumina.meal.record-protein"]
+        try assertSavedFieldLabel(app, field: largeSavedProtein, label: "البروتين بالغرام", identifier: "lumina.meal.record-protein-label")
+        XCTAssertEqual(largeSavedProtein.value as? String, "12٫5")
+        XCTAssertGreaterThan(app.staticTexts["lumina.meal.record-protein-label"].frame.height,
+                             standardSavedProteinLabelHeight,
+                             "A persistent saved-field label must grow with Dynamic Type")
+        app.terminate(); app.launch()
         XCTAssertTrue(app.staticTexts["lumina.qa-store"].waitForExistence(timeout: 15))
         XCTAssertTrue(app.staticTexts["يومياتك"].waitForExistence(timeout: 5))
         app.tabBars.buttons["التغذية"].tap()
@@ -1577,6 +1598,37 @@ final class LuminaUITests: XCTestCase {
     }
 
     @MainActor
+    private func assertSavedFieldLabel(_ app: XCUIApplication, field: XCUIElement,
+                                       label: String, identifier: String? = nil,
+                                       scrollDown: Bool = false) throws {
+        try tapRecordControl(field, in: app, scrollDown: scrollDown)
+        let labels: XCUIElementQuery
+        if let identifier {
+            labels = app.staticTexts.matching(identifier: identifier)
+        } else {
+            // Each exercise fixture contains one set. Match the actual set-label
+            // namespace, so a placeholder or the hidden creation form cannot pass.
+            labels = app.staticTexts.matching(NSPredicate(
+                format: "identifier BEGINSWITH %@ AND label == %@", "lumina.workout.set.", label))
+        }
+        XCTAssertEqual(labels.count, 1)
+        let visibleLabel = labels.firstMatch
+        XCTAssertTrue(visibleLabel.exists && visibleLabel.isHittable,
+                      "A saved value must keep a visible label with its quantity and unit")
+        XCTAssertEqual(visibleLabel.label, label)
+        XCTAssertGreaterThan(visibleLabel.frame.width, 0)
+        XCTAssertGreaterThan(visibleLabel.frame.height, 0)
+        XCTAssertTrue(app.windows.firstMatch.frame.contains(visibleLabel.frame))
+        XCTAssertLessThanOrEqual(visibleLabel.frame.maxY, field.frame.minY,
+                                 "The field label must stay above its editable value")
+        if app.keyboards.firstMatch.exists {
+            XCTAssertLessThanOrEqual(field.frame.maxY, app.keyboards.firstMatch.frame.minY,
+                                     "The keyboard must not hide the saved value or its label")
+        }
+        attachRecordScreenshot(app, "Persistent saved field label: " + label)
+    }
+
+    @MainActor
     func testWorkoutExercisesSetsAndNotesRemainEditableAfterRelaunch() throws {
         let app = launchQAApplication()
         app.tabBars.buttons["Workouts"].tap()
@@ -1605,6 +1657,10 @@ final class LuminaUITests: XCTestCase {
         try tapRecordControl(app.textFields["Exercise name"], in: app)
         XCTAssertEqual(app.textFields["Exercise name"].value as? String, "Fixture squat")
         XCTAssertEqual(Double(app.textFields["Weight in kilograms for Fixture squat"].value as? String ?? ""), 25.5)
+        try assertSavedFieldLabel(app, field: app.textFields["Repetitions for Fixture squat"], label: "Repetitions")
+        try assertSavedFieldLabel(app, field: app.textFields["Weight in kilograms for Fixture squat"], label: "Weight in kilograms (optional)")
+        try assertSavedFieldLabel(app, field: app.textFields["Set exertion for Fixture squat"], label: "Set exertion 1–10 (optional)")
+        try dismissRecordKeyboard(in: app)
         app.navigationBars["Saved workout"].buttons["Cancel"].tap()
         try tapRecordControl(app.collectionViews.staticTexts["Fixture workout"], in: app)
         let savedNotes = app.textViews["lumina.workout.record-notes"]
@@ -1727,6 +1783,25 @@ final class LuminaUITests: XCTestCase {
         XCTAssertTrue(recorded.isHittable)
         XCTAssertEqual(recorded.value as? String, "6",
                        "An explicit effort rating must be retained in the persisted record")
+        let recordSave = try recordLeafButton("lumina.record.save", in: app)
+        let recordCancel = app.navigationBars["Saved workout"].buttons["Cancel"]
+        XCTAssertTrue(recordCancel.waitForExistence(timeout: 5))
+        let editorWindow = app.windows.firstMatch.frame
+        for action in [recordSave, recordCancel] {
+            XCTAssertTrue(action.isHittable, "The saved-record action must be reachable")
+            XCTAssertGreaterThan(action.frame.width, 0)
+            XCTAssertGreaterThan(action.frame.height, 0)
+            XCTAssertTrue(editorWindow.contains(action.frame),
+                          "The complete Save and Cancel control must fit inside the native window")
+        }
+        let toolbarEvidence = XCTAttachment(string: "Window: \(editorWindow)\n"
+            + "Save: \(recordSave.frame)\nCancel: \(recordCancel.frame)\n" + app.debugDescription)
+        toolbarEvidence.name = "Unmodified saved-workout toolbar geometry and AX"
+        toolbarEvidence.lifetime = .keepAlways
+        add(toolbarEvidence)
+        attachRecordScreenshot(app, "Saved workout Save and Cancel toolbar bounds")
+        try assertSavedFieldLabel(app, field: recorded, label: "Exertion 1–10 (optional)", identifier: "lumina.workout.record-effort-label")
+        try assertSavedFieldLabel(app, field: app.textFields["Duration in minutes (optional)"], label: "Duration in minutes (optional)", identifier: "lumina.workout.record-duration-label")
         XCTAssertEqual(app.textViews["lumina.workout.record-notes"].value as? String,
                        "Explicit effort draft notes")
         attachRecordScreenshot(app, "Explicit effort preserved after relaunch")
@@ -2140,6 +2215,9 @@ final class LuminaUITests: XCTestCase {
         try tapRecordControl(savedWeight, in: app)
         XCTAssertEqual(savedWeight.value as? String, "12٫5",
                        "Reopened numeric fields must format the saved value in the selected app locale")
+        try assertSavedFieldLabel(app, field: savedWeight, label: "الوزن بالكيلوغرام (اختياري)")
+        try assertSavedFieldLabel(app, field: app.textFields["تكرارات Decimal squat"], label: "التكرارات", scrollDown: true)
+        try assertSavedFieldLabel(app, field: app.textFields["مجهود المجموعة في Decimal squat"], label: "مجهود المجموعة من 1 إلى 10 (اختياري)")
         attachRecordScreenshot(app, "Arabic decimal retained and formatted on English-region phone")
     }
 
