@@ -32,6 +32,13 @@ struct GlassButton: View {
     let action: () -> Void
     var isProminent: Bool = false
 
+    // Opaque sRGB colors keep white headline text readable when system accent
+    // colors become brighter in Dark Mode. The real UI contrast audit covers it.
+    private static let prominentColors: [Color] = [
+        Color(.sRGB, red: 31.0 / 255.0, green: 78.0 / 255.0, blue: 180.0 / 255.0, opacity: 1),
+        Color(.sRGB, red: 99.0 / 255.0, green: 49.0 / 255.0, blue: 165.0 / 255.0, opacity: 1),
+    ]
+
     init(title: String, isProminent: Bool = false, action: @escaping () -> Void) {
         self.title = title
         self.isProminent = isProminent
@@ -47,7 +54,7 @@ struct GlassButton: View {
                 .padding()
                 .background(
                     isProminent 
-                    ? AnyShapeStyle(.linearGradient(colors: [.blue, .purple], startPoint: .leading, endPoint: .trailing))
+                    ? AnyShapeStyle(.linearGradient(colors: Self.prominentColors, startPoint: .leading, endPoint: .trailing))
                     : AnyShapeStyle(.regularMaterial)
                 )
                 .overlay(

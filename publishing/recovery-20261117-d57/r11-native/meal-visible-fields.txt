@@ -1,0 +1,80 @@
+Audited fields: ["lumina.meal.new-name"]
+Viewport: (0.0, 0.0, 402.0, 791.0)
+Attributes: Application, 0x11675cb40, pid: 95278, label: 'Lumina'
+Element subtree:
+ →Application, 0x11675cb40, pid: 95278, label: 'Lumina'
+    Window (Main), 0x11675c000, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x11675f340, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x11675c640, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x11675ebc0, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x11675f0c0, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x11675ea80, {{0.0, 0.0}, {402.0, 874.0}}
+              Other, 0x11675f980, {{0.0, 0.0}, {402.0, 874.0}}
+                Other, 0x11675f840, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x11675de00, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x11675d900, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x11675fac0, {{0.0, 0.0}, {402.0, 874.0}}
+                        ScrollView, 0x11675ee40, {{0.0, 0.0}, {402.0, 874.0}}
+                          Other, 0x11675d040, {{0.0, 0.0}, {402.0, 874.0}}
+                            Other, 0x11675c280, {{0.0, 0.0}, {402.0, 102.0}}
+                            Other, 0x11675db80, {{0.0, 741.0}, {402.0, 133.0}}
+                          Other, 0x11675e580, {{0.0, 0.0}, {402.0, 874.0}}
+                          Other, 0x11675f200, {{0.0, 62.0}, {402.0, 538.3}}
+                            StaticText, 0x11675fc00, {{129.7, 78.0}, {142.7, 40.7}}, label: 'Log Meal'
+                            Button, 0x11675fd40, {{123.0, 138.7}, {156.3, 20.3}}, identifier: 'lumina.meal.history', label: 'View all saved meals'
+                            StaticText, 0x11675e1c0, {{32.0, 195.0}, {142.7, 20.3}}, identifier: 'lumina.meal.new-name-label', label: 'What did you eat?'
+                            TextField, 0x11675e080, {{32.0, 221.3}, {338.0, 52.0}}, identifier: 'lumina.meal.new-name', label: 'What did you eat?', placeholderValue: 'Meal name'
+                            Button, 0x11675f5c0, {{32.0, 325.3}, {338.0, 44.0}}, identifier: 'lumina.meal.nutrition', label: 'Your nutrition entries (optional)', value: Collapsed
+                              StaticText, 0x11675d180, {{32.0, 325.3}, {338.0, 44.0}}, label: 'Your nutrition entries (optional)'
+                              Image, 0x11675cdc0, {{360.7, 340.3}, {8.3, 14.7}}, identifier: 'chevron.forward', label: 'Forward'
+                            Button, 0x11675d2c0, {{32.0, 421.3}, {338.0, 36.3}}, label: 'Add meal photo (optional)'
+                              Image, 0x11675e6c0, {{88.3, 432.0}, {19.7, 15.3}}, identifier: 'photo', label: 'Photo'
+                              StaticText, 0x11675f700, {{118.0, 429.3}, {197.7, 20.3}}, label: 'Add meal photo (optional)'
+                            Button, 0x11675dcc0, {{15.8, 493.4}, {370.5, 52.8}}, identifier: 'lumina.meal.new-save', label: 'Save Meal'
+                            StaticText, 0x11675c500, {{53.7, 570.0}, {294.7, 14.3}}, label: 'Log your first meal to start tracking nutrition history.'
+                          Other, 0x11675c8c0, {{369.0, 62.0}, {30.0, 729.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                            Other, 0x11675f480, {{396.0, 255.7}, {3.0, 532.3}}
+                          Other, 0x11675da40, {{369.0, 62.0}, {30.0, 729.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                            Other, 0x11675e440, {{396.0, 255.7}, {3.0, 532.3}}
+                Other, 0x11675cf00, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x11675cc80, {{0.0, 791.0}, {402.0, 83.0}}
+                    Other, 0x11675e940, {{0.0, 0.0}, {402.0, 874.0}}
+                      TabBar, 0x11675c3c0, {{0.0, 791.0}, {402.0, 83.0}}, label: 'Tab Bar'
+                        Other, 0x11675ca00, {{21.0, 791.0}, {360.0, 62.0}}
+                          Other, 0x11675d400, {{21.0, 791.0}, {86.3, 54.0}}
+                          Other, 0x11675c780, {{21.0, 791.0}, {360.0, 62.0}}
+                            Button, 0x11675ed00, {{25.0, 795.0}, {84.3, 54.0}}, identifier: 'house.fill', label: 'Home'
+                              Image, 0x11675d680, {{50.7, 801.0}, {33.3, 28.0}}, identifier: 'house.fill', label: 'home'
+                            Button, 0x11675ef80, {{89.3, 795.0}, {90.3, 54.0}}, identifier: 'figure.strengthtraining.traditional', label: 'Workouts'
+                              Image, 0x11675d7c0, {{118.0, 799.0}, {33.0, 31.7}}, identifier: 'figure.strengthtraining.traditional', label: 'Figure doing traditional strength training'
+                            Button, 0x11675c140, {{159.6, 795.0}, {86.3, 54.0}}, identifier: 'fork.knife', label: 'Nutrition', Selected
+                              Image, 0x11675df40, {{192.0, 798.7}, {21.7, 30.7}}, identifier: 'fork.knife', label: 'Food'
+                            Button, 0x11675e300, {{225.9, 795.0}, {84.3, 54.0}}, identifier: 'sparkles', label: 'Coach'
+                              Image, 0x10efb70c0, {{255.3, 799.0}, {26.0, 30.0}}, identifier: 'sparkles', label: 'sparkle'
+                            Button, 0x10f64cdc0, {{290.3, 795.0}, {86.7, 54.0}}, identifier: 'photo.on.rectangle', label: 'Progress'
+                              Image, 0x10f64f840, {{316.6, 801.3}, {34.3, 28.7}}, identifier: 'photo.fill.on.rectangle.fill', label: 'Photo on a rectangle, filled'
+                          Other, 0x10f64c500, {{21.0, 791.0}, {360.0, 62.0}}
+                          Other, 0x10f64f5c0, {{159.6, 795.0}, {86.3, 54.0}}
+                            Other, 0x10f64f700, {{159.6, 795.0}, {86.0, 54.0}}
+                              Other, 0x10f64cc80, {{159.6, 795.0}, {86.0, 54.0}}
+                              Other, 0x10f64e080, {{159.6, 795.0}, {86.0, 54.0}}
+                                Other, 0x10f64fd40, {{159.6, 795.0}, {86.0, 54.0}}
+                                  Other, 0x10f64c140, {{159.6, 795.0}, {86.0, 54.0}}
+                                    Other, 0x10f64ef80, {{159.6, 795.0}, {86.0, 54.0}}
+                                  Other, 0x10f64fe80, {{159.6, 795.0}, {86.0, 54.0}}
+                                Other, 0x10f64f0c0, {{159.6, 795.0}, {86.0, 54.0}}
+                    Other, 0x10f64c8c0, {{0.0, 791.0}, {402.0, 83.0}}
+                      Other, 0x10f64ebc0, {{0.0, 791.0}, {402.0, 83.0}}
+                        Other, 0x10f64df40, {{0.0, 791.0}, {402.0, 83.0}}
+                          Other, 0x10f64d2c0, {{0.0, 791.0}, {402.0, 83.0}}
+                            Other, 0x10f64e940, {{0.0, 791.0}, {402.0, 83.0}}
+                              Other, 0x10f64e1c0, {{0.0, 791.0}, {402.0, 83.0}}
+                          Other, 0x10f64d900, {{0.0, 791.0}, {402.0, 83.0}}
+                            Other, 0x10f64f200, {{0.0, 791.0}, {402.0, 83.0}}
+Path to element:
+ →Application, 0x11675cb40, pid: 95278, label: 'Lumina'
+Query chain:
+ →Find: Target Application 'SA.Lumina'
+  Output: {
+    Application, 0x10f64c280, pid: 95278, label: 'Lumina'
+  }

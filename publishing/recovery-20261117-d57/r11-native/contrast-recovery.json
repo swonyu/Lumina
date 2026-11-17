@@ -1,0 +1,72 @@
+{
+  "source_commit": "74fef9d156edd897e3553112ea7ff63b03611320",
+  "native_run": "20261117T143610Z-88793-9244213d5d",
+  "xcresult_path": "/Users/saleh/Library/Caches/Publishing-Continuation-20261117-d597fc87411f/Lumina/Successor-v7-R11-d57f4cd77813/NativeRuns/20261117T143610Z-88793-9244213d5d/lumina/UIQATests.xcresult",
+  "recovery_method": "Read-only raw Data payload recovery. Result bundle lacks Info.plist after timeout; normal xcresulttool parsing fails. The original result bundle was not modified.",
+  "test_case": "LuminaUITests/testOptionalMealNutritionDistinguishesMissingValuesFromExplicitZero",
+  "source_line": 1268,
+  "message": "Contrast nearly passed",
+  "detailed_description": "Contrast is not high enough for SwiftUI.AccessibilityNode unless font size is larger.",
+  "state": "English empty meal name, before first full contrast audit",
+  "element": {
+    "identifier": "lumina.meal.new-save",
+    "label": "Save Meal",
+    "frame": {
+      "x": 15.8,
+      "y": 493.4,
+      "width": 370.5,
+      "height": 52.8
+    }
+  },
+  "raw_payloads": {
+    "screen": {
+      "payload_ref": "0~WrfHuFyQtuM0xOcIWTo6_vSMBNyg_o4EqkqMkCrvBg4TD539v5mcG4jtRifPFqSW8pwyTuYsh330vehGA651Cg==",
+      "stored_bytes": 727700,
+      "stored_sha256": "ff140d81c318d26c5669628c5feb1809eceab5ac7a528d8efb6749749e2c826d"
+    },
+    "fields": {
+      "payload_ref": "0~A9Psxyg0-Yl2FtUpvfOEkrUEzpR2fcVASTYEcUp1BQKy_Zb0gLimQJLx4PPESfnoUWB36fbaIw8l1AhjKixrQw==",
+      "stored_bytes": 1614,
+      "stored_sha256": "677809028d8c887d71821ded4a6febbc36310685e941dd3a1a62d9853bf58c37",
+      "decoded_bytes": 6952,
+      "decoded_sha256": "8f99329df5b37085ad7df4c77d72011735851d9dbf8043eccd8c36d54d2b445f"
+    },
+    "element": {
+      "payload_ref": "0~LEjnDgTyNzs_yooBXhB9xW-5DdmwzVsSbloavnR4vU8Quygrhb6lrmKgozhBu2Ro5HarExDU8KaNoK3q7Vhemw==",
+      "stored_bytes": 167891,
+      "stored_sha256": "435c45b6e11c87865c8b626fb16ca35871c9fb8d7434e1a9f6b0c56770bf73dd"
+    }
+  },
+  "output_files": {
+    "screen": "meal-before-contrast.png",
+    "element": "meal-save-contrast-issue.png",
+    "fields": "meal-visible-fields.txt"
+  },
+  "completed_ui_pass_count": 12,
+  "failed_ui_cases": [
+    "testArabicDecimalDraftPersistsAcrossAppLanguagesOnEnglishDevice",
+    "testOptionalMealNutritionDistinguishesMissingValuesFromExplicitZero"
+  ],
+  "interrupted_ui_case": "testRecoveryPreviewFixtureConfirmationReopenAndPickerCancelPaths",
+  "native_unit_log_summary": "Test run with 61 tests in 9 suites passed after 3.979 seconds.",
+  "native_acceptance": "FAILED_AND_INTERRUPTED_NOT_A_COMPLETE_PASS",
+  "replacement_palette": {
+    "color_space": "sRGB",
+    "opacity": 1,
+    "foreground": "#FFFFFF",
+    "gradient": [
+      "#1F4EB4",
+      "#6331A5"
+    ],
+    "computed_endpoint_contrast": [
+      7.481098280334537,
+      8.355956179378277
+    ]
+  },
+  "repair_parent_commit": "b30f1188368435c210ca589db994daab5ca2cd50",
+  "repair_native_retest": "NOT_RUN",
+  "test_assertions_removed": 0,
+  "sources": [
+    "https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html"
+  ]
+}

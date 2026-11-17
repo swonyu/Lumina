@@ -1,0 +1,18 @@
+{
+  "scope": "FILE_AND_COLOR_CALCULATION_ONLY_NOT_NATIVE_TEST",
+  "foreground": "#FFFFFF",
+  "sRGB_endpoints": [
+    "#1F4EB4",
+    "#6331A5"
+  ],
+  "endpoint_ratios": [
+    7.481098280334537,
+    8.355956179378277
+  ],
+  "sRGB_interpolation_samples": 10001,
+  "minimum_sampled_ratio": 7.481098280334537,
+  "UI_source_matches_frozen_R11": true,
+  "UI_source_sha256": "7367e68fbacda4e7f38f88d0278250971b102c91e35e43a31e2b03d0acecccc7",
+  "only_GlassButton_palette_and_comment_changed": true,
+  "native_invoked": false
+}
