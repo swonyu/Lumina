@@ -304,6 +304,8 @@ nonisolated struct JournalRecoveryRecord: Codable, Equatable, Sendable {
                     | (UInt32(bytes[offset + 2]) << 8) | UInt32(bytes[offset + 3])
             }
             switch type {
+            case "public.tiff":
+                try JournalPhotoValidator.validateTIFFContainer(photo, budget: budget)
             case "public.png":
                 try require(bytes.count >= 8 && Array(bytes.prefix(8)) == [137, 80, 78, 71, 13, 10, 26, 10])
                 var offset = 8, sawImageData = false

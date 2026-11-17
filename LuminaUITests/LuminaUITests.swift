@@ -1192,6 +1192,7 @@ final class LuminaUITests: XCTestCase {
         notes.typeText("Explicit effort draft notes")
         try dismissRecordKeyboard(in: app)
         let effort = try recordLeafButton("lumina.workout.new-effort", in: app)
+        XCTAssertEqual(effort.label, "Effort (optional)")
         try tapRecordControl(effort, in: app, scrollDown: true)
         try tapRecordControl(app.buttons["6 of 10"], in: app)
         XCTAssertEqual(effort.value as? String, "6 of 10")
@@ -1201,6 +1202,9 @@ final class LuminaUITests: XCTestCase {
         try tapRecordControl(app.buttons["lumina.workout.new-save"], in: app)
         XCTAssertTrue(app.alerts.staticTexts["Enter a workout name."].waitForExistence(timeout: 5))
         app.alerts.buttons["OK"].tap()
+        let retainedError = app.staticTexts["lumina.workout.save-error"]
+        XCTAssertTrue(retainedError.waitForExistence(timeout: 5))
+        XCTAssertEqual(retainedError.label, "Enter a workout name.")
         XCTAssertEqual(effort.value as? String, "6 of 10")
         XCTAssertEqual(notes.value as? String, "Explicit effort draft notes")
         try tapRecordControl(name, in: app, scrollDown: true)
@@ -1213,6 +1217,9 @@ final class LuminaUITests: XCTestCase {
         app.tabBars.buttons["التمارين"].tap()
         XCTAssertEqual(name.value as? String, "Explicit effort fixture")
         XCTAssertEqual(notes.value as? String, "Explicit effort draft notes")
+        XCTAssertTrue(retainedError.waitForExistence(timeout: 5))
+        XCTAssertEqual(retainedError.label, "أدخل اسم التمرين.",
+                       "The retained validation error must switch language without clearing or revalidating the draft")
         let arabicEffort = try recordLeafButton("lumina.workout.new-effort", in: app)
         XCTAssertEqual(arabicEffort.label, "الجهد (اختياري)")
         let arabicValue = try XCTUnwrap(arabicEffort.value as? String)
@@ -1227,6 +1234,9 @@ final class LuminaUITests: XCTestCase {
         try selectAppLanguage("English", in: app)
         app.tabBars.buttons["Workouts"].tap()
         XCTAssertEqual(name.value as? String, "Explicit effort fixture")
+        XCTAssertTrue(retainedError.waitForExistence(timeout: 5))
+        XCTAssertEqual(retainedError.label, "Enter a workout name.")
+        XCTAssertEqual(effort.label, "Effort (optional)")
         XCTAssertEqual(effort.value as? String, "6 of 10")
 
         // Clearing a draft rating must be possible without discarding other fields.
@@ -1241,6 +1251,7 @@ final class LuminaUITests: XCTestCase {
         app.alerts.buttons["OK"].tap()
         XCTAssertEqual(effort.value as? String, "Not recorded",
                        "A successful save must start the next draft without the previous rating")
+        XCTAssertFalse(retainedError.exists, "A successful save must clear the previous validation error")
         app.terminate(); app.launch()
         XCTAssertTrue(app.staticTexts["Workouts logged today: 2"].waitForExistence(timeout: 15),
                       "The failed validation attempt must not create a duplicate workout")
@@ -1870,11 +1881,26 @@ final class LuminaUITests: XCTestCase {
         XCTAssertFalse(app.navigationBars["Restore journal"].exists)
         attachRecordScreenshot(app, "Explicit two-record restore completed")
         try tapRecordControl(app.buttons["lumina.backup.export"], in: app)
+        let exportSave = app.buttons["Save"]
+        XCTAssertTrue(exportSave.waitForExistence(timeout: 30),
+                      "The prepared backup must open the real system exporter")
         let exportCancel = app.buttons["Cancel"]
+        if !exportCancel.exists {
+            // The system can reopen On My iPhone, where Browse leads to the
+            // root Cancel action. This is one observed native navigation step.
+            let browse = app.buttons["Browse"]
+            XCTAssertTrue(browse.waitForExistence(timeout: 5))
+            XCTAssertTrue(browse.isHittable)
+            attachRecordScreenshot(app, "Actual prepared backup destination before Browse")
+            browse.tap()
+        }
         XCTAssertTrue(exportCancel.waitForExistence(timeout: 30))
         XCTAssertTrue(exportCancel.isHittable)
         attachRecordScreenshot(app, "Actual prepared backup file exporter before Cancel")
         exportCancel.tap()
+        let exporterDismissed = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "exists == false"), object: exportSave)
+        XCTAssertEqual(XCTWaiter.wait(for: [exporterDismissed], timeout: 5), .completed)
         XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["lumina.backup.export"].isEnabled)
         XCTAssertEqual(app.descendants(matching: .any).matching(identifier: "lumina.backup.error").count, 0)

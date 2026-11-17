@@ -11,7 +11,7 @@ struct WorkoutLogView: View {
     @State private var rpe: Int? = nil
     @State private var showingSuccess = false
     @State private var showingHistory = false
-    @State private var saveError: String?
+    @State private var saveError: LocalRecordEditError?
     @State private var showingSaveError = false
     
     @Query(sort: \WorkoutLog.date, order: .reverse) private var recentLogs: [WorkoutLog]
@@ -25,7 +25,7 @@ struct WorkoutLogView: View {
                 Button(L("View all saved workouts")) { showingHistory = true }
                     .accessibilityIdentifier("lumina.workout.history")
                 if let saveError {
-                    Text(L(saveError)).foregroundStyle(.primary)
+                    Text(saveError.localizedMessage).foregroundStyle(.primary)
                         .accessibilityIdentifier("lumina.workout.save-error")
                 }
 
@@ -74,7 +74,6 @@ struct WorkoutLogView: View {
                         .controlSize(.large)
                         .labelsHidden()
                         .frame(minHeight: 44)
-                        .accessibilityLabel(L("workout.effort_optional"))
                         .accessibilityValue(rpe.map { L("workout.effort_value", $0) }
                             ?? L("workout.effort_not_recorded"))
                         .accessibilityHint(L("workout.effort_hint"))
@@ -103,7 +102,7 @@ struct WorkoutLogView: View {
                 .alert(L("Could not save workout"), isPresented: $showingSaveError) {
                     Button(L("OK")) { }
                 } message: {
-                    Text(L(saveError ?? "Your workout draft has been kept. Please try again."))
+                    Text(saveError?.localizedMessage ?? L("Your workout draft has been kept. Please try again."))
                 }
                 
                 if recentLogs.isEmpty {
@@ -153,11 +152,15 @@ struct WorkoutLogView: View {
         do {
             cleanName = try LocalRecordDraft.name(workoutName, field: "a workout name")
             savedExercises = try exercises.map { try $0.validated() }
-        } catch { saveError = error.localizedDescription; showingSaveError = true; return }
+        } catch {
+            saveError = (error as? LocalRecordEditError) ?? .invalid(error.localizedDescription)
+            showingSaveError = true
+            return
+        }
         let log = WorkoutLog(workoutName: cleanName, exercises: savedExercises,
                              perceivedExertion: rpe, notes: notes.isEmpty ? nil : notes)
         guard viewModel.saveRecord(log) else {
-            saveError = viewModel.errorMessage ?? "Could not save the workout. Your draft has been kept."
+            saveError = .invalid(viewModel.errorMessage ?? "Could not save the workout. Your draft has been kept.")
             viewModel.errorMessage = nil
             showingSaveError = true
             return

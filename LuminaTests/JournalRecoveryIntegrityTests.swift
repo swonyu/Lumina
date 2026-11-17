@@ -386,9 +386,13 @@ struct JournalRecoveryIntegrityTests {
             #expect(SHA256.hash(data: try #require(readable.photo)) == before)
             for remaining in [complete.count / 2, complete.count - 1, complete.count - 12] {
                 var truncated = meal; truncated.photo = Data(complete.prefix(remaining))
-                #expect(throws: JournalTransferError.invalid) { try truncated.validate(limits: .standard) }
+                #expect(throws: JournalTransferError.invalid,
+                        "Reject truncated \(type.identifier): retained \(remaining) of \(complete.count) bytes") {
+                    try truncated.validate(limits: .standard)
+                }
             }
         }
+        try verifyTIFFDeclaredRanges()
         // A structurally complete PNG with a corrupted chunk checksum must
         // not become a restorable record even if a decoder repairs its preview.
         var corruptPNG = validPNG
@@ -665,6 +669,229 @@ struct JournalRecoveryIntegrityTests {
         habit.toggleCompletion(now: fixtureDate); context.insert(habit)
         try context.save()
     }
+    private func verifyTIFFDeclaredRanges() throws {
+        for little in [false, true] {
+            for big in [false, true] {
+                let fixture = boundedTIFFFixture(little: little, big: big)
+                let original = fixture.data, offsetWidth = big ? 8 : 4
+                let valuePosition = big ? 12 : 8
+                let description = try #require(fixture.entries[270])
+                let stripOffset = try #require(fixture.entries[273])
+                let stripSize = try #require(fixture.entries[279])
+                let before = SHA256.hash(data: original)
+                try JournalPhotoValidator.validateTIFFContainer(original, budget: nil)
+                var trailer = original; trailer.append(contentsOf: [0x51, 0x00, 0xff, 0x7e])
+                try JournalPhotoValidator.validateTIFFContainer(trailer, budget: nil)
+                let privateFixture = boundedTIFFFixture(little: little, big: big, descriptionTag: 65_000)
+                let privateMetadata = privateFixture.data
+                try JournalPhotoValidator.validateTIFFContainer(privateMetadata, budget: nil)
+                // Classic TIFF decoding must accept both byte orders and retain
+                // complete metadata/private fields/trailing bytes unchanged.
+                // BigTIFF is checked structurally here; ImageIO codec support
+                // remains a separate, unchanged production acceptance gate.
+                if !big {
+                    for complete in [original, trailer, privateMetadata] {
+                        let hash = SHA256.hash(data: complete)
+                        try JournalRecoveryRecord.validatePhoto(complete, limits: .standard, budget: nil)
+                        #expect(SHA256.hash(data: complete) == hash)
+                    }
+                }
+                #expect(SHA256.hash(data: original) == before)
+                for missing in [1, 12] {
+                    let cut = Data(original.dropLast(missing))
+                    #expect(throws: JournalTransferError.invalid,
+                            "TIFF metadata tail: littleEndian=\(little), bigTIFF=\(big), missing=\(missing)") {
+                        try JournalPhotoValidator.validateTIFFContainer(cut, budget: nil)
+                    }
+                }
+                var overflowCount = original
+                setTIFFInteger(UInt64.max, at: description + 4, width: offsetWidth,
+                               little: little, in: &overflowCount)
+                var outsideValue = original
+                setTIFFInteger(UInt64.max, at: description + valuePosition, width: offsetWidth,
+                               little: little, in: &outsideValue)
+                var outsideStrip = original
+                setTIFFInteger(UInt64(original.count - 1), at: stripOffset + valuePosition,
+                               width: offsetWidth, little: little, in: &outsideStrip)
+                setTIFFInteger(2, at: stripSize + valuePosition, width: 2,
+                               little: little, in: &outsideStrip)
+                var cycle = original
+                setTIFFInteger(big ? 16 : 8, at: fixture.nextPointer, width: offsetWidth,
+                               little: little, in: &cycle)
+                var outsideDirectory = original
+                setTIFFInteger(UInt64.max, at: fixture.nextPointer, width: offsetWidth,
+                               little: little, in: &outsideDirectory)
+                let cutDirectory = Data(original.prefix(fixture.nextPointer + offsetWidth - 1))
+                for damaged in [overflowCount, outsideValue, outsideStrip, cycle, outsideDirectory, cutDirectory] {
+                    #expect(throws: JournalTransferError.invalid) {
+                        try JournalPhotoValidator.validateTIFFContainer(damaged, budget: nil)
+                    }
+                }
+                // The TIFF specification reserves extensibility: readers skip
+                // an unknown field type rather than guessing its byte width.
+                var futureType = privateMetadata
+                let futureEntry = try #require(privateFixture.entries[65_000])
+                setTIFFInteger(14, at: futureEntry + 2, width: 2, little: little, in: &futureType)
+                setTIFFInteger(UInt64.max, at: futureEntry + 4, width: offsetWidth,
+                               little: little, in: &futureType)
+                try JournalPhotoValidator.validateTIFFContainer(futureType, budget: nil)
+                try verifyTIFFDirectoryGraph(little: little, big: big)
+            }
+        }
+    }
+
+    private func verifyTIFFDirectoryGraph(little: Bool, big: Bool) throws {
+        // SubIFD/typed arrays repeat a child four times and share it with the
+        // main next link. Exif/GPS/Interop use their scalar pointer layout.
+        // Sharing must not be misclassified as an active-path cycle.
+        let pointers: [(tag: UInt64, type: UInt64)] = [
+            (330, 4), (34665, 4), (34853, 4), (40965, 4), (65_000, 13), (65_000, 18)]
+        for pointer in pointers {
+            let fixture = try tiffGraphFixture(little: little, big: big,
+                                              pointerTag: pointer.tag, pointerType: pointer.type)
+            try JournalPhotoValidator.validateTIFFContainer(fixture.data, budget: nil)
+            var childOnly = fixture.data
+            setTIFFInteger(0, at: fixture.rootNextPointer, width: big ? 8 : 4,
+                           little: little, in: &childOnly)
+            try JournalPhotoValidator.validateTIFFContainer(childOnly, budget: nil)
+            for missing in [1, 12] {
+                let cut = Data(childOnly.dropLast(missing))
+                #expect(throws: JournalTransferError.invalid,
+                        "TIFF child metadata: tag=\(pointer.tag), type=\(pointer.type), missing=\(missing)") {
+                    try JournalPhotoValidator.validateTIFFContainer(cut, budget: nil)
+                }
+            }
+            var zeroAndShared = fixture.data
+            setTIFFInteger(0, at: fixture.pointerArray, width: pointer.type == 18 ? 8 : 4,
+                           little: little, in: &zeroAndShared)
+            try JournalPhotoValidator.validateTIFFContainer(zeroAndShared, budget: nil)
+            var cycle = childOnly
+            setTIFFInteger(big ? 16 : 8, at: fixture.childNextPointer, width: big ? 8 : 4,
+                           little: little, in: &cycle)
+            #expect(throws: JournalTransferError.invalid,
+                    "A child directory must not link back to its active ancestor") {
+                try JournalPhotoValidator.validateTIFFContainer(cycle, budget: nil)
+            }
+        }
+    }
+
+    private func tiffGraphFixture(little: Bool, big: Bool, pointerTag: UInt64, pointerType: UInt64)
+        throws -> (data: Data, pointerArray: Int, rootNextPointer: Int, childNextPointer: Int) {
+        let root = boundedTIFFFixture(little: little, big: big, descriptionTag: pointerTag)
+        let image = boundedTIFFFixture(little: little, big: big)
+        let rootEntry = try #require(root.entries[pointerTag])
+        let childDescription = try #require(image.entries[270])
+        let firstIFD = big ? 16 : 8, offsetWidth = big ? 8 : 4
+        let valuePosition = big ? 12 : 8, alignment = big ? 8 : 2
+        let pointerWidth = pointerType == 18 ? 8 : 4
+        let pointerCount = [UInt64(34665), 34853, 40965].contains(pointerTag) ? 1 : 4
+        let inline = pointerCount * pointerWidth <= offsetWidth
+        var data = root.data
+        while data.count % alignment != 0 { data.append(0) }
+        let pointerArray = inline ? rootEntry + valuePosition : data.count
+        if !inline { data.append(Data(count: pointerWidth * pointerCount)) }
+        let childOffset = data.count
+        let directory = Data(image.data[firstIFD..<(image.nextPointer + offsetWidth)])
+        data.append(directory)
+        let childNextPointer = childOffset + image.nextPointer - firstIFD
+        while data.count % alignment != 0 { data.append(0) }
+        let metadataOffset = data.count
+        let metadata = Data("Complete child TIFF metadata\0".utf8)
+        data.append(metadata)
+        setTIFFInteger(pointerType, at: rootEntry + 2, width: 2, little: little, in: &data)
+        setTIFFInteger(UInt64(pointerCount), at: rootEntry + 4, width: offsetWidth, little: little, in: &data)
+        data.replaceSubrange((rootEntry + valuePosition)..<(rootEntry + valuePosition + offsetWidth),
+                             with: Data(count: offsetWidth))
+        if !inline {
+            setTIFFInteger(UInt64(pointerArray), at: rootEntry + valuePosition,
+                           width: offsetWidth, little: little, in: &data)
+        }
+        for index in 0..<pointerCount {
+            setTIFFInteger(UInt64(childOffset), at: pointerArray + index * pointerWidth,
+                           width: pointerWidth, little: little, in: &data)
+        }
+        setTIFFInteger(UInt64(childOffset), at: root.nextPointer,
+                       width: offsetWidth, little: little, in: &data)
+        let descriptionEntry = childOffset + childDescription - firstIFD
+        setTIFFInteger(UInt64(metadata.count), at: descriptionEntry + 4,
+                       width: offsetWidth, little: little, in: &data)
+        setTIFFInteger(UInt64(metadataOffset), at: descriptionEntry + valuePosition,
+                       width: offsetWidth, little: little, in: &data)
+        return (data, pointerArray, root.nextPointer, childNextPointer)
+    }
+
+    /// One valid uncompressed grayscale pixel, rational resolutions, inline
+    /// values, and an out-of-line description ending at EOF. All positions are
+    /// written explicitly; neither ImageIO nor the validator builds this fixture.
+    private func boundedTIFFFixture(little: Bool, big: Bool, descriptionTag: UInt64 = 270)
+        -> (data: Data, entries: [UInt64: Int], nextPointer: Int) {
+        let firstIFD = big ? 16 : 8, countWidth = big ? 8 : 2
+        let offsetWidth = big ? 8 : 4, entryWidth = big ? 20 : 12
+        let alignment = big ? 8 : 2
+        let nextPointer = firstIFD + countWidth + 13 * entryWidth
+        let directoryEnd = nextPointer + offsetWidth
+        let pixelOffset = (directoryEnd + alignment - 1) / alignment * alignment
+        func integer(_ value: UInt64, _ width: Int) -> Data {
+            var result = Data(count: width)
+            setTIFFInteger(value, at: 0, width: width, little: little, in: &result)
+            return result
+        }
+        let rational = integer(72, 4) + integer(1, 4)
+        let description = Data("Complete TIFF metadata\0".utf8)
+        var fields: [(tag: UInt64, type: UInt64, count: UInt64, value: Data)] = [
+            (256, 3, 1, integer(1, 2)), (257, 3, 1, integer(1, 2)),
+            (258, 3, 1, integer(8, 2)), (259, 3, 1, integer(1, 2)),
+            (262, 3, 1, integer(1, 2)), (descriptionTag, 2, UInt64(description.count), description),
+            (273, big ? 16 : 4, 1, integer(UInt64(pixelOffset), offsetWidth)),
+            (277, 3, 1, integer(1, 2)), (278, 3, 1, integer(1, 2)),
+            (279, 3, 1, integer(1, 2)), (282, 5, 1, rational),
+            (283, 5, 1, rational), (296, 3, 1, integer(2, 2))]
+        fields.sort { $0.tag < $1.tag }
+        var data = Data(count: pixelOffset), payload = Data([0x7f])
+        data[0] = little ? 0x49 : 0x4d; data[1] = data[0]
+        setTIFFInteger(big ? 43 : 42, at: 2, width: 2, little: little, in: &data)
+        if big { setTIFFInteger(8, at: 4, width: 2, little: little, in: &data) }
+        setTIFFInteger(UInt64(firstIFD), at: big ? 8 : 4, width: offsetWidth, little: little, in: &data)
+        setTIFFInteger(UInt64(fields.count), at: firstIFD, width: countWidth, little: little, in: &data)
+        var entries: [UInt64: Int] = [:]
+        // Put resolution arrays before the description so truncating the file
+        // removes declared metadata, while the actual pixel remains complete.
+        let outOfLineOrder = fields.indices.sorted { lhs, rhs in
+            if fields[lhs].tag == descriptionTag { return false }
+            if fields[rhs].tag == descriptionTag { return true }
+            return lhs < rhs
+        }
+        var locations: [UInt64: Int] = [:]
+        for index in outOfLineOrder where fields[index].value.count > offsetWidth {
+            while (pixelOffset + payload.count) % alignment != 0 { payload.append(0) }
+            locations[fields[index].tag] = pixelOffset + payload.count
+            payload.append(fields[index].value)
+        }
+        for (index, field) in fields.enumerated() {
+            let entry = firstIFD + countWidth + index * entryWidth
+            entries[field.tag] = entry
+            setTIFFInteger(field.tag, at: entry, width: 2, little: little, in: &data)
+            setTIFFInteger(field.type, at: entry + 2, width: 2, little: little, in: &data)
+            setTIFFInteger(field.count, at: entry + 4, width: offsetWidth, little: little, in: &data)
+            let target = entry + (big ? 12 : 8)
+            if let location = locations[field.tag] {
+                setTIFFInteger(UInt64(location), at: target, width: offsetWidth, little: little, in: &data)
+            } else {
+                data.replaceSubrange(target..<(target + field.value.count), with: field.value)
+            }
+        }
+        data.append(payload)
+        return (data, entries, nextPointer)
+    }
+
+    private func setTIFFInteger(_ value: UInt64, at offset: Int, width: Int,
+                                little: Bool, in data: inout Data) {
+        for index in 0..<width {
+            let shift = (little ? index : width - 1 - index) * 8
+            data[offset + index] = UInt8(truncatingIfNeeded: value >> shift)
+        }
+    }
+
     private func patternPhoto(minimumBytes: Int, seed: UInt32) throws -> Data {
         // Real, lossless, deterministic image bytes rather than non-image data
         // placed in a photo field. Noise avoids accidental tiny compressed files.

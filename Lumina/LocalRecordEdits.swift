@@ -3,15 +3,37 @@ import SwiftData
 
 enum LocalRecordEditError: LocalizedError {
     case invalid(String)
+    case invalidInput(messageKey: String, fieldKey: String?, originalMessage: String)
+
     var errorDescription: String? {
-        switch self { case .invalid(let message): return message }
+        switch self {
+        case .invalid(let message): return message
+        case .invalidInput(_, _, let originalMessage): return originalMessage
+        }
+    }
+
+    // Keep the original description for existing error consumers while views
+    // retaining a validation error can render its keys in the current language.
+    @MainActor
+    var localizedMessage: String {
+        switch self {
+        case .invalid(let message): return L(message)
+        case .invalidInput(let messageKey, let fieldKey, _):
+            return fieldKey.map { L(messageKey, L($0)) } ?? L(messageKey)
+        }
+    }
+
+    @MainActor
+    static func input(_ messageKey: String, field: String? = nil) -> Self {
+        let message = field.map { L(messageKey, L($0)) } ?? L(messageKey)
+        return .invalidInput(messageKey: messageKey, fieldKey: field, originalMessage: message)
     }
 }
 
 enum LocalRecordDraft {
     static func name(_ value: String, field: String) throws -> String {
         let result = value.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !result.isEmpty else { throw LocalRecordEditError.invalid(L("Enter %@.", L(field))) }
+        guard !result.isEmpty else { throw LocalRecordEditError.input("Enter %@.", field: field) }
         return result
     }
 
@@ -32,7 +54,7 @@ enum LocalRecordDraft {
                        locale: Locale? = nil) throws -> Double? {
         let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
         if trimmed.isEmpty {
-            guard !required else { throw LocalRecordEditError.invalid(L("Enter %@.", L(field))) }
+            guard !required else { throw LocalRecordEditError.input("Enter %@.", field: field) }
             return nil
         }
         let digits = trimmed.map { character -> String in
@@ -47,7 +69,7 @@ enum LocalRecordDraft {
         guard normalized.range(of: #"^[+]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?$"#,
                                options: .regularExpression) != nil,
               let result = Double(normalized), result.isFinite, result >= 0 else {
-            throw LocalRecordEditError.invalid(L("Enter a nonnegative number for %@, without thousands separators.", L(field)))
+            throw LocalRecordEditError.input("Enter a nonnegative number for %@, without thousands separators.", field: field)
         }
         return result
     }
@@ -60,7 +82,7 @@ enum LocalRecordDraft {
             return String(character)
         }.joined()
         guard let result = Int(normalized), range.contains(result) else {
-            throw LocalRecordEditError.invalid(L("Enter a valid whole number for %@.", L(field)))
+            throw LocalRecordEditError.input("Enter a valid whole number for %@.", field: field)
         }
         return result
     }
@@ -140,7 +162,7 @@ struct WorkoutSetDraft: Identifiable {
     func validated() throws -> LoggedSet {
         guard let reps = try LocalRecordDraft.wholeNumber(repetitions,
             field: "repetitions", range: 1...Int.max) else {
-            throw LocalRecordEditError.invalid(L("Enter repetitions for each set."))
+            throw LocalRecordEditError.input("Enter repetitions for each set.")
         }
         return LoggedSet(id: id, reps: reps,
             weight: try LocalRecordDraft.number(weight, field: "weight"),
