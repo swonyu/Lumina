@@ -1,0 +1,38 @@
+{
+  "configurations": [
+    {
+      "id": "c5ebf05a-073b-56a2-9ca7-b8c65c32aa58",
+      "name": "Functional acceptance",
+      "options": {}
+    }
+  ],
+  "defaultOptions": {},
+  "testTargets": [
+    {
+      "parallelizable": false,
+      "target": {
+        "containerPath": "container:Lumina.xcodeproj",
+        "identifier": "4CEBA1A82FC7872D00A3C883",
+        "name": "LuminaTests"
+      }
+    },
+    {
+      "parallelizable": false,
+      "selectedTests": [
+        "LuminaUITests/testHomeAccessibilityAudit()",
+        "LuminaUITests/testNavigationAndDataControlCancelPaths()",
+        "LuminaUITests/testPrivacyInformationAtLargestTextAndBackNavigation()",
+        "LuminaUITests/testSaveRelaunchAndDeleteOnlyIsolatedFixtureRecords()",
+        "LuminaUITests/testSuggestedHabitPersistsWithoutAutomaticCompletion()",
+        "LuminaUITests/testVeryLargeTextExpandsJournalRows()",
+        "LuminaUITests/testFinalHomeLinkRemainsReachableAboveTabBar()"
+      ],
+      "target": {
+        "containerPath": "container:Lumina.xcodeproj",
+        "identifier": "4CEBA1B22FC7872D00A3C883",
+        "name": "LuminaUITests"
+      }
+    }
+  ],
+  "version": 1
+}

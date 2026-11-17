@@ -2,34 +2,21 @@ import SwiftUI
 
 struct RecoveryScoreCard: View {
     let snapshot: HealthSnapshot?
-    
+
     var body: some View {
-        GlassCard {
-            if let snapshot = snapshot {
-                let recovery = RecoveryScore.calculate(from: snapshot)
-                
-                VStack(spacing: 12) {
-                    HStack {
-                        Text(L("recovery.score_label"))
-                            .font(.headline)
-                        Spacer()
-                        Text("\(recovery.score)")
-                            .font(.title.bold())
-                            .foregroundStyle(recovery.color == "green" ? .green : recovery.color == "yellow" ? .yellow : .red)
-                    }
-                    
-                    Text(recovery.label)
-                        .font(.subheadline.bold())
-                    
-                    Text(recovery.recommendation)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.leading)
+        VStack(alignment: .leading, spacing: 8) {
+            if let snapshot {
+                Text(snapshot.date, style: .date)
+                if let sleep = snapshot.sleepHours { Text("Recorded sleep: \(sleep, specifier: "%.1f") hours") }
+                if let hrv = snapshot.heartRateVariability { Text("Recorded HRV: \(hrv, specifier: "%.0f") ms") }
+                if let energy = snapshot.energyLevel { Text("Self-reported energy: \(energy)/10") }
+                if snapshot.sleepHours == nil && snapshot.heartRateVariability == nil && snapshot.energyLevel == nil {
+                    Text("No sleep, HRV or energy measurement in this record.")
                 }
             } else {
-                Text(L("recovery.no_data"))
-                    .foregroundStyle(.secondary)
+                Text("No health records available.")
             }
         }
+        .fixedSize(horizontal: false, vertical: true)
     }
 }

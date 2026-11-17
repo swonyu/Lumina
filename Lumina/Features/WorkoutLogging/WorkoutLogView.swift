@@ -167,14 +167,15 @@ struct WorkoutLogView: View {
         guard !workoutName.trimmingCharacters(in: .whitespaces).isEmpty else { return }
         
         let log = WorkoutLog(workoutName: workoutName, exercises: exercises, perceivedExertion: rpe, notes: notes.isEmpty ? nil : notes)
-        modelContext.insert(log)
-        try? modelContext.save()
+        guard viewModel.saveRecord(log) else { return }
         
+        viewModel.invalidateWorkoutsCache()
+
         // Round 37: Update Live Activity dynamically after workout log + feed coach
         Task {
             await viewModel.updateCoachFocusLiveActivity()
             await MainActor.run {
-                viewModel.saveCoachMemoryEntry(type: .pattern, content: "Logged workout: \(workoutName) with RPE \(rpe)")
+                viewModel.saveCoachMemoryEntry(type: .pattern, content: "Logged workout: \(log.workoutName) with RPE \(log.perceivedExertion ?? 0)")
             }
         }
         

@@ -27,7 +27,7 @@ struct DailyCheckInView: View {
                         HStack {
                             Image(systemName: "sparkles")
                                 .foregroundStyle(.yellow)
-                            Text("Coach noted limited impact on some habits — your check-in data helps us measure real effects.")
+                            Text("Record how you feel. A check-in does not prove that a habit caused a change.")
                                 .font(.caption)
                                 .foregroundStyle(.white.opacity(0.85))
                         }
@@ -100,8 +100,7 @@ struct DailyCheckInView: View {
             journalNote: note.isEmpty ? nil : note,
             didTrain: didTrain
         )
-        modelContext.insert(checkIn)
-        try? modelContext.save()
+        guard viewModel.saveRecord(checkIn) else { return }
         showingSuccess = true
         
         // Reset for next check-in

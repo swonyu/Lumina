@@ -15,7 +15,7 @@ struct AdaptivePlanView: View {
     }
     
     private var grokService: GrokService? {
-        if let key = ProcessInfo.processInfo.environment["XAI_API_KEY"], !key.isEmpty {
+        if let key = GrokService.configuredAPIKey, !key.isEmpty {
             return GrokService(apiKey: key)
         }
         return nil
@@ -47,7 +47,7 @@ struct AdaptivePlanView: View {
                                     Text("Coach note from your patterns")
                                         .font(.caption.weight(.semibold))
                                         .foregroundStyle(.purple.opacity(0.9))
-                                    Text("Recent history shows meaningful patterns in consistency/energy. The plans below are adjusted with that context in mind.")
+                                    Text("These are general suggestions; no health trend or safe training increase has been established.")
                                         .font(.caption)
                                         .foregroundStyle(.white.opacity(0.85))
                                 }
@@ -71,13 +71,14 @@ struct AdaptivePlanView: View {
                                 .font(.body)
                                 .foregroundStyle(.white.opacity(0.9))
                         } else {
-                            Text(L("adaptive.plan_good_message"))
+                            Text("No automatic training adjustment has been made. Use your own records and how you feel to decide what is manageable.")
                                 .foregroundStyle(.white.opacity(0.7))
                         }
                     }
                 }
                 
-                // Real AI-powered recommendation
+                #if DEBUG
+                // Cloud coaching is excluded from the first offline release.
                 GlassCard {
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
@@ -140,6 +141,7 @@ struct AdaptivePlanView: View {
                     .font(.caption)
                     .foregroundStyle(.white.opacity(0.5))
                     .padding(.horizontal, 4)
+                #endif
             }
             .padding()
         }

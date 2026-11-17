@@ -157,7 +157,7 @@ final class SmartGrokCoach {
 
         if lowercasedMessage.contains("how am i") || lowercasedMessage.contains("progress") || lowercasedMessage.contains("doing") {
             let streakNote = context.currentStreak > 0 ? " You're on a \(context.currentStreak)-day streak — keep it going." : ""
-            return "You're making real progress toward \(goal).\(streakNote) Focus on showing up consistently and the results will compound."
+            return "Your logs can help you reflect on \(goal).\(streakNote) Offline coaching cannot determine physical progress or a habit's effects."
         }
 
         if !context.summary.isEmpty {

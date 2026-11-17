@@ -15,7 +15,7 @@ struct GoalsView: View {
                 
                 if viewModel.goals.isEmpty {
                     GlassCard {
-                        Text("No goals yet. The AI coach can help you set and adjust meaningful ones.")
+                        Text("No goals yet. Add a goal to record what you want to work toward.")
                             .foregroundStyle(.white.opacity(0.7))
                     }
                 } else {
@@ -30,7 +30,7 @@ struct GoalsView: View {
                                     .foregroundStyle(.secondary)
                                 
                                 if let notes = goal.adjustmentNotes {
-                                    Text("AI adjusted: \(notes)")
+                                    Text("Saved adjustment note: \(notes)")
                                         .font(.caption2)
                                         .foregroundStyle(.yellow.opacity(0.8))
                                 }
@@ -43,7 +43,7 @@ struct GoalsView: View {
                 if !viewModel.recentGoalAdjustments.isEmpty {
                     GlassCard {
                         VStack(alignment: .leading, spacing: 6) {
-                            Text("Recent AI Coach Adjustments")
+                            Text("Saved adjustment notes")
                                 .font(.headline)
                             ForEach(viewModel.recentGoalAdjustments.prefix(3), id: \.self) { adj in
                                 Text("• \(adj)")
@@ -61,8 +61,8 @@ struct GoalsView: View {
                             Image(systemName: "sparkles")
                                 .foregroundStyle(.yellow)
                             Text(viewModel.currentCoachPhotoReflectionShowsLimitedImpact 
-                                ? "Coach photo showed limited impact on a habit — may need goal adjustment."
-                                : "Coach photo update may affect your goals — review in Progress Photos.")
+                                ? "Saved photo notes may mention habit effects. Those claims are unverified."
+                                : "Saved photo notes are available. Review the original records alongside your goals.")
                                 .font(.caption)
                                 .foregroundStyle(.white.opacity(0.85))
                         }
@@ -80,10 +80,10 @@ struct GoalsView: View {
                                     .padding(.top, 2)
                                 VStack(alignment: .leading, spacing: 3) {
                                     HStack(spacing: 4) {
-                                        Text("Coach note from your patterns")
+                                        Text("Saved coaching notes")
                                             .font(.caption.weight(.semibold))
                                             .foregroundStyle(.yellow.opacity(0.9))
-                                        if !ProcessInfo.processInfo.environment["XAI_API_KEY", default: ""].isEmpty {
+                                        if !(GrokService.configuredAPIKey ?? "").isEmpty {
                                             Text("Grok")
                                                 .font(.caption2.weight(.semibold))
                                                 .foregroundStyle(.yellow.opacity(0.6))
@@ -92,7 +92,7 @@ struct GoalsView: View {
                                                 .clipShape(Capsule())
                                         }
                                     }
-                                    Text("Your recent memory shows meaningful goal work. The coach can help refine targets further anytime.")
+                                    Text("Review saved notes alongside your goals; notes do not establish progress.")
                                         .font(.caption)
                                         .foregroundStyle(.white.opacity(0.8))
                                 }
@@ -122,8 +122,7 @@ struct GoalsView: View {
                         unit: "",
                         category: "general"
                     )
-                    viewModel.modelContext.insert(newGoal)
-                    try? viewModel.modelContext.save()
+                    guard viewModel.saveRecord(newGoal) else { return }
                     viewModel.goals.insert(newGoal, at: 0)
                     newGoalName = ""
                 }

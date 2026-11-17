@@ -68,6 +68,7 @@ struct JournalView: View {
 }
 
 struct NewJournalEntryView: View {
+    @Environment(LuminaViewModel.self) private var viewModel
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     
@@ -97,8 +98,7 @@ struct NewJournalEntryView: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button(L("general.save")) {
-                        saveEntry()
-                        dismiss()
+                        if saveEntry() { dismiss() }
                     }
                     .disabled(content.trimmingCharacters(in: .whitespaces).isEmpty)
                 }
@@ -106,9 +106,8 @@ struct NewJournalEntryView: View {
         }
     }
     
-    private func saveEntry() {
+    private func saveEntry() -> Bool {
         let entry = JournalEntry(content: content, mood: mood)
-        modelContext.insert(entry)
-        try? modelContext.save()
+        return viewModel.saveRecord(entry)
     }
 }

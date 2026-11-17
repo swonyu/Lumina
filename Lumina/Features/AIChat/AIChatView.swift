@@ -8,7 +8,7 @@ struct AIChatView: View {
     @State private var isLoading = false
     
     // In real app, inject this
-    private let grokService = GrokService(apiKey: ProcessInfo.processInfo.environment["XAI_API_KEY"] ?? "")
+    private let grokService = GrokService(apiKey: GrokService.configuredAPIKey ?? "")
     
     var body: some View {
         VStack {

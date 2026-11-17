@@ -99,8 +99,7 @@ struct MealLogView: View {
     private func saveMeal() {
         guard !mealName.trimmingCharacters(in: .whitespaces).isEmpty else { return }
         let log = MealLog(mealName: mealName, calories: calories, protein: protein, photoData: selectedPhotoData)
-        modelContext.insert(log)
-        try? modelContext.save()
+        guard viewModel.saveRecord(log) else { return }
         
         // Round 37: Trigger coach feedback if photo was included
         if selectedPhotoData != nil {

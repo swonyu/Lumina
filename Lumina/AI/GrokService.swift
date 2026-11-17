@@ -1,12 +1,24 @@
 import Foundation
 
 struct GrokService {
+    static var configuredAPIKey: String? {
+        #if DEBUG
+        ProcessInfo.processInfo.environment["XAI_API_KEY"]
+        #else
+        nil
+        #endif
+    }
+
     private var smartCoach: SmartGrokCoach
     private let apiKey: String
 
     init(apiKey: String = "") {
+        #if DEBUG
         self.apiKey = apiKey
-        self.smartCoach = SmartGrokCoach(apiKey: apiKey)
+        #else
+        self.apiKey = ""
+        #endif
+        self.smartCoach = SmartGrokCoach(apiKey: self.apiKey)
     }
 
     /// Preferred rich-context smart coach path (uses full LLM + memory + excellent prompts)
