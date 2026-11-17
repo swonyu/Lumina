@@ -132,6 +132,49 @@ struct PhotoImportIntegrityTests {
         #expect(saved.count == 3)
     }
 
+    @Test func retainedPhotoErrorsRelocalizeInBothDirections() async throws {
+        let suite = "Lumina-Photo-Error-Language-Test-" + UUID().uuidString
+        let preferences = try #require(UserDefaults(suiteName: suite))
+        defer { preferences.removePersistentDomain(forName: suite) }
+        let language = LocalizationManager(preferences: preferences,
+            preferredLanguages: ["ar-SA"], notificationCenter: NotificationCenter())
+        let importer = LocalPhotoImport()
+        var callbackInvoked = false
+        let failed = importer.load(using: { throw CocoaError(.fileReadNoSuchFile) },
+            isCurrentSession: { true }, onLoaded: { _ in callbackInvoked = true })
+        await failed.value
+        let failedKey = try #require(importer.errorMessage)
+        #expect(failedKey == "Could not load the selected photo. Choose another image or remove the selection.")
+        #expect(importer.data == nil && !importer.isLoading && !callbackInvoked)
+
+        let delayed = ControlledPhotoLoader()
+        let pending = importer.load(using: { try await delayed.load() },
+            isCurrentSession: { true }, onLoaded: { _ in callbackInvoked = true })
+        await delayed.waitUntilStarted()
+        importer.cancelPending()
+        let cancelledKey = try #require(importer.errorMessage)
+        #expect(cancelledKey == "Photo import was canceled. Choose the photo again or remove the selection.")
+        delayed.finish(with: .success(nil))
+        await pending.value
+        #expect(importer.errorMessage == cancelledKey)
+        #expect(importer.data == nil && !importer.isLoading && !callbackInvoked)
+
+        // Both production views pass these retained keys to localization when
+        // rendering. Exercise the actual catalogs without changing shared app
+        // preferences or racing tests that use LocalizationManager.shared.
+        for selectedLanguage in [AppLanguage.arabic, .english, .arabic, .english] {
+            language.setLanguage(selectedLanguage)
+            let arabic = selectedLanguage == .arabic
+            #expect(language.localized(failedKey) == (arabic
+                ? "تعذر تحميل الصورة المحددة. اختر صورة أخرى أو أزل التحديد."
+                : "Could not load the selected photo. Choose another image or remove the selection."))
+            #expect(language.localized(cancelledKey) == (arabic
+                ? "أُلغي استيراد الصورة. اخترها مرة أخرى أو أزل التحديد."
+                : "Photo import was canceled. Choose the photo again or remove the selection."))
+        }
+        #expect(importer.errorMessage == cancelledKey && importer.data == nil)
+    }
+
     /// Real image fixtures keep the cancellation cases meaningful after the
     /// production import boundary starts rejecting arbitrary non-image bytes.
     private func photo(_ seed: UInt8, width: Int = 32, height: Int = 32,

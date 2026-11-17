@@ -1,0 +1,34 @@
+{
+  "status": "SOURCE_AND_CATALOG_TRACE_ONLY_NOT_NATIVE_EXECUTION",
+  "parent_commit": "74fef9d156edd897e3553112ea7ff63b03611320",
+  "finding": "Retained photo error text remains Arabic after switching to English when eager localization happened in Arabic.",
+  "cases": [
+    {
+      "key": "Could not load the selected photo. Choose another image or remove the selection.",
+      "arabic_catalog_value": "تعذر تحميل الصورة المحددة. اختر صورة أخرى أو أزل التحديد.",
+      "parent_value_stored_after_arabic_error": "تعذر تحميل الصورة المحددة. اختر صورة أخرى أو أزل التحديد.",
+      "parent_value_rendered_after_english_switch": "تعذر تحميل الصورة المحددة. اختر صورة أخرى أو أزل التحديد.",
+      "corrected_value_rendered_after_english_switch": "Could not load the selected photo. Choose another image or remove the selection.",
+      "old_wrong_language_from_source_trace": true
+    },
+    {
+      "key": "Photo import was canceled. Choose the photo again or remove the selection.",
+      "arabic_catalog_value": "أُلغي استيراد الصورة. اخترها مرة أخرى أو أزل التحديد.",
+      "parent_value_stored_after_arabic_error": "أُلغي استيراد الصورة. اخترها مرة أخرى أو أزل التحديد.",
+      "parent_value_rendered_after_english_switch": "أُلغي استيراد الصورة. اخترها مرة أخرى أو أزل التحديد.",
+      "corrected_value_rendered_after_english_switch": "Photo import was canceled. Choose the photo again or remove the selection.",
+      "old_wrong_language_from_source_trace": true
+    }
+  ],
+  "all_original_photo_test_bytes_retained": true,
+  "all_original_unit_methods_retained": true,
+  "previous_unit_method_count": 61,
+  "current_unit_method_count": 62,
+  "ui_suite_byte_identical": true,
+  "new_native_selector": "LuminaTests/PhotoImportIntegrityTests/retainedPhotoErrorsRelocalizeInBothDirections()",
+  "native_tests_executed": false,
+  "changed_source_sha256": {
+    "Lumina/LocalPhotoImport.swift": "1cededf6d23b6c2a345ee0e78e7e9e23cf4c56964b966184443fe9d72d0dc86d",
+    "LuminaTests/PhotoImportIntegrityTests.swift": "2b729ccf230999b79c6aeaf191fca2e8d74a1be6f701d0bf32494700d141e968"
+  }
+}

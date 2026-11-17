@@ -8,6 +8,8 @@ import Observation
 final class LocalPhotoImport {
     private(set) var data: Data?
     private(set) var isLoading = false
+    // Keep the catalog key until the view renders it. A language change must
+    // also update an error retained with the existing photo selection.
     private(set) var errorMessage: String?
 
     @ObservationIgnored private var requestID: UUID?
@@ -68,7 +70,7 @@ final class LocalPhotoImport {
                 }
                 self.isLoading = false
                 self.pendingTask = nil
-                self.errorMessage = L("Could not load the selected photo. Choose another image or remove the selection.")
+                self.errorMessage = "Could not load the selected photo. Choose another image or remove the selection."
             }
         }
         pendingTask = task
@@ -83,7 +85,7 @@ final class LocalPhotoImport {
         pendingTask = nil
         requestID = nil
         isLoading = false
-        errorMessage = L("Photo import was canceled. Choose the photo again or remove the selection.")
+        errorMessage = "Photo import was canceled. Choose the photo again or remove the selection."
     }
 
     func clear() {
