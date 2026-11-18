@@ -53,9 +53,16 @@ final class FoundationModelCoachGenerator: OnDeviceCoachGenerating {
             }
             try Task.checkCancellation()
             let session = LanguageModelSession(model: model, instructions: instructions)
-            let response = try await session.respond(to: prompt,
-                options: GenerationOptions(samplingMode: nil, temperature: nil,
-                    maximumResponseTokens: CoachModelRequest.maximumResponseTokens))
+            // Bundled Xcode 27 toolchains use Swift 6.4 and the renamed API.
+            // Xcode 26 must not type-check symbols absent from its SDK.
+            #if compiler(>=6.4)
+            let options = GenerationOptions(samplingMode: nil, temperature: nil,
+                maximumResponseTokens: CoachModelRequest.maximumResponseTokens)
+            #else
+            let options = GenerationOptions(sampling: nil, temperature: nil,
+                maximumResponseTokens: CoachModelRequest.maximumResponseTokens)
+            #endif
+            let response = try await session.respond(to: prompt, options: options)
             try Task.checkCancellation()
             return response.content
         } catch {
@@ -67,6 +74,8 @@ final class FoundationModelCoachGenerator: OnDeviceCoachGenerating {
 
     static func mapFailure(_ error: Error) -> CoachGenerationFailure {
         if let failure = error as? CoachGenerationFailure { return failure }
+        // The new error types require an Xcode 27 SDK as well as iOS 27.
+        #if compiler(>=6.4)
         if #available(iOS 27.0, *) {
             if let error = error as? LanguageModelError {
                 switch error {
@@ -88,11 +97,17 @@ final class FoundationModelCoachGenerator: OnDeviceCoachGenerating {
         } else {
             return mapLegacyFailure(error)
         }
+        #else
+        // Apps linked with Xcode 26 continue receiving GenerationError even
+        // when they run on iOS 27, until rebuilt with the newer SDK.
+        return mapLegacyFailure(error)
+        #endif
     }
 
-    // Explicitly bounded to iOS 26 so Xcode 27 does not ship the obsolete
-    // error contract on newer systems, or introduce deprecation warnings.
+    // Only Xcode 27 builds switch error contracts at the iOS 27 boundary.
+    #if compiler(>=6.4)
     @available(iOS, introduced: 26.0, obsoleted: 27.0)
+    #endif
     private static func mapLegacyFailure(_ error: Error) -> CoachGenerationFailure {
         guard let error = error as? LanguageModelSession.GenerationError else { return .failed }
         switch error {
