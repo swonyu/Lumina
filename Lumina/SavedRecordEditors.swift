@@ -157,10 +157,16 @@ struct GoalRecordEditor: View {
     private var goalFields: some View {
         Section(L("Your goal")) {
             TextField(L("Goal name"), text: $draft.name).accessibilityIdentifier("lumina.goal.name")
-            TextField(L("Current value"), text: $draft.current).keyboardType(.decimalPad)
-                .accessibilityIdentifier("lumina.goal.current")
-            TextField(L("Target value"), text: $draft.target).keyboardType(.decimalPad)
-                .accessibilityIdentifier("lumina.goal.target")
+            VStack(alignment: .leading, spacing: 6) {
+                RecordFieldLabel(title: "Current value", identifier: "lumina.goal.current-label")
+                TextField(L("Current value"), text: $draft.current).keyboardType(.decimalPad)
+                    .accessibilityIdentifier("lumina.goal.current")
+            }
+            VStack(alignment: .leading, spacing: 6) {
+                RecordFieldLabel(title: "Target value", identifier: "lumina.goal.target-label")
+                TextField(L("Target value"), text: $draft.target).keyboardType(.decimalPad)
+                    .accessibilityIdentifier("lumina.goal.target")
+            }
             TextField(L("Unit"), text: $draft.unit)
             TextField(L("Category"), text: $draft.category)
             Text(L("Enter your own current value and a positive target. The ratio is a record of those numbers; Lumina does not measure progress for you."))

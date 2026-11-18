@@ -977,6 +977,13 @@ final class LuminaUITests: XCTestCase {
         try replaceShortNumericRecordField(target, with: "5", in: app)
         XCTAssertEqual(Double(current.value as? String ?? ""), 2)
         XCTAssertEqual(Double(target.value as? String ?? ""), 5)
+
+        _ = try assertGoalValueWhileEditing(app, fieldKey: "current", label: "Current value",
+                                            value: "2", editorTitle: "New goal",
+                                            state: "English new goal", scrollDown: true)
+        _ = try assertGoalValueWhileEditing(app, fieldKey: "target", label: "Target value",
+                                            value: "5", editorTitle: "New goal",
+                                            state: "English new goal")
         try tapRecordControl(try recordLeafButton("lumina.record.save", in: app), in: app)
         try tapRecordControl(app.buttons["Edit goal Fixture goal"], in: app)
         XCTAssertEqual(Double(app.textFields["lumina.goal.current"].value as? String ?? ""), 2)
@@ -1015,6 +1022,121 @@ final class LuminaUITests: XCTestCase {
         try tapRecordControl(app.buttons["Edit goal Fractional fixture goal"], in: app)
         XCTAssertEqual(app.textFields["lumina.goal.current"].value as? String, "0.125")
         XCTAssertEqual(app.textFields["lumina.goal.target"].value as? String, "0.25")
+
+
+        // Preserve the existing stored-fraction journey, then cover both
+        // persistent labels with the real keyboard in EN/AR and at AX5.
+        let standardArguments = app.launchArguments
+        let standardEnglishCurrentHeight = try assertGoalValueWhileEditing(
+            app, fieldKey: "current", label: "Current value", value: "0.125",
+            editorTitle: "Edit goal", state: "English saved goal after relaunch")
+        let standardEnglishTargetHeight = try assertGoalValueWhileEditing(
+            app, fieldKey: "target", label: "Target value", value: "0.25",
+            editorTitle: "Edit goal", state: "English saved goal after relaunch")
+
+        app.terminate()
+        app.launchArguments = standardArguments + ["-UIPreferredContentSizeCategoryName",
+            UIContentSizeCategory.accessibilityExtraExtraExtraLarge.rawValue]
+        app.launch()
+        XCTAssertTrue(app.staticTexts["lumina.qa-store"].waitForExistence(timeout: 15))
+        try openRecordHomeLink("Goals", in: app)
+        try tapRecordControl(app.buttons["Edit goal Fractional fixture goal"], in: app)
+        let largeEnglishCurrentHeight = try assertGoalValueWhileEditing(
+            app, fieldKey: "current", label: "Current value", value: "0.125",
+            editorTitle: "Edit goal", state: "English saved goal at AX5")
+        XCTAssertGreaterThan(largeEnglishCurrentHeight, standardEnglishCurrentHeight,
+                             "The visible current-value label must grow with Dynamic Type")
+        let largeEnglishTargetHeight = try assertGoalValueWhileEditing(
+            app, fieldKey: "target", label: "Target value", value: "0.25",
+            editorTitle: "Edit goal", state: "English saved goal at AX5")
+        XCTAssertGreaterThan(largeEnglishTargetHeight, standardEnglishTargetHeight,
+                             "The visible target-value label must grow with Dynamic Type")
+
+        // Use the existing real language control at the original text size.
+        // No goal values are written while taking these evidence captures.
+        app.terminate()
+        app.launchArguments = standardArguments
+        app.launch()
+        XCTAssertTrue(app.staticTexts["lumina.qa-store"].waitForExistence(timeout: 15))
+        try tapRecordControl(app.buttons["lumina.settings"], in: app)
+        try selectAppLanguage("العربية", in: app)
+        app.terminate(); app.launch()
+        XCTAssertTrue(app.staticTexts["lumina.qa-store"].waitForExistence(timeout: 15))
+        XCTAssertTrue(app.staticTexts["يومياتك"].waitForExistence(timeout: 5))
+        try openRecordHomeLink("الأهداف", in: app)
+        try tapRecordControl(app.buttons["تعديل الهدف Fractional fixture goal"], in: app)
+        let standardArabicCurrentHeight = try assertGoalValueWhileEditing(
+            app, fieldKey: "current", label: "القيمة الحالية", value: "0٫125",
+            editorTitle: "تعديل الهدف", state: "Arabic saved goal after relaunch")
+        let standardArabicTargetHeight = try assertGoalValueWhileEditing(
+            app, fieldKey: "target", label: "القيمة المستهدفة", value: "0٫25",
+            editorTitle: "تعديل الهدف", state: "Arabic saved goal after relaunch")
+
+        app.terminate()
+        app.launchArguments = standardArguments + ["-UIPreferredContentSizeCategoryName",
+            UIContentSizeCategory.accessibilityExtraExtraExtraLarge.rawValue]
+        app.launch()
+        XCTAssertTrue(app.staticTexts["lumina.qa-store"].waitForExistence(timeout: 15))
+        XCTAssertTrue(app.staticTexts["يومياتك"].waitForExistence(timeout: 5))
+        try openRecordHomeLink("الأهداف", in: app)
+        try tapRecordControl(app.buttons["تعديل الهدف Fractional fixture goal"], in: app)
+        let largeArabicCurrentHeight = try assertGoalValueWhileEditing(
+            app, fieldKey: "current", label: "القيمة الحالية", value: "0٫125",
+            editorTitle: "تعديل الهدف", state: "Arabic saved goal at AX5")
+        XCTAssertGreaterThan(largeArabicCurrentHeight, standardArabicCurrentHeight,
+                             "The visible Arabic current-value label must grow with Dynamic Type")
+        let largeArabicTargetHeight = try assertGoalValueWhileEditing(
+            app, fieldKey: "target", label: "القيمة المستهدفة", value: "0٫25",
+            editorTitle: "تعديل الهدف", state: "Arabic saved goal at AX5")
+        XCTAssertGreaterThan(largeArabicTargetHeight, standardArabicTargetHeight,
+                             "The visible Arabic target-value label must grow with Dynamic Type")
+    }
+
+    @MainActor
+    private func assertGoalValueWhileEditing(_ app: XCUIApplication, fieldKey: String,
+                                              label: String, value: String,
+                                              editorTitle: String, state: String,
+                                              scrollDown: Bool = false) throws -> CGFloat {
+        let field = app.textFields["lumina.goal.\(fieldKey)"]
+        try tapRecordControl(field, in: app, scrollDown: scrollDown)
+        let keyboard = app.keyboards.firstMatch
+        let keyboardAppeared = keyboard.waitForExistence(timeout: 5)
+        let labels = app.staticTexts.matching(identifier: "lumina.goal.\(fieldKey)-label")
+        let persistent = labels.firstMatch
+        let navigationBar = app.navigationBars[editorTitle]
+        let window = app.windows.firstMatch.frame
+        // Retain the original screen and actual AX/frame operands before an
+        // assertion can stop the case. These are observations, not fixtures.
+        let evidence = XCTAttachment(string: "State: \(state)\nField: \(fieldKey)\n"
+            + "Window: \(window)\nNavigation: \(navigationBar.frame)\n"
+            + "Label: \(persistent.frame) \(persistent.label)\n"
+            + "Value: \(field.frame) \(field.value as? String ?? "")\n"
+            + "Keyboard appeared: \(keyboardAppeared) \(keyboard.frame)\n"
+            + app.debugDescription)
+        evidence.name = "\(state) \(fieldKey) — original goal AX and geometry"
+        evidence.lifetime = .keepAlways
+        add(evidence)
+        attachRecordScreenshot(app, "\(state) \(fieldKey) — populated label and keyboard")
+        XCTAssertTrue(keyboardAppeared, "Observe the real keyboard before checking goal-field bounds")
+        XCTAssertEqual(labels.count, 1, "Resolve the unique persistent label, not a field placeholder")
+        XCTAssertTrue(persistent.exists && persistent.isHittable)
+        XCTAssertTrue(field.exists && field.isHittable)
+        XCTAssertTrue(navigationBar.exists)
+        XCTAssertEqual(persistent.label, label)
+        XCTAssertEqual(field.label, label, "The original accessible field name must remain intact")
+        XCTAssertEqual(field.value as? String, value, "The saved or typed numeric draft must remain exact")
+        for element in [persistent, field, keyboard, navigationBar] {
+            XCTAssertGreaterThan(element.frame.width, 0)
+            XCTAssertGreaterThan(element.frame.height, 0)
+            XCTAssertTrue(window.contains(element.frame), "The complete observed control must fit in the native window")
+        }
+        XCTAssertGreaterThanOrEqual(persistent.frame.minY, navigationBar.frame.maxY,
+                                    "The navigation bar must not cover the persistent goal label")
+        XCTAssertLessThanOrEqual(persistent.frame.maxY, field.frame.minY,
+                                 "The persistent goal label must remain above its value")
+        XCTAssertLessThanOrEqual(field.frame.maxY, keyboard.frame.minY,
+                                 "The keyboard must not cover the populated goal value or its label")
+        return persistent.frame.height
     }
 
     @MainActor
