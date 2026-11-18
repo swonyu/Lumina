@@ -1,0 +1,15 @@
+{
+  "account_billing_details_included": false,
+  "caches_allowed": false,
+  "extra_spending_permitted": false,
+  "maximum_artifact_bytes": 500000000,
+  "original_evidence_may_be_omitted": false,
+  "private_verification_receipt_sha256": "f349cc423b96b58e63f5a88c69701cd89fdab8fdda1587787b275761f69c9bcf",
+  "public_standard_runner_only": true,
+  "quota_refusal_is_failure": true,
+  "repository": "swonyu/Lumina",
+  "retention_days": 1,
+  "schema_version": 1,
+  "status": "ZERO_EXTRA_SPEND_VERIFIED",
+  "usage_blocked_at_zero_budget": true
+}
