@@ -104,8 +104,17 @@ extension LuminaViewModel {
             throw LocalRecordEditError.invalid(L("This store is read-only. Your draft has been kept."))
         }
         if modelContext.hasChanges { try modelContext.save() }
-        do { try modelContext.transaction { try changes() } }
-        catch { modelContext.rollback(); throw error }
+        do {
+            try changes()
+            // Coalesce synchronous model mutations before saving or rolling back.
+            // A throwing edit must not leave changed values in registered models.
+            modelContext.processPendingChanges()
+            try modelContext.save()
+        } catch {
+            modelContext.processPendingChanges()
+            modelContext.rollback()
+            throw error
+        }
         invalidateWorkoutsCache()
         invalidateHabitsCache()
     }

@@ -2154,7 +2154,11 @@ final class LuminaUITests: XCTestCase {
         let initialEmptyValue = try XCTUnwrap(input.value as? String)
         XCTAssertFalse(send.isEnabled)
         input.tap()
-        input.typeText("How am I doing?")
+        // Deliver each original character through the native input path before
+        // checking the complete question; no retry or punctuation substitution.
+        for character in "How am I doing?" {
+            input.typeText(String(character))
+        }
         XCTAssertEqual(input.value as? String, "How am I doing?")
         XCTAssertTrue(send.isEnabled)
         XCTAssertTrue(send.isHittable)
@@ -2246,7 +2250,8 @@ final class LuminaUITests: XCTestCase {
         let send = app.buttons["lumina.coach.send"]
         XCTAssertTrue(send.isHittable && send.isEnabled)
         send.tap()
-        let arabicReply = app.staticTexts["يمكنك مراجعة سجلاتك في التمارين وتسجيل تمرين أكملته بالفعل. أدخل المجموعات والتكرارات والأوزان التي تعرفها، واترك القيم غير المعروفة فارغة. لا يحدد هذا الرد المحلي ما إذا كان عليك التمرين أو شدة تدريبك."]
+        let arabicReply = app.staticTexts.matching(NSPredicate(format: "label == %@",
+            "يمكنك مراجعة سجلاتك في التمارين وتسجيل تمرين أكملته بالفعل. أدخل المجموعات والتكرارات والأوزان التي تعرفها، واترك القيم غير المعروفة فارغة. لا يحدد هذا الرد المحلي ما إذا كان عليك التمرين أو شدة تدريبك.")).element
         XCTAssertTrue(arabicReply.waitForExistence(timeout: 10),
                       "The existing UI-QA fallback must use the selected Arabic language")
         XCTAssertTrue(app.staticTexts["إرشاد دون اتصال · قواعد محلية"].exists)

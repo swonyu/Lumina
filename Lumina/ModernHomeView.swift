@@ -49,7 +49,7 @@ struct ModernHomeView: View {
                             NavigationLink(L("Training suggestions")) { AdaptivePlanView() }
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .buttonStyle(.bordered)
+                        .buttonStyle(HomeJournalActionStyle())
                         .controlSize(.large)
                     }
                     Text(L("Earlier prototype versions added sample records. Review existing entries before treating them as your own measurements."))
@@ -73,5 +73,18 @@ struct ModernHomeView: View {
             }
             .task { await viewModel.fetchRecentHealthData() }
         }
+    }
+}
+
+// Opaque foreground/background keep every journal action legible independently
+// of translucent system materials. Native button semantics and labels remain.
+private struct HomeJournalActionStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .foregroundStyle(Color.black)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 12)
+            .frame(minHeight: 44)
+            .background(Color.white, in: RoundedRectangle(cornerRadius: 14))
     }
 }

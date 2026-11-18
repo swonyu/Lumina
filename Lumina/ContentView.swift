@@ -16,7 +16,7 @@ struct ContentView: View {
             WorkoutLogView()
                 .tabItem { Label(L("tab.workouts"), systemImage: "figure.strengthtraining.traditional") }
                 .tag(1)
-            MealLogView()
+            NavigationStack { MealLogView() }
                 .tabItem { Label(L("tab.nutrition"), systemImage: "fork.knife") }
                 .tag(2)
             RealAIChatView()

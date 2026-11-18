@@ -160,11 +160,13 @@ struct GoalRecordEditor: View {
             VStack(alignment: .leading, spacing: 6) {
                 RecordFieldLabel(title: "Current value", identifier: "lumina.goal.current-label")
                 TextField(L("Current value"), text: $draft.current).keyboardType(.decimalPad)
+                    .accessibilityLabel(L("Current value"))
                     .accessibilityIdentifier("lumina.goal.current")
             }
             VStack(alignment: .leading, spacing: 6) {
                 RecordFieldLabel(title: "Target value", identifier: "lumina.goal.target-label")
                 TextField(L("Target value"), text: $draft.target).keyboardType(.decimalPad)
+                    .accessibilityLabel(L("Target value"))
                     .accessibilityIdentifier("lumina.goal.target")
             }
             TextField(L("Unit"), text: $draft.unit)
