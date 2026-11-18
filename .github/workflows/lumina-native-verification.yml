@@ -1,0 +1,127 @@
+name: Lumina full native verification
+
+on:
+  push:
+    branches:
+      - continuation/publishing-r23-remote-ci-v9-d57
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lumina-native-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  full-native-evidence:
+    if: github.repository == 'swonyu/Lumina' && github.event.repository.private == false
+    runs-on: macos-26
+    timeout-minutes: 90
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+    steps:
+      - name: Check out reviewed workflow control
+        timeout-minutes: 1
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2, verified public tag
+        with:
+          path: control
+          persist-credentials: false
+          fetch-depth: 1
+          submodules: false
+          lfs: false
+
+      - name: Verify source, free delivery policy and fresh hosted VM
+        timeout-minutes: 3
+        id: prepare
+        shell: bash
+        env:
+          LUMINA_RUNNER_ENVIRONMENT: ${{ runner.environment }}
+        run: python3 control/publishing/remote-ci/remote_ci.py prepare --control-root "$GITHUB_WORKSPACE/control"
+
+      - name: Run exact 69 unit and 21 UI cases, unsigned archive and verifier
+        timeout-minutes: 76
+        id: native
+        shell: bash
+        env:
+          LUMINA_RUNNER_ENVIRONMENT: ${{ runner.environment }}
+        run: python3 control/publishing/remote-ci/remote_ci.py run --control-root "$GITHUB_WORKSPACE/control"
+
+      - name: Preserve and verify complete original evidence
+        timeout-minutes: 4
+        if: ${{ always() && steps.prepare.outputs.prepared == 'true' }}
+        id: collect
+        shell: bash
+        env:
+          LUMINA_RUNNER_ENVIRONMENT: ${{ runner.environment }}
+          LUMINA_NATIVE_STEP_OUTCOME: ${{ steps.native.outcome }}
+        run: python3 control/publishing/remote-ci/remote_ci.py collect --control-root "$GITHUB_WORKSPACE/control"
+
+      - name: Retain complete evidence for one day within the zero-spend cap
+        timeout-minutes: 3
+        if: ${{ always() && steps.collect.outputs.upload_allowed == 'true' }}
+        id: upload
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2, verified public tag
+        with:
+          name: lumina-native-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ steps.collect.outputs.evidence_directory }}
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0
+
+      - name: Preserve separate incomplete diagnostics after preparation or collection failure
+        if: ${{ always() && steps.prepare.outputs.preparation_evidence_ready == 'true' && steps.collect.outcome != 'success' }}
+        id: diagnostics
+        timeout-minutes: 2
+        shell: bash
+        env:
+          LUMINA_RUNNER_ENVIRONMENT: ${{ runner.environment }}
+        run: python3 control/publishing/remote-ci/remote_ci.py diagnostics --control-root "$GITHUB_WORKSPACE/control"
+
+      - name: Retain incomplete diagnostic artifact without satisfying release gates
+        if: ${{ always() && steps.diagnostics.outputs.diagnostic_upload_allowed == 'true' }}
+        id: diagnostic_upload
+        timeout-minutes: 3
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2, verified public tag
+        with:
+          name: lumina-INCOMPLETE-diagnostics-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ steps.diagnostics.outputs.diagnostic_archive_path }}
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0
+
+      - name: Require native completion and actual artifact receipt
+        timeout-minutes: 1
+        if: ${{ always() }}
+        shell: bash
+        env:
+          PREPARE_OUTCOME: ${{ steps.prepare.outcome }}
+          NATIVE_OUTCOME: ${{ steps.native.outcome }}
+          COLLECT_OUTCOME: ${{ steps.collect.outcome }}
+          UPLOAD_OUTCOME: ${{ steps.upload.outcome }}
+          NATIVE_GATE_PASSED: ${{ steps.collect.outputs.native_gate_passed }}
+          SOURCE_COMMIT: ${{ steps.prepare.outputs.candidate_commit }}
+          ARCHIVE_SHA256: ${{ steps.collect.outputs.archive_sha256 }}
+          ARCHIVE_BYTES: ${{ steps.collect.outputs.archive_bytes }}
+          ARTIFACT_ID: ${{ steps.upload.outputs.artifact-id }}
+          ARTIFACT_URL: ${{ steps.upload.outputs.artifact-url }}
+          ARTIFACT_DIGEST: ${{ steps.upload.outputs.artifact-digest }}
+        run: |
+          python3 - <<'PY'
+          import json, os, re
+          values = {key: os.environ.get(key, "") for key in (
+              "PREPARE_OUTCOME", "NATIVE_OUTCOME", "COLLECT_OUTCOME", "UPLOAD_OUTCOME",
+              "NATIVE_GATE_PASSED", "SOURCE_COMMIT", "ARCHIVE_SHA256", "ARCHIVE_BYTES",
+              "ARTIFACT_ID", "ARTIFACT_URL", "ARTIFACT_DIGEST")}
+          passed = (all(values[k] == "success" for k in ("PREPARE_OUTCOME", "NATIVE_OUTCOME", "COLLECT_OUTCOME", "UPLOAD_OUTCOME"))
+                    and values["NATIVE_GATE_PASSED"] == "true"
+                    and re.fullmatch(r"[0-9]+", values["ARTIFACT_ID"]) is not None
+                    and re.fullmatch(r"[a-f0-9]{64}", values["ARCHIVE_SHA256"]) is not None
+                    and re.fullmatch(r"[a-f0-9]{64}", values["ARTIFACT_DIGEST"]) is not None)
+          receipt = {**values, "native_and_upload_gate_passed": passed,
+                     "download_and_original_screenshot_review": "PENDING",
+                     "store_release": False, "retention_days": 1}
+          print(json.dumps(receipt, indent=2))
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as stream:
+              stream.write("### Lumina native evidence receipt\n\n```json\n" + json.dumps(receipt, indent=2) + "\n```\n")
+          raise SystemExit(0 if passed else 1)
+          PY
