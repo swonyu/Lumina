@@ -1,0 +1,60 @@
+{
+  "Mac_hold_unchanged": true,
+  "UI_tests": 21,
+  "acceptance_requires": [
+    "All90 exact leaves pass once on the owned simulator, zero skips/failures.",
+    "Actual unsigned production archive and existing verifier pass, source stays unchanged, owned cleanup is verified.",
+    "Complete original evidence passes size/retention limits and actual upload, then root download/hash/index/PNG review."
+  ],
+  "actual_artifact_delivery": "UNRUN",
+  "allowed_binding_changes": [
+    "native_authorization",
+    "native_review_receipt_sha256",
+    "status"
+  ],
+  "artifact_retention_days": 1,
+  "authorization_basis": "Owner authorized continuing, fixing, retesting and safe checkpoints for Lumina within the existing extended deadline and zero extra spend.",
+  "bound_README_sha256": "430711f2fccc68c11ae72ba201c839c28e456e29d39269329e91a4125ebefa69",
+  "connected_Mac_native_permission": false,
+  "coordinator": "four-app-publishing-recovery-d57f4cd77813",
+  "cost_policy_sha256": "3aa37ebfb26c067621f37da69679bb39d8108c41e1e02db0d4e040a47fb7b367",
+  "deadline_utc": "2026-11-18T22:26:12Z",
+  "device": "iPhone17Pro",
+  "disposition": "ROOT_REVIEWED_GITHUB_VM_ONLY",
+  "extra_spending_permitted": false,
+  "file_only_tests_observed_by_author": {
+    "runner_contracts": 4,
+    "wrapper_boundaries": 9
+  },
+  "focused_filters": false,
+  "independent_peer_receipt_sha256": "b2d753bd0b1f8f014724a27bae39c0bbb51fd66aa6699de798ec8fb88d07252b",
+  "maximum_complete_artifact_bytes": 500000000,
+  "maximum_native_minutes": 45,
+  "native_inputs": 120,
+  "native_pass": false,
+  "pre_binding_candidate_sha256": "dac614b1aac55ddc34316234a0c8816f9d3746615eb87f1905cd21d54e511259",
+  "private_cost_verification_receipt_sha256": "b375f7e421f5ce9cab7930ea02028364550bc14db1a0781f286161cde7f5789c",
+  "public_baseline_runner_sha256": "0e7af7af455b34b1b90606f7412d4cb57fbdcee58c2953191e2d21e05bafd109",
+  "recorded_utc": "2026-11-18T01:48:09.647142+00:00",
+  "repository": "swonyu/Lumina",
+  "retries": false,
+  "root_review_scope": [
+    "Full runner delta, exact test-evidence validation, full test command, production archive/verifier, hosted path entry guard and main cleanup/status flow.",
+    "All workflow steps and accepted v2 wrapper with runner-pin-only successor delta.",
+    "Independent full12-file/source190/blob-mode review and original evidence/zero-spend policy."
+  ],
+  "runner_is_distinct_from_unavailable_a4ad": true,
+  "runner_sha256": "34e08ce5750862748f22fef8b39f347cf2d480fca7a847540c41254ca0d0cf9b",
+  "runtime": "iOS26.5",
+  "schema_version": 1,
+  "skip_production": false,
+  "source_commit": "c9602a06713911ce64847b6e6b582639bb9c4a5b",
+  "source_inputs": 190,
+  "source_proposal_receipt_sha256": "95a90ee682332c7320bb3880389adc3c8f34589006ea32e4b8d99b41f0137775",
+  "source_tree": "c3ac74e8316ccc492adcd70737eda642f6231513",
+  "standard_runner": "macos-26",
+  "store_release": false,
+  "unit_tests": 69,
+  "workflow_branch": "continuation/publishing-r22-remote-ci-d57",
+  "xcode_build": "17F42"
+}
